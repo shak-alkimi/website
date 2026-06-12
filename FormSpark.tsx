@@ -41,6 +41,35 @@ const validateEmail = (email) => {
     return emailRegex.test(String(email).toLowerCase())
 }
 
+// Replaces the deprecated `defaultProps` (removed for function components in React 19)
+const DEFAULT_VALUES: any = {
+    fontSize: 16,
+    fontFamily: "Inter",
+    fontWeight: 400,
+    padding: 15,
+    paddingTop: 15,
+    paddingBottom: 15,
+    paddingLeft: 15,
+    paddingRight: 15,
+    borderRadius: 8,
+    topLeftRadius: 8,
+    topRightRadius: 8,
+    bottomRightRadius: 8,
+    bottomLeftRadius: 8,
+    gap: 15,
+    layout: "horizontal",
+    nameField: { value: undefined, placeholder: "Name" },
+    email: { value: undefined, placeholder: "Email" },
+    message: { value: undefined, placeholder: "Message" },
+    inputs: {
+        fill: "#EBEBEB",
+        color: "#000",
+        placeholderColor: "rgba(0, 0, 0, 0.5)",
+        error: "#EE4444",
+    },
+    button: { label: "Sign Up", fontWeight: 600, fill: "#000", color: "#FFF" },
+}
+
 /**
  * FORMSPARK
  *
@@ -50,8 +79,10 @@ const validateEmail = (email) => {
  * @framerSupportedLayoutWidth fixed
  * @framerSupportedLayoutHeight fixed
  */
-const FormSpark: ComponentType<Props> = withCSS<Props>(
-    function FormSpark({
+const FormSpark: ComponentType<Props> = withCSS<Props>(function FormSpark(
+    rawProps: Props
+) {
+    const {
         formId,
         withName,
         nameField: name,
@@ -66,7 +97,7 @@ const FormSpark: ComponentType<Props> = withCSS<Props>(
         gap,
         onSubmit,
         ...props
-    }) {
+    } = { ...DEFAULT_VALUES, ...rawProps }
         const [nameValue, setName] = useState(name?.value)
         const [emailValue, setEmail] = useState(email?.value)
         const [messageValue, setMessage] = useState(message?.value)
@@ -75,6 +106,7 @@ const FormSpark: ComponentType<Props> = withCSS<Props>(
         const [isMessageError, setMessageError] = useState(false)
         const [isLoading, setLoading] = useState(false)
         const [isSuccess, setSuccess] = useState(false)
+        const [isError, setError] = useState(false)
 
         const isCanvas = useMemo(() => {
             return RenderTarget.current() === RenderTarget.canvas
@@ -150,6 +182,7 @@ const FormSpark: ComponentType<Props> = withCSS<Props>(
         const handleSubmit = useCallback(
             (event: any) => {
                 setLoading(true)
+                setError(false)
                 event.preventDefault()
 
                 if (validateForm()) {
@@ -166,11 +199,19 @@ const FormSpark: ComponentType<Props> = withCSS<Props>(
                         },
                         body: JSON.stringify(entries),
                     })
-                        .then(() => {
-                            setSuccess(true)
-                            onSubmit()
+                        .then((response) => {
+                            if (response.ok) {
+                                setSuccess(true)
+                                onSubmit?.()
+                            } else {
+                                setLoading(false)
+                                setError(true)
+                            }
                         })
-                        .catch(() => setLoading(false))
+                        .catch(() => {
+                            setLoading(false)
+                            setError(true)
+                        })
                 }
             },
             [formId, onSubmit, validateForm]
@@ -263,6 +304,9 @@ const FormSpark: ComponentType<Props> = withCSS<Props>(
                                         className="framer-formspark-input"
                                         type="text"
                                         name="name"
+                                        aria-label={
+                                            name.placeholder || "Name"
+                                        }
                                         placeholder={name.placeholder}
                                         value={
                                             isCanvas ? name.value : nameValue
@@ -290,6 +334,9 @@ const FormSpark: ComponentType<Props> = withCSS<Props>(
                                         className="framer-formspark-input"
                                         type="email"
                                         name="email"
+                                        aria-label={
+                                            email.placeholder || "Email"
+                                        }
                                         placeholder={email.placeholder}
                                         value={
                                             isCanvas ? email.value : emailValue
@@ -319,6 +366,7 @@ const FormSpark: ComponentType<Props> = withCSS<Props>(
                                 className="framer-formspark-input"
                                 placeholder={message.placeholder}
                                 name="message"
+                                aria-label={message.placeholder || "Message"}
                                 value={isCanvas ? message.value : messageValue}
                                 onChange={handleMessageChange}
                                 style={{
@@ -403,6 +451,19 @@ const FormSpark: ComponentType<Props> = withCSS<Props>(
                                     </motion.div>
                                 </div>
                             )}
+                            {isError && (
+                                <p
+                                    role="alert"
+                                    style={{
+                                        color: inputs.error,
+                                        fontFamily,
+                                        fontSize,
+                                        margin: "8px 0 0",
+                                    }}
+                                >
+                                    Something went wrong — please try again.
+                                </p>
+                            )}
                         </div>
                     </form>
                 )}
@@ -413,39 +474,6 @@ const FormSpark: ComponentType<Props> = withCSS<Props>(
         ".framer-formspark-input::placeholder { color: var(--framer-formspark-placeholder-color) !important; }",
     ]
 )
-
-FormSpark.defaultProps = {
-    fontSize: 16,
-    fontFamily: "Inter",
-    fontWeight: 400,
-    padding: 15,
-    paddingTop: 15,
-    paddingBottom: 15,
-    paddingLeft: 15,
-    paddingRight: 15,
-    borderRadius: 8,
-    topLeftRadius: 8,
-    topRightRadius: 8,
-    bottomRightRadius: 8,
-    bottomLeftRadius: 8,
-    gap: 15,
-    nameField: { value: undefined, placeholder: "Name" },
-    email: { value: undefined, placeholder: "Email" },
-    message: { value: undefined, placeholder: "Message" },
-    inputs: {
-        fill: "#EBEBEB",
-        color: "#000",
-        placeholderColor: "rgba(0, 0, 0, 0.5)",
-        error: "#EE4444",
-    },
-    layout: {
-        fill: "#EBEBEB",
-        color: "#000",
-        placeholderColor: "rgba(0, 0, 0, 0.5)",
-        error: "#EE4444",
-    },
-    button: { label: "Sign Up", fontWeight: 600, fill: "#000", color: "#FFF" },
-} as any
 
 addPropertyControls(FormSpark, {
     formId: {

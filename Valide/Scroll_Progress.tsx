@@ -32,17 +32,14 @@ import { addPropertyControls, ControlType } from "framer"
 
 export default function Scroll_Progress(props) {
     const { scrollYProgress } = useScroll()
-    let progressOrigin
-    if (props.Origin == "l") {
-        progressOrigin = "0%"
-    }
-    if (props.Origin == "c") {
+    let progressOrigin = "0%"
+    if (props.Origin === "c") {
         progressOrigin = "50%"
     }
-    if (props.Origin == "r") {
+    if (props.Origin === "r") {
         progressOrigin = "100%"
     }
-    if (props.progressPosition == true) {
+    if (props.progressPosition !== false) {
         return (
             <>
                 <motion.div
@@ -61,26 +58,24 @@ export default function Scroll_Progress(props) {
             </>
         )
     }
-    if (props.progressPosition == false) {
-        return (
-            <>
-                <motion.div
-                    style={{
-                        position: "fixed",
-                        bottom: props.progressMargin,
-                        left: "0",
-                        right: "0",
-                        height: props.progressHeight + "px",
-                        width: "100%",
-                        background: props.backgroundColor,
-                        scaleX: scrollYProgress,
-                        transformOrigin: progressOrigin,
-                        //zIndex: props.progressZindex,
-                    }}
-                />
-            </>
-        )
-    }
+    return (
+        <>
+            <motion.div
+                style={{
+                    position: "fixed",
+                    bottom: props.progressMargin,
+                    left: "0",
+                    right: "0",
+                    height: props.progressHeight + "px",
+                    width: "100%",
+                    background: props.backgroundColor,
+                    scaleX: scrollYProgress,
+                    transformOrigin: progressOrigin,
+                    //zIndex: props.progressZindex,
+                }}
+            />
+        </>
+    )
 }
 addPropertyControls(Scroll_Progress, {
     backgroundColor: {

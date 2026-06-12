@@ -4,53 +4,59 @@ import { addPropertyControls, ControlType } from "framer"
 
 export function NumberCounter(props) {
     const {
-        startNumber,
-        endNumber,
-        fontColor,
-        fontSize,
-        fontWeight,
-        fontFamily,
-        speed,
-        prefix,
-        suffix,
-        loop,
+        startNumber = 0,
+        endNumber = 10,
+        fontColor = "#000",
+        fontSize = 16,
+        fontWeight = "normal",
+        fontFamily = "Arial",
+        speed = 100,
+        prefix = "",
+        suffix = "",
+        loop = false,
     } = props
     const [count, setCount] = useState(startNumber)
     const [isVisible, setIsVisible] = useState(false)
     const ref = useRef(null)
 
     useEffect(() => {
-        const observer = new IntersectionObserver((entries) => {
-            const entry = entries[0]
-            setIsVisible(entry.isIntersecting)
-        })
+        const node = ref.current
+        if (!node) return
 
-        if (ref.current) {
-            observer.observe(ref.current)
-        }
+        const observer = new IntersectionObserver((entries) => {
+            setIsVisible(entries[0].isIntersecting)
+        })
+        observer.observe(node)
 
         return () => {
-            if (ref.current) {
-                observer.unobserve(ref.current)
-            }
+            observer.unobserve(node)
         }
     }, [])
 
     useEffect(() => {
-        if (isVisible && startNumber !== endNumber) {
-            const intervalId = setInterval(() => {
-                if (count < endNumber) {
-                    setCount((prevCount) => prevCount + 1)
-                } else if (loop) {
-                    setCount(startNumber)
-                }
-            }, speed)
+        if (!isVisible || startNumber === endNumber) return
 
-            return () => {
-                clearInterval(intervalId)
-            }
+        const step = endNumber > startNumber ? 1 : -1
+        const intervalId = setInterval(() => {
+            setCount((prev) => {
+                if (prev === endNumber) {
+                    if (loop) return startNumber
+                    clearInterval(intervalId)
+                    return prev
+                }
+                const next = prev + step
+                // Clamp so non-integer ranges still terminate exactly on endNumber
+                if (step > 0 ? next > endNumber : next < endNumber) {
+                    return endNumber
+                }
+                return next
+            })
+        }, Math.max(speed, 10))
+
+        return () => {
+            clearInterval(intervalId)
         }
-    }, [count, startNumber, endNumber, loop, isVisible])
+    }, [isVisible, startNumber, endNumber, loop, speed])
 
     return (
         <motion.div
@@ -67,19 +73,6 @@ export function NumberCounter(props) {
             {suffix}
         </motion.div>
     )
-}
-
-NumberCounter.defaultProps = {
-    startNumber: 0,
-    endNumber: 10,
-    fontColor: "#000",
-    fontSize: "16px",
-    fontWeight: "normal",
-    fontFamily: "Arial",
-    speed: 100,
-    prefix: "",
-    suffix: "",
-    loop: false,
 }
 
 addPropertyControls(NumberCounter, {
@@ -112,7 +105,7 @@ addPropertyControls(NumberCounter, {
         type: ControlType.Enum,
         title: "Font Weight",
         defaultValue: "normal",
-        options: ["light", "normal", "italic", "medium", "semibold", "bold"],
+        options: ["light", "normal", "medium", "semibold", "bold"],
         optionTitles: ["Light", "Regular", "Medium", "Semibold", "Bold"],
     },
     fontFamily: {
@@ -124,7 +117,7 @@ addPropertyControls(NumberCounter, {
         type: ControlType.Number,
         title: "Speed (ms)",
         defaultValue: 100,
-        min: 0,
+        min: 10,
         max: 1000,
         step: 10,
     },

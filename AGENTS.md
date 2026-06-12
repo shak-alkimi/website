@@ -23,11 +23,11 @@ Edits are validated by pushing to the branch Framer is watching and previewing i
 
 - [Copyright_year.tsx](Copyright_year.tsx) — auto-updating year
 - [Counter.tsx](Counter.tsx) — number counter that animates when scrolled into view (IntersectionObserver)
-- [FormSpark.tsx](FormSpark.tsx) — contact form posting to `api.formspark.io/{formId}`; the largest component, with email-regex validation, loading/success states, and many `addPropertyControls`
-- [FramerButton.tsx](FramerButton.tsx) — hides the Framer badge via injected CSS and rewrites its referral link
-- [Pagination.tsx](Pagination.tsx) — empty file (placeholder; do not assume content)
-- [Share_blob.tsx](Share_blob.tsx) — social/share widget
+- [FormSpark.tsx](FormSpark.tsx) — contact form posting to `api.formspark.io/{formId}`; the largest component, with email-regex validation, loading/success/error states, and many `addPropertyControls`
+- [Share_blob.tsx](Share_blob.tsx) — social/share code overrides (X, LinkedIn, Facebook, Email, Clipboard, WhatsApp, Tumblr)
 - [Valide/Scroll_Progress.tsx](Valide/Scroll_Progress.tsx) — scroll-progress indicator (subfolder is a Framer "module")
+
+Deleted 2026-06-12 (remove any canvas instances in Framer if they still exist): `Pagination.tsx` (was empty), `FramerButton.tsx` (badge-hider with third-party affiliate code; moot on Pro plan).
 
 ## Conventions to preserve
 
