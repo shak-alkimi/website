@@ -4,7 +4,11 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
 
 ## What this is
 
-Source for the **Alkimi** (LED tape-light business) marketing website. The site is built in **Framer**, and this repo is **only** the code-component layer — synced via Framer's GitHub integration. The visual canvas, pages, CMS content, and most of the site are **not** in the repo and are not editable from here.
+Source for the **Alkimi** (LED tape-light business) marketing website. The site is built in **Framer**, and this repo is **only** the code-component layer. The visual canvas, pages, CMS content, and most of the site are **not** in the repo and are not editable from here.
+
+**⚠️ There is NO automatic sync between this repo and Framer** (verified 2026-06-12 in a full audit — the "main" chip in the Framer editor is Framer's own internal branching, not git). This repo is a manually-maintained mirror. **Framer's code editor is the source of truth for what actually runs.** After changing a file here, port it into Framer by pasting into the code editor (project: "Alkimi", framer.com/projects/Alkimi--HZpxiZndjQNb8SpbXGqf-5RVN6) and save with Ctrl+S — or make the change in Framer first and mirror it back here. Keep both sides identical; note the port in the commit message.
+
+**Project topology (2026-06-12):** the "Alkimi" Framer project publishes to alkimi.framer.website (preview). The separate "Alkimi (copy)" project owns the production domain www.alkimiworks.com and serves a coming-soon page. Launch = move the domain to the main project and publish — a deliberate manual cutover.
 
 Each `.tsx` file at the root is a standalone Framer code component (note the `addPropertyControls(...)` blocks and `@framerSupportedLayoutWidth` doc-comment annotations). They render inside Framer, not in a local dev server.
 
