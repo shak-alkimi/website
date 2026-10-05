@@ -190,6 +190,33 @@ Easing is `0.65, 0, 0.13, 1` on all six (copied from the Newsroom divider on Hom
 
 **Desktop and mobile share these variants.** `Mobile Full Navigation` has two variants — `Variant 1` (mobile/tablet, via `Navigation Mobile`) and `Desktop Full Menu` (≥1200px). Each has six `Line` wrappers whose `Global / Line Animation Global` child must be assigned **in row order**: Menu 1, 2, 3, 4, 5, then `Line Mobile Menu 6`. Both breakpoints were found scrambled and were fixed 2026-09-30. Because the variants are shared, a timing change applies to both automatically — but the per-instance *assignment* is separate and must be checked on each.
 
+
+**Divider assignment audit, 2026-10-05 — desktop is NOT in row order, yet it cascades correctly. Do not "fix" it before reading this.** Read directly from the canvas through the Agent CLI:
+
+| Divider under | `Variant 1` (mobile/tablet) | `Desktop Full Menu` |
+|---|---|---|
+| Fixtures | Menu 1 | Menu 1 |
+| Elements | Menu 2 | **Menu 6** |
+| Projects | Menu 3 | Menu 3 |
+| About | Menu 4 | Menu 4 |
+| News | Menu 5 | Menu 5 |
+| Contact | Menu 6 | **Menu 2** |
+
+So desktop reads `1, 6, 3, 4, 5, 2` — rows 2 and 6 swapped relative to mobile. **But Shak confirms the desktop cascade looks correct**, which rules out the obvious reading. Two explanations remain, and they are not yet separated:
+
+- **(A) the variant labels are wrong** — the variant *named* `Line Mobile Menu 6 Active` carries row 2's delay and vice versa, probably left over from the 2026-10-02 rename of that pair (it was `Variant 15` / `Variant 16`, and it is the only pair sitting active-first in the layer tree). Predicts **mobile** cascades visibly wrong.
+- **(B) the stagger does not come from the variant transition at all** but from the per-instance Appear delays, which follow row *position* rather than which variant is assigned. That would make the assignment a pure label with no functional effect. Predicts **both** breakpoints look correct.
+
+**The discriminating test is the mobile/tablet menu.** Wrong there -> (A), correct there -> (B). Until that is known, changing the assignment could break a working desktop cascade.
+
+**The timing table above cannot be verified through the Agent API** — `ComponentNode` variants expose only geometry and style keys, no `transition` / `delay` / `easing`, and the menu's JS chunk is not in the home page's initial module set (it lazy-loads when the menu opens), so the published bundle cannot be grepped for the delays either. The table came from reading the editor panel by hand on 2026-09-30 and has not been re-confirmed since the 2026-10-02 rename. **Treat it as unverified.**
+
+**Frame widths are not all identical, contrary to the note above.** 14 of the 16 variants are `787 x 1`, but **`Line Animation` and `Line Animation Active` are `786.5 x 1`**. Those two are the pair driving the Home Newsroom divider, not the menu, and the instance stretches responsively so the runtime effect is probably nil — but the claim "every one of the 16 frames measures 787 x 1" is wrong.
+
+**Everything else in the menu is symmetric and matches this file** (audited 2026-10-05): both variants have 13 `Link Wrapper` children, rows at `45px`, dividers at `1px` / `1fr`, every opacity `1`, every layer visible, `Link Wrapper` gap `7px` on both — pitch `45 + 1 + 14 = 60`, even, as required.
+
+**Unrelated oddity in the same area:** `Navigation / Navigation Desktop` has 11 variants, two of which are both named **`Nav white`** (positions 1 and 8). Harmless, but it makes referring to one by name ambiguous.
+
 **Don't add competing Appear effects.** Both breakpoints previously had an instance-level Effects → Appear (opacity + offset) on each divider fighting the width draw. All twelve were removed.
 
 **The full variant inventory is 16, and they are all the same thickness** (counted 2026-10-02): `Line Animation` (Primary), `Line Animation Active`, `Line animate on appear`, `Line Active`, then `Line Mobile Menu 1…5` with their five `… Active` partners, then `Line Mobile Menu 6 Active` and `Line Mobile Menu 6`. Every one of the 16 frames measures **787 x 1**. The only differences between them are the child `Line`'s Width (0% idle -> 100% active) and the Transition timing.
