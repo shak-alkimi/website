@@ -501,8 +501,10 @@ Images are `894 x 761.11` throughout, identical on both sides in all three state
 
 | Component | Published hash | Renders on Home as |
 |---|---|---|
-| `Home - Projects Row` | `framer-FHOjC` | the two-up **Fixtures / Elements** cards |
-| `Home - Projects Row 2` | changes per publish (was `framer-D4P7g`, then `framer-8Ouu1`) | the full-width **case-study** card (`Home Project Single - Wide`) |
+| `Home - Projects Row` | rotates whenever the component is edited (`framer-FHOjC` -> `framer-9dkxz` on 2026-10-05) | the two-up **Fixtures / Elements** cards |
+| `Home - Projects Row 2` | rotates likewise (`framer-D4P7g` -> `framer-8Ouu1` -> `framer-atzSa`) | the full-width **case-study** card (`Home Project Single - Wide`) |
+
+**Do not use these hash values as identifiers — an earlier note called `framer-FHOjC` stable for Row 1, and that was wrong.** A component's 5-character hash changes when the component itself is edited, not merely every publish: the 2026-10-05 radius fix touched both components and rotated both hashes in the same build. The *method* still works — walk up from a `Product Card` to the ancestor carrying a 5-character `framer-XXXXX` class, and two different hashes means two different components — but read the values live each time rather than matching the ones written here.
 
 Both live in Assets -> Project (`Row 2` sits at the top level, not inside the `Home` folder) and **both carry the same nine variant names** — `Home Projects - Initial State`, `… Left Open`, `… Right Open`, `Before Scroll State - Below Hero`, `Home Project Single - Wide`, `… Tablet`, `… Mobile`, `Home Project Single Wide - Mobile`, `… Tablet Below Hero`. Identical layer trees inside. It is very easy to edit one, verify the live page, and conclude the job is done.
 
