@@ -409,7 +409,21 @@ Both are `100%` Rel on Width. Do not assume the two sides share a basis — assu
 
 **Still at `1.18045`:** `.framer-v-1rizoid .framer-q1bc20-container` — the left hover `Video`. Its stored height is `590.0000000895` implying a third basis (~696) that could not be pinned down cleanly, and it is `position: absolute` so it cannot affect card height. Left alone deliberately rather than guessed at.
 
-**Separately unresolved:** a reported sub-pixel artifact where the cards look momentarily narrow on their inner edge *while the hover settles*. That is about the transition, not the end state — the end state now measures correct. Every reachable parameter matches stock (interactions, flex, anchoring, alignment overrides, aspect ratios, row padding, transition and spring constants). Two attempts to fix it from static analysis each made something worse and were reverted. **Don't attack this from CSS reading — it needs a side-by-side screen recording against the stock template.**
+**The hover transition was finally MEASURED on 2026-10-05, and it is geometrically clean.** For months this was recorded as an unresolved "the cards look momentarily narrow on their inner edge while the hover settles", unreachable because no environment here could run the animation. Claude in Chrome with the tab **foregrounded** can: a `requestAnimationFrame` sampler captured **152 frames over 2508 ms at ~60 fps** on the published site, hovering the left card at scroll ~870.
+
+| Property | Result across all 152 frames |
+|---|---|
+| Card heights | `761.11 / 761.11` — **never change at any point** |
+| Gutter | **exactly 16** in every frame |
+| Width sum | constant `1490` |
+| Motion | **monotonic** `745 -> 894`, never exceeding 894 — no overshoot, confirming the overdamped spring |
+| Duration | ~765 ms (motion begins ~227 ms after hover, settled by ~992 ms) |
+
+**The sub-pixel theory is disproven.** The two inner edges always differ by exactly 16 CSS px, which is 24 device px at `devicePixelRatio` 1.5 — a whole number. So they hold an **identical sub-pixel phase at every instant of the animation** and blur together, symmetrically. There is never a frame where one edge is crisp and the other soft. The only deviation anywhere is a 0.04 px gutter wobble (15.96 vs 16.00) across a few settling frames near t≈1000 ms, which is a `getBoundingClientRect` rounding artifact, not a rendered difference.
+
+Images were stationary in every frame sampled — left `15 / 894`, right `627 / 894` — confirming the outer-edge anchoring holds during motion, not just at the end states. That particular sample only covered the first ~70 ms of motion before the tab was switched away, so treat it as indicative rather than exhaustive.
+
+**The most likely cause of the original report is the squared corner, which was a real defect and is now fixed.** Until 2026-10-05 the left `Product Card`'s radius collapsed `10px -> 0px` in `Home Projects Left Open` — a corner going square right against the gutter, at exactly the location described, for exactly the duration described. Nothing else at that location misbehaves. **Not proven**, since perception cannot be measured, but there is no longer a geometric defect to find and the one real defect there has been removed. If it is still visible to a human after the 2026-10-05 publish, re-open — and note that geometry is now ruled out, so look at paint (radius, overlay, shadow), not at sizes.
 
 **The right card's photo used to vanish on hover (resolved 2026-10-02).** Symptom: hover the Elements card and its photo ghosted out to near-nothing, leaving a diagonal striped pattern. Right card only, hover only, resting state fine. Cause: a single variant override —
 
