@@ -177,7 +177,7 @@ The animated rules between the nav menu rows are instances of the **`Line Animat
 
 | Row | Variant | Time | Delay |
 |---|---|---|---|
-| Products | Line Mobile Menu 1 Active | 1.2 | 0.2 |
+| **Fixtures** | Line Mobile Menu 1 Active | 1.2 | 0.2 |
 | Elements | Line Mobile Menu 2 Active | 1.2 | 0.35 |
 | Projects | Line Mobile Menu 3 Active | 1.2 | 0.5 |
 | About | Line Mobile Menu 4 Active | 1.2 | 0.65 |
@@ -243,7 +243,7 @@ The published DOM also exposes the resolved variant directly — each divider wr
 
 **Don't add competing Appear effects.** Both breakpoints previously had an instance-level Effects → Appear (opacity + offset) on each divider fighting the width draw. All twelve were removed.
 
-**The full variant inventory is 16, and they are all the same thickness** (counted 2026-10-02): `Line Animation` (Primary), `Line Animation Active`, `Line animate on appear`, `Line Active`, then `Line Mobile Menu 1…5` with their five `… Active` partners, then `Line Mobile Menu 6 Active` and `Line Mobile Menu 6`. Every one of the 16 frames measures **787 x 1**. The only differences between them are the child `Line`'s Width (0% idle -> 100% active) and the Transition timing.
+**The full variant inventory is 16** (counted 2026-10-02): `Line Animation` (Primary), `Line Animation Active`, `Line animate on appear`, `Line Active`, then `Line Mobile Menu 1…5` with their five `… Active` partners, then `Line Mobile Menu 6 Active` and `Line Mobile Menu 6`. **They are NOT all the same size** — an earlier version of this line claimed every one of the 16 measures `787 x 1`, and that is wrong: **14 are `787 x 1` and `Line Animation` / `Line Animation Active` are `786.5 x 1`** (read from the canvas 2026-10-05; those two drive the Home Newsroom divider, not the menu). Otherwise the only differences between them are the child `Line`'s Width (0% idle -> 100% active) and the Transition timing.
 
 **So "make the desktop dividers thinner by switching to an existing variant" is not available** — there is no thinner variant, and because desktop and mobile share these variants (above) editing one would change both breakpoints anyway. 1px is the floor, and at `devicePixelRatio` 1.5 it rounds up to 2 device pixels, which is why they can read heavy. The only per-breakpoint lever is **contrast**: lower the opacity or lighten the fill on the six `Line` wrappers inside `Mobile Full Navigation -> Desktop Full Menu`, which is an instance-level override and leaves mobile/tablet alone. **Never chase thinness by changing the row pitch or gap** — see the geometry section; an odd pitch brings back the alternating thick/thin rendering. Asked and declined 2026-10-02; left as is.
 
