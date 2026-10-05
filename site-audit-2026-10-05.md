@@ -144,3 +144,5 @@ The last two are the sessionStorage deep-link pair. Proven dormant by scanning e
 
 - **The pills render in Inter 14px**, while brand headings on the same page render in **Gellix**. Counting computed fonts across visible text on `/products`: Inter 97 elements, Gellix (SemiBold + Medium) 15, General Sans 1. Needs a deliberate decision rather than a silent fix — the intended brand font for UI controls is not recorded anywhere.
 - **Not a bug:** the pill `<button>`s compute `border-radius: 0px` despite the component's `radius: 999`. The rounding lives on the parent container (`999px` + `overflow: hidden`), so it is a segmented control inside a rounded pill. Working as designed.
+
+> **Resolved 2026-10-05:** all three dead filter files were deleted from Framer and the repo after the checks above were widened to all 43 chunks across all 10 pages. Framer went 12 code files → 9; repo matches 1:1. See `CLAUDE.md` for the rationale on not repairing the deep-link pair.

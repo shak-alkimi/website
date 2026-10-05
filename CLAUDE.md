@@ -135,7 +135,7 @@ Then fill and submit. A correct build keeps the form and shows the alert; a brok
 
 ## The components
 
-The repo mirrors **12** of the 14 code files in `Alkimi (Shak)`. Instance counts are from the canvas, read 2026-10-05; **0 means nothing on the canvas renders it**, so changing it has no visible effect.
+The repo mirrors **all 9** code files in `Alkimi (Shak)` — a 1:1 mirror after the 2026-10-05 deletions (14 → 12 → 9). Instance counts are from the canvas, read 2026-10-05; **0 means nothing on the canvas renders it**, so changing it has no visible effect.
 
 | File | Kind | Instances | |
 |---|---|---|---|
@@ -144,15 +144,16 @@ The repo mirrors **12** of the 14 code files in `Alkimi (Shak)`. Instance counts
 | [ProductsFilterPills.tsx](ProductsFilterPills.tsx) | component | **6** | products filter row |
 | [FormSpark.tsx](FormSpark.tsx) | component | **3** | contact form; `formId` is **empty** on staging — see the production-form section |
 | [Counter.tsx](Counter.tsx) | component | 0 | IntersectionObserver number counter |
-| [ElementsFilter.tsx](ElementsFilter.tsx) | component | 0 | |
 | [Valide/Scroll_Progress.tsx](Valide/Scroll_Progress.tsx) | component | 0 | **the canvas uses a remote module, not this file** — `module:tZ4BBLxqep75fqWPDP07/…/Scroll_Progress.js`. Editing this copy changes nothing. |
 | [Copyright_year.tsx](Copyright_year.tsx) | override | — | **unused**: no copyright line exists anywhere on the site |
 | [Share_blob.tsx](Share_blob.tsx) | override | — | share overrides (X, LinkedIn, Facebook, Email, Clipboard). A `Share Article` block exists on news pages but **none of its URLs appear in the published bundles**, so the overrides are not attached |
-| [ProductElementsLink.tsx](ProductElementsLink.tsx) | override | — | sets `sessionStorage["products-filter"]` |
-| [ProductsFilterAutoSelect.tsx](ProductsFilterAutoSelect.tsx) | override | — | reads it on /products and clicks the pill |
 | [ElementCounts.tsx](ElementCounts.tsx) | override | — | six count overrides (Optic, Driver, LED, Profile, Flex, Connector) |
 
 Override usage **cannot be read through the node API** — see the Agent CLI gotchas for the bundle-scanning method used above.
+
+**Deleted from Framer and the repo 2026-10-05 — the three dead filter files:** `ElementsFilter.tsx` (7,602 bytes, a component with **0 canvas instances** — an earlier standalone implementation superseded by the unified `ProductsFilterPills`), and the sessionStorage deep-link pair `ProductElementsLink.tsx` (984 bytes) and `ProductsFilterAutoSelect.tsx` (1,480 bytes), **neither of which was attached to anything**. Verified before deleting by scanning **all 43 JS chunks referenced by all 10 published pages** for six distinctive strings (`products-filter`, `withElementsProductsLink`, `withProductsFilterAutoSelect`, `Elements filter`, `Tab Pad X`, `Active BG`) — **0 hits**, with the scan validated against the live filter component, which 3 chunks do reference. Framer went 12 code files → **9**; the repo matches. All three survive verbatim in `framer-snapshot/` and in git history.
+
+**Why the deep-link pair was not worth repairing.** `ProductElementsLink` set `sessionStorage["products-filter"] = "Elements"` and sent the visitor to `/products`; `ProductsFilterAutoSelect` then clicked the first visible element whose text was exactly `"Elements"`. **There is no "Elements" pill on `/products`** — its options are All / Flex / Profile / Optic — so it would have matched the navigation link and bounced the visitor to `/elements`. It was written against a filter layout that no longer exists. The Home category cards now navigate with plain `./products` and `./elements` hrefs, which is why the pair had already been detached. If deep-linking to a filter is ever wanted, write it fresh against the current pills; do not restore these.
 
 **Deleted from Framer 2026-10-05:** `Pagination.tsx` (0 bytes, no exports) and `FramerButton.tsx` (badge-hider carrying third-party affiliate code). Both were deleted from the repo 2026-06-12 and had lingered in Framer's code panel ever since. Verified unused first — `getNodesWithAttributeSet("componentIdentifier")` returned **0 instances** of `FramerButton` in `Alkimi (Shak)` *and* in `Alkimi (teaser)` — then removed with `codeFile.remove()`, taking Framer from 14 code files to 12. The repo and Framer are now a **1:1 mirror, 12/12**, verified byte-identical the same day. `FramerButton.tsx`'s content survives verbatim in `framer-snapshot/` if it is ever wanted back. **Both files still exist in `Alkimi (teaser)`** (same 1,543 bytes, also 0 instances) — left alone because that project is still pre-audit.
 
