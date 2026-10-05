@@ -462,7 +462,7 @@ Layer and field names across this template rarely match their content, so search
 - Selecting a container in the layer tree **auto-expands** it, shifting every row below. Filter the tree via the search box for a flat, stable list.
 - Property-panel popovers (e.g. Scroll variant) **reposition** when the window resizes — re-screenshot before clicking into one.
 - `Ctrl+A` on the canvas opens a **"Delete selection — for all project collaborators"** dialog. Cancel it.
-- **CRITICAL — Framer's effects do not run in a hidden/unfocused tab.** Any tab driven by automation reports `document.visibilityState === "hidden"` and `document.hasFocus() === false`, and in that state Framer runs **neither appear animations nor scroll/variant effects**. Consequences, both of which wasted hours on 2026-10-01:
+- **Framer's APPEAR and SCROLL effects do not run in a hidden/unfocused tab — but hover and variant interactions DO (corrected 2026-10-05; see the Claude in Chrome section).** The original blanket wording said no effects ran at all, and that is wrong. Any tab driven by automation reports `document.visibilityState === "hidden"` and `document.hasFocus() === false`, and in that state Framer runs **neither appear animations nor scroll/variant effects**. Consequences, both of which wasted hours on 2026-10-01:
   - Appear-animation containers stay stuck at `opacity: 0.001`, so page content (e.g. the project cards) never paints and screenshots look blank. The **stock Ora template shows the same stuck state**, which is how to confirm it is the environment and not the site.
   - An element hidden by a scroll effect reads `opacity: 1`, because the effect that would hide it never ran. **Reading `opacity` to decide "is it visible?" is meaningless here** and will produce confident, wrong conclusions.
   Geometry (`getBoundingClientRect`) and paint order (`elementsFromPoint`) are still valid, since they don't depend on the effects engine. Anything animation- or effect-dependent must be confirmed by a human in a real, foregrounded window.
@@ -502,6 +502,39 @@ Layer and field names across this template rarely match their content, so search
 - **Renaming a layer or variant DOES work under automation** — an earlier note here claimed it did not, and that was wrong (corrected 2026-10-02 after renaming both 6th-pair variants this way). Single-click the row, then **double-click the row label**: a real `<input>` appears in the layer tree carrying the old name, and because the tree is in the main document (not the canvas iframe) you can confirm it with `document.activeElement.value` before sending a key. Then `Ctrl+A`, type, `Enter`. `Ctrl+A` is safe here precisely because focus is in that input — check `activeElement` first, or it hits the canvas and opens the delete dialog.
 - **Editing canvas text works the same way, but blind.** Double-click the word on the canvas and Framer selects that word; typing replaces it. You cannot verify focus first because the canvas is a cross-origin iframe, so take a screenshot after the double-click and look for the selection highlight before typing. Text content is **shared across variants** unless explicitly overridden — one edit changed the menu label on both `Variant 1` and `Desktop Full Menu`.
 - **A rename publishes as "1 change" even though names are not emitted.** Harmless, but it means a tidy-up rename leaves the project dirty; publish it or expect it to ride along with whatever you do next.
+
+## Visual access to the published site — use Claude in Chrome, not the built-in browser pane (established 2026-10-05)
+
+The built-in browser pane is **useless for this project**. It reports `document.visibilityState === "hidden"`, `hasFocus() === false` and — the killer — an `innerWidth`/`innerHeight` of **0 x 0**, so every `getBoundingClientRect` is degenerate and screenshots show nothing meaningful. The pane cannot be un-hidden programmatically (`show_pane` has no browser option).
+
+**Claude in Chrome drives the user's real Chrome and works.** Measured there on 2026-10-05: real viewport `1536 x 855`, `devicePixelRatio` 1.5, real screenshots, and **real pointer events via `computer` `hover`**.
+
+**What works even while the Chrome tab is BACKGROUNDED (`visibilityState: "hidden"`):**
+
+- Full-page rendering and screenshots — content paints normally, it is not stuck at `opacity: 0.001`.
+- Correct geometry from `getBoundingClientRect`.
+- **Hover and variant switching.** A real `computer` `hover` drove the row through `framer-v-1juo821` -> `framer-v-1dlme80` -> `framer-v-1rizoid` and the cards resized. **This contradicts the older blanket claim that Framer effects never run in a hidden tab** — variant interactions clearly do.
+
+**What does NOT work while backgrounded:**
+
+- **`requestAnimationFrame` is frozen, not merely throttled.** A rAF sampling loop collected **4 samples in 2500 ms**, and a loop that awaited 1 second of frames never resolved at all (the CDP `Runtime.evaluate` hit its 45-second timeout). So **end states are measurable, transitions are not.** Anything that needs intermediate animation frames requires the user to bring that Chrome tab to the front and leave it visible.
+
+**Two gotchas when driving it:**
+
+- **Check which tab you are about to navigate.** `navigate` without an explicit `tabId` grabs the group's first tab — on 2026-10-05 that was Shak's open **Framer editor**, which got navigated away and had to be restored. Call `tabs_context_mcp` first and pass an explicit `tabId`.
+- The screenshot coordinate frame is **1459 x 812** while CSS is **1536 x 855** — multiply CSS coordinates by about **0.95** before passing them to `computer`. Read geometry via JS, convert, then hover.
+
+**Confirmed by real hover on the published site, 2026-10-05** (scroll to ~870, hover the left card):
+
+| | Left (Fixtures) | Right (Elements) |
+|---|---|---|
+| resting | 745 x 761.11 | 745 x 761.11 |
+| hovered (`framer-v-1rizoid`) | 894 x 761.11 | 596 x 761.11 |
+| radius, hovered | **10px** | 10px |
+
+Gap held at exactly **16** at rest (760 -> 776), hovered (909 -> 925), **and in the one mid-animation sample captured** (776.56 -> 792.56). Card heights were identical in every state. The left card's hovered radius of `10px` is the 2026-10-05 fix confirmed live.
+
+**The documented `Reset` behaviour is real and will fool you.** At scroll ~870 the row sits in `Before Scroll State - Below Hero`, where Mouse enter is `Reset...`. The first hover does **not** open a card — it resets the component to its base variant. Hover again and it opens properly. Observed exactly as the note predicts.
 
 ## Verified baseline — 2026-10-02
 
