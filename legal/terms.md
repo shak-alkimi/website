@@ -4,7 +4,7 @@
 > This is a **record, not the source of truth** — the live page is. It is kept here because
 > the cutover of www.alkimiworks.com onto `Alkimi (Shak)` deletes these pages, and the text
 > exists nowhere else: not in Framer's `Alkimi (Shak)`, not elsewhere in this repo or its
-> git history. Not reviewed by a lawyer.
+> git history. Content reviewed and settled by Shak 2026-10-05.
 
 Effective July 8, 2026. These terms govern your access to and use of this website, including inquiries, downloads, forms, and related communications.
 
