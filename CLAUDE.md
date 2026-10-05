@@ -188,8 +188,18 @@ Easing is `0.65, 0, 0.13, 1` on all six (copied from the Newsroom divider on Hom
 
 **Two delays used to stack.** Each idle variant also has an Appear interaction (Interactions → Appear → the Active variant) with its own Delay. Those are all set to **0** so the stagger has a single source of truth in the variant Transition. If a line starts late, check both.
 
-**Desktop and mobile share these variants.** `Mobile Full Navigation` has two variants — `Variant 1` (mobile/tablet, via `Navigation Mobile`) and `Desktop Full Menu` (≥1200px). Each has six `Line` wrappers whose `Global / Line Animation Global` child must be assigned **in row order**: Menu 1, 2, 3, 4, 5, then `Line Mobile Menu 6`. Both breakpoints were found scrambled and were fixed 2026-09-30. Because the variants are shared, a timing change applies to both automatically — but the per-instance *assignment* is separate and must be checked on each.
+**Desktop and mobile share these variants.** `Mobile Full Navigation` has two variants — `Variant 1` (mobile/tablet, via `Navigation Mobile`) and `Desktop Full Menu` (≥1200px). Each has six `Line` wrappers each holding a `Global / Line Animation Global` child. An earlier version of this line said they **must** be assigned in row order — **that is disproven; see the resolved audit below.** Desktop is not in row order and cascades correctly. Do not reassign them. Because the variants are shared, a timing change applies to both automatically — but the per-instance *assignment* is separate and must be checked on each.
 
+
+**RESOLVED 2026-10-05 — explanation (B). The divider assignment does NOT drive the cascade order, and must not be "corrected".** Shak confirmed the cascade is visually correct on **both** breakpoints while they carry **different** assignments (mobile `1,2,3,4,5,6`, desktop `1,6,3,4,5,2`). Two different wirings cannot both produce a correct top-to-bottom sweep if the assignment determined the ordering, so it does not. The stagger evidently follows row **position** — almost certainly the per-instance Appear delays — not which `Line Animation Global` variant is bound to a given row.
+
+Consequences, and they overturn earlier guidance in this file:
+
+- **"Each `Line` wrapper's child must be assigned in row order" is wrong.** It is a label, not a timing source. Desktop has been out of order this whole time and has always looked right. **Do not reassign them.** The 2026-09-30 "both breakpoints were found scrambled and were fixed" entry should be read with suspicion — reassigning dividers was very likely a no-op, and whatever actually fixed the sweep that day was something else.
+- **"The Appear interaction delays are all set to 0 so the stagger has a single source of truth in the variant Transition" is probably inverted.** If the variant Transition held the stagger, the two breakpoints could not both be right. Expect the real per-row delays to live on the Appear interactions.
+- **The variant Transition table above remains unverified and is now actively doubtful.** Do not act on those numbers without reading them in the editor first.
+
+The sane rule going forward: **the menu cascade is working on both breakpoints as of 2026-10-05. Leave the divider wiring alone.** Tidying the desktop assignment into ascending order would be cosmetic, carries real risk of disturbing a working animation, and buys nothing.
 
 **Divider assignment audit, 2026-10-05 — desktop is NOT in row order, yet it cascades correctly. Do not "fix" it before reading this.** Read directly from the canvas through the Agent CLI:
 
