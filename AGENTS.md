@@ -15,18 +15,19 @@ Source for the **Alkimi** (LED tape-light business) marketing website. The site 
 | Project | ID | Plan | Serves |
 |---|---|---|---|
 | **Alkimi (teaser)** | `jIeEHcbQNHV85rO12kAf` | Pro | **www.alkimiworks.com** — the live coming-soon page carrying the working Formspark form |
-| **Alkimi (main)** | `lGFTo9egwT6d6ra5S4uP` | Pro | not verified |
-| **Alkimi (Shak)** | `Cf6zWteoRnYaaVh8Afqa` | **Free** | fulfilled-development-106906.framer.app — the staging/work project **this repo mirrors** |
+| **Alkimi (main)** | `lGFTo9egwT6d6ra5S4uP` | ~~Pro~~ — subscription moved away 2026-10-05 | to be archived; do not invest in it |
+| **Alkimi (Shak)** | `Cf6zWteoRnYaaVh8Afqa` | **Pro** (moved from `Alkimi (main)` 2026-10-05) | fulfilled-development-106906.framer.app — the staging/work project **this repo mirrors** |
 | Ora (official) | `idoYUmcTUjWl1zFENTWM` | Free | the stock template, kept for comparison |
 
 `Alkimi (teaser)` → `www.alkimiworks.com` is **confirmed, not inferred**: that project's `getPublishInfo()` returns the domain, and its live `FormSpark` instance carries formId `75jmfofPI` — the same endpoint the production form POSTs to.
 
-**`Alkimi (Shak)` is on the Free plan.** That is why staging shows the "Made in Framer" badge (`#__framer-badge-container`, injected by the platform) and why the editor shows "Upgrade now". It is a plan artifact, **not** a canvas layer — it cannot be deleted by editing, and it will not follow the site onto a Pro project. Do not spend time hunting for a layer to remove.
+**`Alkimi (Shak)` is on Pro as of 2026-10-05** — the subscription was moved across from `Alkimi (main)`, which is now the one on its way out. `Alkimi (main)` is to be archived; **do not invest in it**.
 
-**Planned (stated 2026-10-05, not yet done): `Alkimi (main)` will be archived and its Pro status transferred to `Alkimi (Shak)`.** Two consequences worth holding on to:
+**The plan cannot be read through the Agent API.** `getProjectInfo()` returns only `{ id, name, apiVersion1Id }` — no plan, no entitlements. The observable test is the **"Made in Framer" badge in the published HTML**: `grep __framer-badge-container` on the served page. `www.alkimiworks.com` (Pro) returns **0** occurrences; a Free project returns 2.
 
-- **The "Made in Framer" badge is temporary and self-resolving.** It is there only because `Alkimi (Shak)` is currently Free. It will disappear when Pro moves across — so do not spend effort removing it, and do not reintroduce a badge-hider component for it (that is what `FramerButton.tsx` was, and it carried third-party affiliate code).
-- **Do not invest in `Alkimi (main)`.** It is on the way out. Launch is: Pro transferred onto `Alkimi (Shak)`, `www.alkimiworks.com` cut over from `Alkimi (teaser)`, and the teaser's working Formspark form migrated onto the contact page — at which point the staging form's empty `formId` gets filled and the fixed `FormSpark.tsx` becomes the live one.
+**The badge is baked in at PUBLISH time, so a plan upgrade does not clear it retroactively.** Immediately after the Pro transfer, staging still served the badge because its last deploy (and therefore its HTML) predated the change. **It clears on the next publish, not before** — so "I upgraded but the badge is still there" is expected, not a failed upgrade. Do not go looking for a layer to delete, and do not reintroduce a badge-hider component (that is what `FramerButton.tsx` was, and it carried third-party affiliate code).
+
+What remains of the launch sequence: `www.alkimiworks.com` cut over from `Alkimi (teaser)` onto `Alkimi (Shak)`, and the teaser's working Formspark form migrated onto the contact page — at which point the staging form's empty `formId` gets filled and the fixed `FormSpark.tsx` becomes the live one.
 
 **The old mapping is stale — ignore it.** Earlier notes named the projects "Alkimi" (`HZpxiZndjQNb8SpbXGqf`) and "Alkimi (copy)"; neither name nor ID exists in the dashboard now. Launch remains a deliberate manual cutover of www.alkimiworks.com onto the launch project.
 
