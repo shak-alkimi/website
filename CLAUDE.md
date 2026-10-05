@@ -23,6 +23,11 @@ Source for the **Alkimi** (LED tape-light business) marketing website. The site 
 
 **`Alkimi (Shak)` is on the Free plan.** That is why staging shows the "Made in Framer" badge (`#__framer-badge-container`, injected by the platform) and why the editor shows "Upgrade now". It is a plan artifact, **not** a canvas layer — it cannot be deleted by editing, and it will not follow the site onto a Pro project. Do not spend time hunting for a layer to remove.
 
+**Planned (stated 2026-10-05, not yet done): `Alkimi (main)` will be archived and its Pro status transferred to `Alkimi (Shak)`.** Two consequences worth holding on to:
+
+- **The "Made in Framer" badge is temporary and self-resolving.** It is there only because `Alkimi (Shak)` is currently Free. It will disappear when Pro moves across — so do not spend effort removing it, and do not reintroduce a badge-hider component for it (that is what `FramerButton.tsx` was, and it carried third-party affiliate code).
+- **Do not invest in `Alkimi (main)`.** It is on the way out. Launch is: Pro transferred onto `Alkimi (Shak)`, `www.alkimiworks.com` cut over from `Alkimi (teaser)`, and the teaser's working Formspark form migrated onto the contact page — at which point the staging form's empty `formId` gets filled and the fixed `FormSpark.tsx` becomes the live one.
+
 **The old mapping is stale — ignore it.** Earlier notes named the projects "Alkimi" (`HZpxiZndjQNb8SpbXGqf`) and "Alkimi (copy)"; neither name nor ID exists in the dashboard now. Launch remains a deliberate manual cutover of www.alkimiworks.com onto the launch project.
 
 **This repo mirrors `Alkimi (Shak)` only.** `Alkimi (teaser)` is a separate project with its own code files. **Do not put teaser files in this repo root** — the two sets would blur with nothing to tell them apart. If the teaser's code ever needs mirroring, give it an explicit directory of its own and record the decision here first.
