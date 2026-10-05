@@ -188,38 +188,31 @@ Easing is `0.65, 0, 0.13, 1` on all six (copied from the Newsroom divider on Hom
 
 **Two delays used to stack.** Each idle variant also has an Appear interaction (Interactions → Appear → the Active variant) with its own Delay. Those are all set to **0** so the stagger has a single source of truth in the variant Transition. If a line starts late, check both.
 
-**Desktop and mobile share these variants.** `Mobile Full Navigation` has two variants — `Variant 1` (mobile/tablet, via `Navigation Mobile`) and `Desktop Full Menu` (≥1200px). Each has six `Line` wrappers each holding a `Global / Line Animation Global` child. An earlier version of this line said they **must** be assigned in row order — **that is disproven; see the resolved audit below.** Desktop is not in row order and cascades correctly. Do not reassign them. Because the variants are shared, a timing change applies to both automatically — but the per-instance *assignment* is separate and must be checked on each.
+**Desktop and mobile share these variants.** `Mobile Full Navigation` has two variants — `Variant 1` (mobile/tablet, via `Navigation Mobile`) and `Desktop Full Menu` (≥1200px). Each has six `Line` wrappers each holding a `Global / Line Animation Global` child. **Both breakpoints render their dividers in correct row order on the live site — measured 2026-10-05, see below. Do not reassign them, and do not treat the canvas sibling order as the row order.** Because the variants are shared, a timing change applies to both automatically.
 
 
-**RESOLVED 2026-10-05 — explanation (B). The divider assignment does NOT drive the cascade order, and must not be "corrected".** Shak confirmed the cascade is visually correct on **both** breakpoints while they carry **different** assignments (mobile `1,2,3,4,5,6`, desktop `1,6,3,4,5,2`). Two different wirings cannot both produce a correct top-to-bottom sweep if the assignment determined the ordering, so it does not. The stagger evidently follows row **position** — almost certainly the per-instance Appear delays — not which `Line Animation Global` variant is bound to a given row.
+**MEASURED ON THE LIVE SITE 2026-10-05 — the desktop dividers are in perfect row order. There is no defect, and there never was. Ignore any earlier note on this page claiming otherwise.**
 
-Consequences, and they overturn earlier guidance in this file:
+Read from the published DOM at 1536 wide, each element by its own `getBoundingClientRect`:
 
-- **"Each `Line` wrapper's child must be assigned in row order" is wrong.** It is a label, not a timing source. Desktop has been out of order this whole time and has always looked right. **Do not reassign them.** The 2026-09-30 "both breakpoints were found scrambled and were fixed" entry should be read with suspicion — reassigning dividers was very likely a no-op, and whatever actually fixed the sweep that day was something else.
-- **"The Appear interaction delays are all set to 0 so the stagger has a single source of truth in the variant Transition" is probably inverted.** If the variant Transition held the stagger, the two breakpoints could not both be right. Expect the real per-row delays to live on the Appear interactions.
-- **The variant Transition table above remains unverified and is now actively doubtful.** Do not act on those numbers without reading them in the editor first.
-
-The sane rule going forward: **the menu cascade is working on both breakpoints as of 2026-10-05. Leave the divider wiring alone.** Tidying the desktop assignment into ascending order would be cosmetic, carries real risk of disturbing a working animation, and buys nothing.
-
-**Divider assignment audit, 2026-10-05 — desktop is NOT in row order, yet it cascades correctly. Do not "fix" it before reading this.** Read directly from the canvas through the Agent CLI:
-
-| Divider under | `Variant 1` (mobile/tablet) | `Desktop Full Menu` |
+| Row label | Its divider | Divider top |
 |---|---|---|
-| Fixtures | Menu 1 | Menu 1 |
-| Elements | Menu 2 | **Menu 6** |
-| Projects | Menu 3 | Menu 3 |
-| About | Menu 4 | Menu 4 |
-| News | Menu 5 | Menu 5 |
-| Contact | Menu 6 | **Menu 2** |
+| Fixtures @305.17 | `Line Mobile Menu 1 Active` | 356.67 |
+| Elements @365.17 | `Line Mobile Menu 2 Active` | 416.67 |
+| Projects @425.17 | `Line Mobile Menu 3 Active` | 476.67 |
+| About @485.17 | `Line Mobile Menu 4 Active` | 536.67 |
+| News @545.17 | `Line Mobile Menu 5 Active` | 596.67 |
+| Contact @605.17 | `Line Mobile Menu 6 Active` | 656.67 |
 
-So desktop reads `1, 6, 3, 4, 5, 2` — rows 2 and 6 swapped relative to mobile. **But Shak confirms the desktop cascade looks correct**, which rules out the obvious reading. Two explanations remain, and they are not yet separated:
+Pitch is exactly **60** between every pair, and every divider sits exactly 51.5 below its label. Shak independently confirmed the cascade is correct on both breakpoints.
 
-- **(A) the variant labels are wrong** — the variant *named* `Line Mobile Menu 6 Active` carries row 2's delay and vice versa, probably left over from the 2026-10-02 rename of that pair (it was `Variant 15` / `Variant 16`, and it is the only pair sitting active-first in the layer tree). Predicts **mobile** cascades visibly wrong.
-- **(B) the stagger does not come from the variant transition at all** but from the per-instance Appear delays, which follow row *position* rather than which variant is assigned. That would make the assignment a pure label with no functional effect. Predicts **both** breakpoints look correct.
+**THE TRAP THAT PRODUCED A FALSE POSITIVE — do not repeat it.** An Agent CLI audit read `Link Wrapper`'s children in `Desktop Full Menu` and found the assignment order `1, 6, 3, 4, 5, 2`, and concluded rows 2 and 6 were swapped. **That inference was wrong.** These layers are `position: absolute`, so **the canvas layer-tree order is NOT the visual row order** — `querySelectorAll` on the published page returns the same `1, 6, 3, 4, 5, 2` document order while the elements are *placed* 1 through 6 down the page. Index 2 in the layer tree is not "the divider under Fixtures".
 
-**The discriminating test is the mobile/tablet menu.** Wrong there -> (A), correct there -> (B). Until that is known, changing the assignment could break a working desktop cascade.
+**The rule: for anything positional in this project, measure the rendered element's own rect. Never infer row order from sibling index.** The canvas tells you what exists and what it is bound to; only the live DOM tells you where it is.
 
-**The timing table above cannot be verified through the Agent API** — `ComponentNode` variants expose only geometry and style keys, no `transition` / `delay` / `easing`, and the menu's JS chunk is not in the home page's initial module set (it lazy-loads when the menu opens), so the published bundle cannot be grepped for the delays either. The table came from reading the editor panel by hand on 2026-09-30 and has not been re-confirmed since the 2026-10-02 rename. **Treat it as unverified.**
+The published DOM also exposes the resolved variant directly — each divider wrapper contains an element carrying `data-framer-name="Line Mobile Menu N Active"` — so "which variant is this row actually rendering" is answerable in one query and never needs to be inferred again.
+
+**Divider rendering, measured (answers the old "desktop dividers read heavy" question).** Each divider is `1 CSS px` tall at `devicePixelRatio` 1.5, so **1.5 device px**, and all six sit at whole-number device tops (493, 583, 673, 763, 853, 943). A 1.5px line starting on a whole pixel paints one solid device row plus one at half intensity — heavier than a hairline, but **identical on all six**, which is the even-pitch property working as designed. There is no alternating thick/thin. The line colour is `rgba(255, 255, 255, 0.2)` on the inner `Line`; that opacity is the lever if they should read lighter, not the height.
 
 **Frame widths are not all identical, contrary to the note above.** 14 of the 16 variants are `787 x 1`, but **`Line Animation` and `Line Animation Active` are `786.5 x 1`**. Those two are the pair driving the Home Newsroom divider, not the menu, and the instance stretches responsively so the runtime effect is probably nil — but the claim "every one of the 16 frames measures 787 x 1" is wrong.
 
