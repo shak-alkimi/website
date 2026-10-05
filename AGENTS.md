@@ -127,11 +127,11 @@ The repo mirrors **all 9** code files in `Alkimi (Shak)` — a 1:1 mirror after 
 | [VideoThumbnail.tsx](VideoThumbnail.tsx) | component | **6** | |
 | [ProductsFilterPills.tsx](ProductsFilterPills.tsx) | component | **6** | products filter row |
 | [FormSpark.tsx](FormSpark.tsx) | component | **3** | contact form; `formId` is **empty** on staging — see the production-form section |
-| [Counter.tsx](Counter.tsx) | component | 0 | IntersectionObserver number counter |
-| [Valide/Scroll_Progress.tsx](Valide/Scroll_Progress.tsx) | component | 0 | **the canvas uses a remote module, not this file** — `module:tZ4BBLxqep75fqWPDP07/…/Scroll_Progress.js`. Editing this copy changes nothing. |
-| [Copyright_year.tsx](Copyright_year.tsx) | override | — | **unused**: no copyright line exists anywhere on the site |
-| [Share_blob.tsx](Share_blob.tsx) | override | — | share overrides (X, LinkedIn, Facebook, Email, Clipboard). A `Share Article` block exists on news pages but **none of its URLs appear in the published bundles**, so the overrides are not attached |
-| [ElementCounts.tsx](ElementCounts.tsx) | override | — | six count overrides (Optic, Driver, LED, Profile, Flex, Connector) |
+| [Counter.tsx](Counter.tsx) | component | **0** | IntersectionObserver number counter. **Confirmed dead 2026-10-05** — 0 canvas instances, and its literal `End Number` appears in none of the 48 published chunks. |
+| [Valide/Scroll_Progress.tsx](Valide/Scroll_Progress.tsx) | component | **0** | **Confirmed dead 2026-10-05.** The canvas uses a *remote* module instead — `module:tZ4BBLxqep75fqWPDP07/…/Scroll_Progress.js` — so editing this copy changes nothing. Its distinctive literals (`Scroll Progress`, `framer-motion`) appear in no published chunk. |
+| [Copyright_year.tsx](Copyright_year.tsx) | override | — | **LIVE — do NOT delete.** An earlier note here called it unused; that was wrong. Its code is in the published bundle (`i.children.replace(`YYYY`, new Date().getFullYear())`) and it renders **`© Alkimi 2026`** on `/products` and `/elements`. `getFullYear` appears in no other local file. |
+| [Share_blob.tsx](Share_blob.tsx) | override | — | **PARTIALLY LIVE — do NOT delete.** An earlier note said none of it was attached; that was wrong, because the check looked for share *URLs* and the attached export has none. **`Clipboard_Share` IS attached** on all 3 news article pages — the minified bundle matches this file's implementation exactly (aria-label `Copy link to clipboard`, `location.href`, `clipboard?.writeText`, textarea fallback). The other six exports (X, LinkedIn, Facebook, Email, WhatsApp, Tumblr) are tree-shaken out, i.e. genuinely unattached. |
+| [ElementCounts.tsx](ElementCounts.tsx) | override | — | **LIVE — do NOT delete.** All six count overrides are bundled into the `/elements` + `/products` chunk, verified 2026-10-05: `Connector List`, `Driver List`, `LED List`, `Profile List`, `Flex List`, `Optic List` each appear in 2 published chunks. |
 
 Override usage **cannot be read through the node API** — see the Agent CLI gotchas for the bundle-scanning method used above.
 
