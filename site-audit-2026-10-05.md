@@ -112,3 +112,35 @@ So re-enabling hover video does not require adding a field — only populating i
 4. **A5, A7, A8** — stock news, social links, `hello@ora.com`.
 5. **D1–D3** — slugs, while renames are still free.
 6. **B2, B3, C, E, F** — housekeeping, no user impact.
+
+---
+
+## I. Filter system — `/products` vs `/elements` (checked 2026-10-05)
+
+**They are the same system.** Both pages instance the *same* code component, `ProductsFilterPills.tsx`. All six instances (3 breakpoints x 2 pages) carry identical props except one:
+
+| | `/products` | `/elements` |
+|---|---|---|
+| Component | `ProductsFilterPills` | `ProductsFilterPills` |
+| `optionSet` | **`Fixtures`** | **`Elements`** |
+| Pills rendered | All · Flex · Profile · Optic | All · Connector · Driver · LED |
+| activeOption / enableLinks / colours / font / padding / radius | identical | identical |
+
+Internally there is one code path — `optionSet === "Fixtures" ? FIXTURES_FILTER_OPTIONS : ELEMENTS_FILTER_OPTIONS`. The layer is merely *named* differently on each page ("Products Filter" / "Elements Filter"), which is the only thing that makes them look like two systems.
+
+### Three dead code files around it
+
+| File | State |
+|---|---|
+| `ElementsFilter.tsx` | **0 canvas instances.** A separate earlier implementation, superseded by the unified component and never deleted. |
+| `ProductElementsLink.tsx` | **Not attached.** |
+| `ProductsFilterAutoSelect.tsx` | **Not attached.** |
+
+The last two are the sessionStorage deep-link pair. Proven dormant by scanning every JS chunk referenced by `/`, `/products` and `/elements`: the string `products-filter` appears in **0 of 26** chunks (the scan was validated against a string known to be live). The Home category cards now navigate with plain `./products` and `./elements` hrefs instead.
+
+**If that pair is ever re-attached it will misbehave.** `ProductElementsLink` sets `sessionStorage["products-filter"] = "Elements"` and sends the visitor to `/products`; `ProductsFilterAutoSelect` then clicks the first visible element whose text is exactly `"Elements"`. **There is no "Elements" pill on `/products`** — its options are All/Flex/Profile/Optic — so it would match the navigation link instead and bounce the visitor straight to `/elements`. The logic was written against a filter layout that no longer exists. Delete it or rewrite it; do not simply re-attach.
+
+### Two presentation notes
+
+- **The pills render in Inter 14px**, while brand headings on the same page render in **Gellix**. Counting computed fonts across visible text on `/products`: Inter 97 elements, Gellix (SemiBold + Medium) 15, General Sans 1. Needs a deliberate decision rather than a silent fix — the intended brand font for UI controls is not recorded anywhere.
+- **Not a bug:** the pill `<button>`s compute `border-radius: 0px` despite the component's `radius: 999`. The rounding lives on the parent container (`999px` + `overflow: hidden`), so it is a segmented control inside a rounded pill. Working as designed.
