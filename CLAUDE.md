@@ -186,6 +186,27 @@ The animated rules between the nav menu rows are instances of the **`Line Animat
 
 Easing is `0.65, 0, 0.13, 1` on all six (copied from the Newsroom divider on Home). Full sweep completes ~2.1s; measured live 2026-09-30.
 
+**TIMING TABLE VERIFIED ON THE LIVE SITE 2026-10-05 — it is correct. Previously marked unverified; that caveat is withdrawn.** Measured by arming a `requestAnimationFrame` sampler in the published page and having a human open the menu on a foregrounded Chrome tab (630 samples). Each divider's inner `Line` width was tracked from 0 to 1506.
+
+| Divider | Starts drawing (from menu mount) | Gap to previous |
+|---|---|---|
+| Menu 1 Active | 330 ms | — |
+| Menu 2 Active | 480 ms | **150** |
+| Menu 3 Active | 631 ms | **151** |
+| Menu 4 Active | 781 ms | **150** |
+| Menu 5 Active | 930 ms | **149** |
+| Menu 6 Active | 1080 ms | **150** |
+
+**The stagger is 150 ms, within 1 ms on every step** — matching the table's delays, which are all `0.15` apart. The measured offsets run a **constant +130 ms** above the recorded values (330 vs 200, 480 vs 350, and so on), which is the lag between the menu mounting in the DOM and the appear clock starting; it is identical for all six, exactly as a fixed overhead should be.
+
+**Draw duration is consistent with the recorded `Time 1.2`.** Each line reaches 50% at ~384 ms, 99% at ~900 ms and 99.9% at ~1017 ms from its own start — the asymptotic finish expected from `cubic-bezier(0.65, 0, 0.13, 1)`. The nominal endpoint cannot be observed directly, only the asymptote, so 1.2 is *consistent with* rather than *proven by* this measurement.
+
+**Full sweep: first line starts 330 ms, last completes ~2097 ms -> ~2.1 s** — the exact figure recorded by hand from the editor panel on 2026-09-30, reproduced here by a completely independent route.
+
+**The variants fire in strict ascending order 1 -> 6, top to bottom, so they are correctly labelled.** Combined with the rendered-position measurement above, the menu cascade is confirmed correct end to end: right variant, right row, right order, right timing.
+
+**How to repeat this.** The constraint is that `requestAnimationFrame` only runs while the Chrome tab is **foregrounded**, and Framer's menu toggle ignores untrusted events, so neither `element.click()` nor JS-dispatched `PointerEvent`s will open it — and a CDP `computer left_click` opens it but does **not** foreground the tab. The working recipe: with the menu closed, arm a dormant rAF sampler via `javascript_tool` (it cannot tick while hidden, so it simply waits), then ask a human to click the tab and then the hamburger, then read `window.__cap` back afterwards. The samples persist in the page, so the human can switch away as soon as the cascade finishes.
+
 **Two delays used to stack.** Each idle variant also has an Appear interaction (Interactions → Appear → the Active variant) with its own Delay. Those are all set to **0** so the stagger has a single source of truth in the variant Transition. If a line starts late, check both.
 
 **Desktop and mobile share these variants.** `Mobile Full Navigation` has two variants — `Variant 1` (mobile/tablet, via `Navigation Mobile`) and `Desktop Full Menu` (≥1200px). Each has six `Line` wrappers each holding a `Global / Line Animation Global` child. **Both breakpoints render their dividers in correct row order on the live site — measured 2026-10-05, see below. Do not reassign them, and do not treat the canvas sibling order as the row order.** Because the variants are shared, a timing change applies to both automatically.
