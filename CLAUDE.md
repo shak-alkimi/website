@@ -6,11 +6,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Source for the **Alkimi** (LED tape-light business) marketing website. The site is built in **Framer**, and this repo is **only** the code-component layer. The visual canvas, pages, CMS content, and most of the site are **not** in the repo and are not editable from here.
 
-**⚠️ There is NO automatic sync between this repo and Framer** (verified 2026-07-08 in a full audit — the "main" chip in the Framer editor is Framer's own internal branching, not git). This repo is a manually-maintained mirror. **Framer's code editor is the source of truth for what actually runs.** After changing a file here, port it into Framer by pasting into the code editor (project: **"Alkimi (Shak)"**, framer.com/projects/Alkimi-Shak--Cf6zWteoRnYaaVh8Afqa-b8JbM) and save with Ctrl+S — or make the change in Framer first and mirror it back here. Keep both sides identical; note the port in the commit message.
+**⚠️ There is still NO automatic sync between this repo and Framer.** Nothing in Framer pushes to git and nothing in git pushes to Framer; the "main" chip in the Framer editor is Framer's own internal branching, not git (verified 2026-07-08). This repo is a **manually-maintained mirror**, and Framer remains the source of truth for what actually runs.
 
-**Project topology (2026-09-29):** the working Framer project is **"Alkimi (Shak)"** — framer.com/projects/Alkimi-Shak--Cf6zWteoRnYaaVh8Afqa-b8JbM — publishing to the staging domain fulfilled-development-106906.framer.app. Launch = move www.alkimiworks.com onto this project — a deliberate manual cutover. **Port code into "Alkimi (Shak)", not "Alkimi".**
+**What changed 2026-10-05 is the workflow, not that fact.** Pasting by hand into Framer's code editor is no longer the only route: an authorized **Framer Agent CLI** session can read and write code files directly (`framer.getCodeFiles()`, `codeFile.setFileContent()`), which makes drift *detectable* and reconciliation scriptable. The mirror still has to be kept in step deliberately — the CLI only removes the copy-paste step. See the Framer Agent CLI section.
 
-This supersedes the 2026-07-08 mapping, which named "Alkimi" (framer.com/projects/Alkimi--HZpxiZndjQNb8SpbXGqf-5RVN6 → alkimi.framer.website) as the main project and "Alkimi (copy)" as the holder of www.alkimiworks.com. Both of those projects still exist; which one currently serves www.alkimiworks.com was **not** re-verified on 2026-09-29. Note the repo's five components were documented against "Alkimi" — whether identical copies exist in "Alkimi (Shak)" is also unverified.
+**Project topology — verified 2026-10-05 from the Framer dashboard:**
+
+| Project | ID | Plan | Serves |
+|---|---|---|---|
+| **Alkimi (teaser)** | `jIeEHcbQNHV85rO12kAf` | Pro | **www.alkimiworks.com** — the live coming-soon page carrying the working Formspark form |
+| **Alkimi (main)** | `lGFTo9egwT6d6ra5S4uP` | Pro | not verified |
+| **Alkimi (Shak)** | `Cf6zWteoRnYaaVh8Afqa` | **Free** | fulfilled-development-106906.framer.app — the staging/work project **this repo mirrors** |
+| Ora (official) | `idoYUmcTUjWl1zFENTWM` | Free | the stock template, kept for comparison |
+
+`Alkimi (teaser)` → `www.alkimiworks.com` is **confirmed, not inferred**: that project's `getPublishInfo()` returns the domain, and its live `FormSpark` instance carries formId `75jmfofPI` — the same endpoint the production form POSTs to.
+
+**`Alkimi (Shak)` is on the Free plan.** That is why staging shows the "Made in Framer" badge (`#__framer-badge-container`, injected by the platform) and why the editor shows "Upgrade now". It is a plan artifact, **not** a canvas layer — it cannot be deleted by editing, and it will not follow the site onto a Pro project. Do not spend time hunting for a layer to remove.
+
+**The old mapping is stale — ignore it.** Earlier notes named the projects "Alkimi" (`HZpxiZndjQNb8SpbXGqf`) and "Alkimi (copy)"; neither name nor ID exists in the dashboard now. Launch remains a deliberate manual cutover of www.alkimiworks.com onto the launch project.
+
+**This repo mirrors `Alkimi (Shak)` only.** `Alkimi (teaser)` is a separate project with its own code files. **Do not put teaser files in this repo root** — the two sets would blur with nothing to tell them apart. If the teaser's code ever needs mirroring, give it an explicit directory of its own and record the decision here first.
 
 Each `.tsx` file at the root is a standalone Framer code component (note the `addPropertyControls(...)` blocks and `@framerSupportedLayoutWidth` doc-comment annotations). They render inside Framer, not in a local dev server.
 
@@ -25,15 +40,101 @@ There is no build, test, lint, or dev command. There is no `package.json`. Do no
 
 Edits are validated by porting into Framer's code editor and previewing there (see the no-sync warning above).
 
+## Framer Agent CLI (added 2026-10-05)
+
+`npx @framer/agent@latest` — Framer's own CLI (package `@framer/agent`, published by Framer staff). It reaches a project through the Server API and can read and write code files, inspect the canvas, query and edit the CMS, and publish. It is a `0.0.x` **beta**; treat its surface as liable to change.
+
+```bash
+npx @framer/agent@latest setup                     # installs skills into ~/.claude/skills (once per machine)
+npx @framer/agent@latest project auth "<url|id>"   # browser approval — no API key passes through the agent
+npx @framer/agent@latest session new "<id>"        # prints a session id; reuse it for every call
+npx @framer/agent@latest exec -s <id> -f script.js # run JS against the project
+npx @framer/agent@latest docs [Class[.method]]     # the full API reference, offline
+```
+
+**Authorized projects (2026-10-05):** `Alkimi (Shak)` `Cf6zWteoRnYaaVh8Afqa` and `Alkimi (teaser)` `jIeEHcbQNHV85rO12kAf`. Each project is authorized separately.
+
+**Detecting drift** — the thing the old "paste it in and note it in the commit message" convention was standing in for, which silently failed for four months:
+
+```js
+const files = await framer.getCodeFiles()
+return files.map(f => ({ path: f.path, content: f.content ?? "" }))
+```
+
+Dump that, diff against the repo, and **normalise line endings first** — Framer serves `\n`, the repo is `\r\n`, so every file reads as changed otherwise.
+
+**Writing:** `codeFile.setFileContent(code)` creates a new version in Framer, so there is a rollback path there as well as in `framer-snapshot/`. Always read the file back in a *separate* call and compare — do not trust the write call's own response.
+
+**Gotchas worth knowing before you start:**
+
+- **Sessions expire** when the relay restarts, failing with "Session is invalid or has expired". It fails cleanly, but verify after each write rather than batching a long sequence.
+- `exec` returns a bare string for string returns, **not** JSON — do not `JSON.parse` it.
+- Top-level `return` inside an `exec` script works; top-level `return` in a browser-side `javascript_tool` eval does not.
+- **Component instances** are found by `componentIdentifier`, which is `local-module:codeFile/<id>:default` — the `local-module:` prefix is required, and without it everything tallies as zero. An identifier starting `module:` instead means a *remote* package, not your local file.
+- **Code overrides cannot be located through the node API** at all — no `codeOverrides` attribute exists. To tell whether an override is live, scan the published page's JS bundles for a distinctive string from it, and validate the method against a component you know is live.
+- `getVersions()` is blocked by this permission scope ("missing read access to module owner"), so Framer-side edit timestamps are not available.
+- **Telemetry is on by default**: `npx @framer/agent@latest telemetry disable`.
+
+## Production contact form — fixed 2026-10-05
+
+The live form on **www.alkimiworks.com** (project `Alkimi (teaser)`, formId `75jmfofPI`) was **reporting success on failed submissions**. The pre-audit `FormSpark.tsx` did this:
+
+```js
+.then(() => { setSuccess(true); onSubmit() })   // no response.ok check
+```
+
+Any response — including 400/500 — replaced the form with the success tick, so a visitor whose enquiry failed was told it had been sent. Live in that state from **12 June until 5 October 2026**; the project had not been republished since 8 July.
+
+**Fixed** by pushing the repo's `FormSpark.tsx` (which checks `response.ok`, renders a `role="alert"` error, and guards `onSubmit?.()`) into `Alkimi (teaser)` and publishing. Only that one file was changed in that project; its other six code files are still pre-audit.
+
+**Verified live, both paths:**
+
+| | Failure path | Success path |
+|---|---|---|
+| Formspark response | forced 500 (blocked in-browser, never sent) | real 200 |
+| Form | **stays**, message preserved | removed |
+| `role="alert"` | 1 | 0 |
+| Shown | *"Something went wrong — please try again."* | success tick |
+
+**How to re-test without creating an enquiry** — monkeypatch `fetch` in the browser so the Formspark request never leaves it:
+
+```js
+const real = window.fetch.bind(window)
+window.fetch = async (i, init) => {
+  const url = typeof i === "string" ? i : i?.url ?? ""
+  if (/formspark/i.test(url)) return new Response("{}", { status: 500 })
+  return real(i, init)
+}
+```
+
+Then fill and submit. A correct build keeps the form and shows the alert; a broken one removes the form and shows the tick. Reloading the page clears the patch.
+
+**Note:** `Alkimi (Shak)`'s own `FormSpark` instances have an **empty `formId`**, so the staging contact page is not wired to Formspark at all. It is a placeholder until the teaser's form is migrated across at launch — at which point it inherits the fixed component.
+
 ## The components
 
-- [Copyright_year.tsx](Copyright_year.tsx) — auto-updating year
-- [Counter.tsx](Counter.tsx) — number counter that animates when scrolled into view (IntersectionObserver)
-- [FormSpark.tsx](FormSpark.tsx) — contact form posting to `api.formspark.io/{formId}`; the largest component, with email-regex validation, loading/success/error states, and many `addPropertyControls`
-- [Share_blob.tsx](Share_blob.tsx) — social/share code overrides (X, LinkedIn, Facebook, Email, Clipboard, WhatsApp, Tumblr)
-- [Valide/Scroll_Progress.tsx](Valide/Scroll_Progress.tsx) — scroll-progress indicator (subfolder is a Framer "module")
+The repo mirrors **12** of the 14 code files in `Alkimi (Shak)`. Instance counts are from the canvas, read 2026-10-05; **0 means nothing on the canvas renders it**, so changing it has no visible effect.
 
-Deleted from the repo 2026-06-12: `Pagination.tsx` (was empty), `FramerButton.tsx` (badge-hider with third-party affiliate code; moot on Pro plan). As of 2026-07-08 both files STILL EXIST in Framer's code panel — delete them there (and any canvas instances) when convenient.
+| File | Kind | Instances | |
+|---|---|---|---|
+| [GlobalScrollbarHider.tsx](GlobalScrollbarHider.tsx) | component | **34** | 1x1px, opacity 0; see the GlobalScrollbarHider note below |
+| [VideoThumbnail.tsx](VideoThumbnail.tsx) | component | **6** | |
+| [ProductsFilterPills.tsx](ProductsFilterPills.tsx) | component | **6** | products filter row |
+| [FormSpark.tsx](FormSpark.tsx) | component | **3** | contact form; `formId` is **empty** on staging — see the production-form section |
+| [Counter.tsx](Counter.tsx) | component | 0 | IntersectionObserver number counter |
+| [ElementsFilter.tsx](ElementsFilter.tsx) | component | 0 | |
+| [Valide/Scroll_Progress.tsx](Valide/Scroll_Progress.tsx) | component | 0 | **the canvas uses a remote module, not this file** — `module:tZ4BBLxqep75fqWPDP07/…/Scroll_Progress.js`. Editing this copy changes nothing. |
+| [Copyright_year.tsx](Copyright_year.tsx) | override | — | **unused**: no copyright line exists anywhere on the site |
+| [Share_blob.tsx](Share_blob.tsx) | override | — | share overrides (X, LinkedIn, Facebook, Email, Clipboard). A `Share Article` block exists on news pages but **none of its URLs appear in the published bundles**, so the overrides are not attached |
+| [ProductElementsLink.tsx](ProductElementsLink.tsx) | override | — | sets `sessionStorage["products-filter"]` |
+| [ProductsFilterAutoSelect.tsx](ProductsFilterAutoSelect.tsx) | override | — | reads it on /products and clicks the pill |
+| [ElementCounts.tsx](ElementCounts.tsx) | override | — | six count overrides (Optic, Driver, LED, Profile, Flex, Connector) |
+
+Override usage **cannot be read through the node API** — see the Agent CLI gotchas for the bundle-scanning method used above.
+
+**Not mirrored, deliberately:** `Pagination.tsx` (0 bytes) and `FramerButton.tsx` (badge-hider carrying third-party affiliate code). Both were deleted from the repo 2026-06-12 and still exist in Framer's code panel; all 12 canvas instances of `FramerButton (delete this)` were removed 2026-10-02 and the published site is verified clean, but the two files remain. `codeFile.remove()` can delete them now.
+
+**Removed 2026-10-05:** `ProductFilterFromURL.tsx` and `ProductFilterLinks.tsx` — a URL-query-parameter approach to deep-linking the products filter (`/products?filter=elements`). They existed **only in the repo**, never in Framer, despite commit `7d053fc` saying "ported into Framer manually". They were superseded by the sessionStorage pair that is actually in Framer — `ProductElementsLink` + `ProductsFilterAutoSelect`. `ProductFilterFromURL.tsx` is recoverable from `7d053fc`; `ProductFilterLinks.tsx` was never committed and is gone. Revisit only if the query-parameter approach is deliberately revived.
 
 ## Conventions to preserve
 
@@ -42,14 +143,13 @@ Deleted from the repo 2026-06-12: `Pagination.tsx` (was empty), `FramerButton.ts
 - `RenderTarget.current() === RenderTarget.canvas` checks are intentional — components often render differently inside the Framer editor vs. the published site (see `FormSpark`'s `isCanvas` to show placeholder values in the canvas).
 - TypeScript is loose by design here — `any` types in prop interfaces are common because Framer's `ControlType.Object` returns untyped objects. Don't tighten these without a reason.
 
-
 ## Canvas state worth knowing (not in this repo)
 
 These live only in the Framer canvas, but they are expensive to re-derive, so they are recorded here.
 
 ### Menu divider line animation
 
-The animated rules between the nav menu rows are instances of the **`Line Animation Global`** component (Assets → Project → Global). It holds paired variants: an idle `Line Mobile Menu N` (child `Line` at Width 0%) and an active `Line Mobile Menu N Active` (Width 100%). The 6th pair is still named **`Variant 16`** (idle) / **`Variant 15`** (active) — Framer's rename control rejects automation, so these need renaming by hand.
+The animated rules between the nav menu rows are instances of the **`Line Animation Global`** component (Assets → Project → Global). It holds paired variants: an idle `Line Mobile Menu N` (child `Line` at Width 0%) and an active `Line Mobile Menu N Active` (Width 100%). The 6th pair was called `Variant 16` / `Variant 15` until 2026-10-02 and is now **`Line Mobile Menu 6`** (idle) / **`Line Mobile Menu 6 Active`** (active). Note this pair sits **active-first** in the layer tree, unlike pairs 1-5.
 
 **Where the timing lives.** On each *Active* variant's Styles → Transition. Both the draw duration and the stagger are there:
 
@@ -60,15 +160,19 @@ The animated rules between the nav menu rows are instances of the **`Line Animat
 | Projects | Line Mobile Menu 3 Active | 1.2 | 0.5 |
 | About | Line Mobile Menu 4 Active | 1.2 | 0.65 |
 | News | Line Mobile Menu 5 Active | 1.2 | 0.8 |
-| Contact | Variant 15 | 1.2 | 0.95 |
+| Contact | Line Mobile Menu 6 Active | 1.2 | 0.95 |
 
 Easing is `0.65, 0, 0.13, 1` on all six (copied from the Newsroom divider on Home). Full sweep completes ~2.1s; measured live 2026-09-30.
 
 **Two delays used to stack.** Each idle variant also has an Appear interaction (Interactions → Appear → the Active variant) with its own Delay. Those are all set to **0** so the stagger has a single source of truth in the variant Transition. If a line starts late, check both.
 
-**Desktop and mobile share these variants.** `Mobile Full Navigation` has two variants — `Variant 1` (mobile/tablet, via `Navigation Mobile`) and `Desktop Full Menu` (≥1200px). Each has six `Line` wrappers whose `Global / Line Animation Global` child must be assigned **in row order**: Menu 1, 2, 3, 4, 5, then `Variant 16`. Both breakpoints were found scrambled and were fixed 2026-09-30. Because the variants are shared, a timing change applies to both automatically — but the per-instance *assignment* is separate and must be checked on each.
+**Desktop and mobile share these variants.** `Mobile Full Navigation` has two variants — `Variant 1` (mobile/tablet, via `Navigation Mobile`) and `Desktop Full Menu` (≥1200px). Each has six `Line` wrappers whose `Global / Line Animation Global` child must be assigned **in row order**: Menu 1, 2, 3, 4, 5, then `Line Mobile Menu 6`. Both breakpoints were found scrambled and were fixed 2026-09-30. Because the variants are shared, a timing change applies to both automatically — but the per-instance *assignment* is separate and must be checked on each.
 
 **Don't add competing Appear effects.** Both breakpoints previously had an instance-level Effects → Appear (opacity + offset) on each divider fighting the width draw. All twelve were removed.
+
+**The full variant inventory is 16, and they are all the same thickness** (counted 2026-10-02): `Line Animation` (Primary), `Line Animation Active`, `Line animate on appear`, `Line Active`, then `Line Mobile Menu 1…5` with their five `… Active` partners, then `Line Mobile Menu 6 Active` and `Line Mobile Menu 6`. Every one of the 16 frames measures **787 x 1**. The only differences between them are the child `Line`'s Width (0% idle -> 100% active) and the Transition timing.
+
+**So "make the desktop dividers thinner by switching to an existing variant" is not available** — there is no thinner variant, and because desktop and mobile share these variants (above) editing one would change both breakpoints anyway. 1px is the floor, and at `devicePixelRatio` 1.5 it rounds up to 2 device pixels, which is why they can read heavy. The only per-breakpoint lever is **contrast**: lower the opacity or lighten the fill on the six `Line` wrappers inside `Mobile Full Navigation -> Desktop Full Menu`, which is an instance-level override and leaves mobile/tablet alone. **Never chase thinness by changing the row pitch or gap** — see the geometry section; an odd pitch brings back the alternating thick/thin rendering. Asked and declined 2026-10-02; left as is.
 
 ### Menu row geometry (why the dividers are even thickness)
 
@@ -112,6 +216,14 @@ The **Home** collection is not page content — it is the two category cards: `F
 
 Framer only shows the controls relevant to the active variant, which is why the two-up instances never display `Sorting Image Wide`. Do not "tidy" `Sorting Left`/`Sorting Right` to match Projects numbering — that blanks or swaps the Fixtures/Elements cards.
 
+**The Home Newsroom is limited per breakpoint.** `Section News` (a sibling of `Main`, not inside it) holds `Container -> Collection Wrapper -> News`, a Collection List on the **News** collection with a `Limit to`. Desktop and Tablet are **3**; **Phone is 1**, set 2026-10-02 as a breakpoint override (blue label) so the phone page shows only the most recent article. Use that limit rather than hiding individual cards — hidden cards still exist as layers, whereas a lower limit simply never renders them. `Section News` is `Height: Fit content`, so the section shrinks with the content and the footer follows; the gap above the footer comes from the section's own padding and is unaffected by the limit.
+
+**Why the canvas used to show "No items match the current filters" (fixed 2026-10-02).** `Home Project Right` is a Collection List on the **Home** collection, filtered `Sorting Order Equals <Sorting Right>`. With no instance to supply a value, the canvas falls back to the **variable's default**, and that default was **3** — Home only goes up to 2, so zero rows matched and every variant rendered the blue empty-state placeholder on the right card. `Sorting Left`'s default is `1`, which is why only the right side was affected. Changed the default to **2** (Elements); the canvas now renders Fixtures | Elements. Published and the live row was re-measured unchanged (Fixtures/Elements, both cards 761.63) — page instances set the value explicitly, so the default never reached the published site.
+
+Stock does not show this because its row sources from **Projects**, which has items at `Sorting Order 3`. Ours was re-pointed at **Home** and the default was never brought down with it — the same mismatch as the trap above, seen from the canvas side.
+
+Defaults live in **Filters -> the `Sorting Order` pill -> Edit variables**, listing `Sorting Left`, `Sorting Right`, `Link`, `Video URL`, `Sorting Image Wide`. Setting one is safe to verify: the Default text field and its slider move together, which is how you know the change committed rather than just painting the input.
+
 ### Projects grid and list are hardcoded slots, not a collection list
 
 `/projects-grid` and `/projects-list` each contain **10** `Projects / Project Grid - Card` instances per breakpoint. Each has a numeric **`Filter`** property, 1–10, which matches a Projects item by `Sorting Order`. No matching item renders an **empty card**, not a collapsed one. Adding a project means either numbering it into a free slot or adding/removing card instances per breakpoint.
@@ -154,14 +266,105 @@ With 3 live projects the other 7 slots render as empty cards (grid) or bare divi
 
 The effect was removed on 2026-10-01 to prove it was the cause, then restored once the padding gave its trigger room. **Verified working 2026-10-01**: toggle visible on load, hides as the footer comes into view, reappears on scrolling back. The list page has the equivalent with `List Hide`.
 
-
 **Effects cascade from the primary (Desktop) breakpoint** — adding or removing one on Desktop applies it to Tablet and Phone too.
 **Why `500` and not less.** The trigger is `#footer` entering the viewport, and it needs real room to distinguish "at the footer" from "at the top of the page". Measured at 1440x854: the stock template's footer sits **1668px** below the fold (3224px page, 10 projects); ours sat **7px** below it (1522px page, 3 projects) — which is why the effect fired instantly. `Main`'s content is ~760px, so the footer lands at `760 + padding`; 500 puts it ~400px below the fold on an ~854px-tall window.
-
 
 `min-height: 100vh` stays, but note it *caps* the benefit on very tall windows: it forces the footer to at least the fold, so above roughly a 1260px-tall viewport the gap closes again and the toggle may hide at load. The real fix then is more content, not more padding.
 
 **This will right itself as projects are added.** Once the grid is naturally tall, the padding can come back down.
+
+### Home projects row — Fixtures/Elements card height mismatch (resolved 2026-10-01)
+
+The two-up cards on Home are `Home / Home - Projects Row`. The right (Elements) card rendered ~3px taller than the left (Fixtures), and later showed an unshaded band along its bottom. Two independent defects; both fixed and verified live.
+
+**Card height comes from a stored `aspect-ratio` on the `Image` layer, not from a height value.** Framer emits `aspect-ratio` so a fixed canvas height scales with the responsive width. Everything above it (`Image Wrapper`, `Product Card`, `Project Left` / `Home Project Right`) inherits the computed height. Rendered height = `imageWidth / ar`.
+
+**The two sides sit on different canvas scales.** The left `Image`'s width basis is `693` (= 1.2 x 577.5); the right's is `239.03`. So *matching the height between the two cards can never work* — only matching the ratio does:
+
+| layer | left | right |
+|---|---|---|
+| `Image` | 120% / **590** | 120% / **203.504** |
+| `Image` published ar | `1.17458` | `1.17458` |
+| `Image Wrapper` | Fill / Fit content | Fill / Fit content |
+| `Overlay` | 100% / 100% Rel | 100% / 100% Rel |
+
+`203.504 = 239.03 / 1.17458`. If the basis ever shifts, recompute empirically: publish once, read the emitted ar, then `newHeight = ar_published * height_published / 1.17458`. That relationship held to five decimals across three publishes.
+
+**Changing the ratio requires unlock -> set height -> RE-LOCK.** The aspect lock stores the ratio; while it is engaged the height field is cosmetic and edits publish nothing. Unlocking *deletes* the `aspect-ratio` declaration, so the height becomes a literal px value and the card collapses — shipped by accident twice on 2026-10-01. Re-locking writes the ratio from the current width/height. Verify all three steps individually; the height entry in particular fails silently (see gotchas).
+
+**The `Overlay` is a separate layer and was the second defect.** It is the gradient shading the lower part of the card. The right one was `590 Fixed` inside a 762px box, leaving the bottom third unshaded so the card read as ending early. Both sides must be `100% Rel`. Probe with `elementsFromPoint` at the card's lower edge — `Overlay` is in the paint stack on a correct card and absent on a broken one.
+
+**Not load-bearing:** the `Video` / `Component` containers beside the `Image` also carry a ratio (right `1.17`, left `1.17458`) but are `position: absolute` and cannot affect card height. Still mismatched as of 2026-10-01; may show on hover.
+
+**Verifying any of this requires a scroll sweep across both variants, not a single measurement** — see the variant-mounting note under automation gotchas. Confirmed good: images and overlays all 761.63 at scroll 0/700/840 (`Before Scroll State - Below Hero`) and 950/1100/1600 (`Home Projects - Initial State`).
+
+### Home projects row — hover behaviour (2026-10-02)
+
+Hovering a card switches the row to `Home Projects Left Open` / `Home Projects - Right Open`: the hovered column goes `1fr -> 1.5fr`, the other stays `1fr`. Measured at 1536 wide, the cards go 745.5 -> 894.6 / 596.4.
+
+**The image is meant to stay perfectly still; only the card moves.** The image is sized to exactly the fully-expanded card width, from both directions:
+
+```
+rest   120% x 745.5 = 894.6
+hover  100% x 894.6 = 894.6     (hovered card)
+hover  150% x 596.4 = 894.6     (other card)
+```
+
+So the card is a mask sliding over a stationary picture. **Do not "fix" those 100% / 150% overrides to match the base 120%** — that breaks the identity and the image grows ~20% on hover. This was tried on 2026-10-02 and reverted.
+
+**The wrappers must be anchored to the card's OUTER edge, not centred.** This was the real defect:
+
+| `Image Wrapper` | correct (= stock) | was |
+|---|---|---|
+| Left | Distribute **Start** (`justify-content: flex-start`) | Center |
+| Right | Distribute **End** (`justify-content: flex-end`) | Center |
+
+Centred, the 894.6px image overhangs a 745.5px card by 74.6px *each side*; as the card grows to 894.6 that offset collapses to zero and the image slides 74.6px. Anchored to the outer edge there is nothing to collapse. Fixed on the base variant 2026-10-02, so it applies to every state. Verified: image `dx = 0, dw = 0` on both cards in both hover variants.
+
+**Other hover facts, all confirmed identical to stock** — don't "fix" these:
+
+- `Product Card` (left) gets `place-content:flex-start; align-items:flex-start` in Left Open only. There is no equivalent on the right card.
+- The right card's `Video` container carries `right:-1px` in both hover variants; the left's `Component` has no such bleed.
+- In `Before Scroll State - Below Hero` both cards' Mouse enter is **`Reset…`** (no target variant). Hovering in that scroll state does not open a card — it resets the component to its base variant. That is template behaviour.
+- Variant Transition is **Spring, stiffness 500 / damping 60 / mass 1** on both hover variants. `zeta = 60 / (2*sqrt(500)) = 1.34`, i.e. **overdamped — it does not overshoot.** Don't reach for "the spring overshoots" as an explanation.
+
+**The hovered card used to end ~4px short of its neighbour (resolved 2026-10-02).** Symptom: resting state perfect, but hovering either card made *that* card 757.8 against the other's 761.6. Cause: the three hover-variant `Image`/`Video` layers that override Width to `100%` also carried a stale `aspect-ratio` override of `1.18045`/`1.18058` instead of the base `1.17458`. `894.59 / 1.18058 = 757.76`; `894.59 / 1.17458 = 761.63`.
+
+**The two hover images sit on DIFFERENT width bases — 200 (left) and 201 (right)** — so the same ratio needs different numbers:
+
+| layer | basis | correct Height |
+|---|---|---|
+| `Home Projects Left Open` -> `Image Wrapper Left` -> `Image` | 200 | **170.2741703** |
+| `Home Projects - Right Open` -> `Image Wrapper Right` -> `Image` | 201 | **171.1255411** |
+
+Both are `100%` Rel on Width. Do not assume the two sides share a basis — assuming that is how `171.1255411` got "reverted" to `170.2741703` on the right card and caused this bug in the first place. Derive the basis empirically from the published rule: `basis = currentHeight x publishedAr`, then `target = basis / 1.17458`.
+
+**How to apply it** (Reset override is NOT reachable by automation — see gotchas): select the layer, **open the aspect lock**, type the target Height, **re-lock**. Confirm the lock state by zoomed screenshot before and after; the padlock glyph is purple/closed when engaged, grey/open when not.
+
+**Verified live 2026-10-02** by class-swapping each variant onto the component root and measuring `Product Card`: resting 761.63/761.63, hover-left 761.64/761.63, hover-right 761.63/761.64. Overlays track the image in every state. The published rules to look for:
+
+```
+.framer-v-1rizoid .framer-15m2r2a { aspect-ratio: 1.17458 / 1; width: 100%; }
+.framer-v-3q8m7a  .framer-u1j3y9  { aspect-ratio: 1.17458 / 1; width: 100%; }
+```
+
+**Still at `1.18045`:** `.framer-v-1rizoid .framer-q1bc20-container` — the left hover `Video`. Its stored height is `590.0000000895` implying a third basis (~696) that could not be pinned down cleanly, and it is `position: absolute` so it cannot affect card height. Left alone deliberately rather than guessed at.
+
+**Separately unresolved:** a reported sub-pixel artifact where the cards look momentarily narrow on their inner edge *while the hover settles*. That is about the transition, not the end state — the end state now measures correct. Every reachable parameter matches stock (interactions, flex, anchoring, alignment overrides, aspect ratios, row padding, transition and spring constants). Two attempts to fix it from static analysis each made something worse and were reverted. **Don't attack this from CSS reading — it needs a side-by-side screen recording against the stock template.**
+
+**The right card's photo used to vanish on hover (resolved 2026-10-02).** Symptom: hover the Elements card and its photo ghosted out to near-nothing, leaving a diagonal striped pattern. Right card only, hover only, resting state fine. Cause: a single variant override —
+
+```
+Home Projects - Right Open -> Home Project Right -> Product Card
+  -> Image Wrapper Right -> Image     Styles -> Opacity = 0.11
+```
+
+The left card's equivalent is `1`, which is why it was one-sided. Set it to `1` and the symptom is gone (confirmed by the user 2026-10-02).
+
+**The diagonal stripes are Framer's placeholder tile, and they are always there.** A classless `<div>` sits at **child index 0 of both `Image Wrapper Left` and `Image Wrapper Right`**, carrying an inline-SVG background (`126x126` diagonal bars, `repeat`, `background-size: 64px auto`). The `Image` above it has `z-index: 1`, so the tile is normally invisible. **Seeing those stripes anywhere means the image above them went transparent — it is never a geometry or missing-asset problem.** Go straight to that layer's `Opacity` in the variant you are in.
+
+**The hover `Video` on both cards is bound to a CMS field that does not exist.** The `Video` component's **Source -> URL** points at **`Thumbnail Video URL - Wide`**, and the **Home** collection has no such field (its fields are Status, Slug, Sorting Order, Sorting Next Project 1, Sorting Next Project 2, 5 Images on List View, Thumbnail Image - Wide, Title). Framer reports this as a purple **`Missing`** pill on the layer's `Visible` row. The right card's `Video` was set **Visible: No** on 2026-10-02 because there is no video content behind the binding; the left card's is untouched and still broken. If hover video is ever wanted, add the field to the Home collection and rebind rather than hiding the layer.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
@@ -182,6 +385,7 @@ Layer and field names across this template rarely match their content, so search
 - Inside `Grid - List Toggle`, "Case Studies" is **`About us`** and the "(3)" is **`Always looking…`**.
 - `Sorting Next Project 1/2` do not point at the next project (see above).
 - Several Projects items were renamed but kept their old slugs.
+- The menu row labels are text layers named **`PROFILE`**, with the row number beside them in **`01`**. Path: `Mobile Full Navigation -> <variant> -> Menu Content -> Link Wrapper -> Individual Link Wrapper -> Open Navigation Link -> PROFILE`. Searching the layer tree for a label like "Products" returns **"No layers found"**. The text content is **shared between `Variant 1` and `Desktop Full Menu`**, so editing it once changes mobile, tablet and desktop together — unlike the per-instance line assignments above. Row 1 was relabelled Products -> **Fixtures** on 2026-10-02; the page slug is still `/products` and the link still points there.
 
 ### Framer automation gotchas (CMS table and property panel)
 
@@ -213,6 +417,105 @@ Layer and field names across this template rarely match their content, so search
 - The **Min Max → Add…** menu (Min/Max Width/Height) does not accept scripted clicks, and keyboard navigation hits the layer-tree danger above. Add Min Height by hand.
 - The properties panel is **virtualised** — inputs scrolled out of view are absent from the DOM, so a read can show only some fields. Scroll the relevant section into view before reading or trusting values.
 - The screenshot coordinate frame may be the CSS frame scaled by `devicePixelRatio`; verify against a known element before clicking by coordinate.
+- **Framer mounts one variant at a time and swaps it on scroll.** A single `getBoundingClientRect` read therefore proves nothing — the DOM may hold the one variant that is already correct while the broken one is what the user sees. Sweep several scroll positions and record the owning variant with every measurement (walk ancestors for `data-framer-name`, or read the `framer-v-*` class). This produced three separate false "it's fixed" conclusions on 2026-10-01.
+- **Typing a number into a `Fit content` (or any non-Fixed) size field silently converts the type to `Fixed`**, and it then publishes as a hard px value. This broke the Elements card twice. After typing into any size field, re-check the type dropdown.
+- **`<select>` reads via JS are stale after a selection change** — noted above for Position Type, but it applies to *every* panel dropdown. A height select reported `Relative` while a screenshot plainly showed `590 Fixed`. Screenshot anything type-related; never trust `select.value` / `selectedIndex`.
+- To set a `<select>` from JS use the native setter plus `input` + `change` events: `Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value').set.call(sel, v)`. Switching a size type this way **carries the old value across** (590 Fixed became 295% Rel), so set the number afterwards.
+- **Typing into a focused panel number field fails silently maybe half the time** — the field keeps its old value with no error. Always read the input back before moving on; several publishes were wasted on edits that never landed.
+- **The layer tree's disclosure arrow is the 6x6 svg to the left of the label**, not the 12x12 type icon beside it. Clicking the icon toggles the wrong row.
+- **Driving the layer tree by coordinate is unreliable**: the screenshot frame and the DOM's CSS pixels differ (e.g. frame 1459x812 vs CSS 1536x799), so clicks land a row off. Locate rows via the DOM and dispatch pointer/mouse events on the element itself.
+- Expanding a tree row re-renders the list, so **batched clicks land on pre-render positions**. One expand per call, then re-read the rows.
+- Framer's **Preview opens in a separate window, not a tab**, so it cannot be measured from here. There is no publish-free feedback loop — every layout check costs a publish. Plan edits to minimise round trips, and record current values before changing anything.
+- The publish popover's **"No changes" can be wrong**: an edit sat in the document (surviving a full editor reload) while the panel still read "No changes". Re-entering the value as a genuinely different number registered it. Treat "No changes" as a hint, not proof.
+
+- **Measuring a hover/variant end-state without the animation: swap the class.** Animations never run in this environment, so hovering proves nothing. Instead find the component root (the element carrying a `framer-v-*` class), record the rects, then `root.classList.remove(old); root.classList.add('framer-v-1rizoid')`, wait ~500ms, re-measure, and restore. The CSS for that variant applies immediately, so this gives the exact hover end-state. This is what finally isolated the 74.6px image slide on 2026-10-02 after several rounds of wrong conclusions drawn from reading CSS rules.
+- **Read class names from the live DOM, not from selectors.** Framer emits combined rules like `.framer-v-1rizoid .framer-u1j3y9, .framer-v-3q8m7a .framer-15m2r2a, …{width:150%}`. Skimming one of those led to "stock has no 100% override" — wrong, and it cost a publish. Get each element's own class via `[...el.classList]` on the rendered page first, then grep the stylesheet for exactly those classes.
+- **Comparing against the stock Ora template is the highest-value move** when something looks off in a template-derived component. Stock published site: energized-personalization-419445.framer.app; stock editor: framer.com/projects/Ora-official--idoYUmcTUjWl1zFENTWM-5iPzt. Diff the published rules, or read the same layers in both editors.
+- **The aspect lock converts size types.** On a layer whose width/height are both Relative, engaging the lock rewrites them to Fixed px (seen on the right `Video` container: `100%/100%` became `100%/200`). Leave that layer unlocked. On Fixed-height layers the lock behaves and drags the other dimension proportionally, which is how to change one and keep the ratio.
+- Editing a `%` width whose partner is a Fixed height **drags the height**, so a later "revert the width" leaves the height stale. After reverting a percentage, check the height too — on 2026-10-02 the widths self-reverted to `100%` while the heights kept the bled value, leaving a half-applied change in the published build.
+- **A LOCKED Height field displays a number unrelated to the stored ratio.** On 2026-10-02 all three hover `Image`/`Video` layers displayed `170.2741703` while storing three *different* aspect ratios. Typing into that field under an engaged lock publishes nothing, and **reading the input back afterwards proves nothing** — the field happily shows what you typed. Only two things reveal the truth: **opening the lock** (the field snaps to the real stored px value) or a **full page reload** (which clears the stale display). The one authoritative check is the published `aspect-ratio` in the live CSS.
+- **Property-label colour tells you the scope of a value, and the three are easy to confuse.** Grey `rgb(204,204,204)` = inherited, nothing set here. Purple `rgb(136,85,255)` = a **variant** override. Blue `rgb(0,153,255)` = a **breakpoint** override. Reading the colour is the quickest way to answer "will editing this bleed into the other breakpoints / variants?" — and after an edit it is how you confirm the change landed where you intended rather than on the base. Verified 2026-10-02 when scoping a CMS limit to Phone only.
+- **Right-click -> Reset override is not reachable by automation.** Tried on the `Height` label, on the value field, and with a prior hover; no context menu ever appeared (the right-click on the field just selects its text). Either do it by hand, or use **open lock -> type Height -> re-lock**, which rewrites the stored ratio and does work.
+- **Never send `computer type` at a panel field without confirming focus first** — if the panel is not focused the digits are swallowed as canvas shortcuts. On 2026-10-02 typing `171.1255411255411` at an unfocused panel switched the whole editor into the **CMS** view. Focus the input via JS (`inp.focus()`), assert `document.activeElement` is that INPUT, and prefer the native setter + `input`/`change`/Enter events over keystrokes.
+- **A canvas click by coordinate can land in the Pages panel and navigate away.** The left panel silently reverts from Layers to Pages, so a stale coordinate opened `/elements` mid-edit. Re-screenshot immediately before any coordinate click, and confirm which tab the left panel is on.
+- **When something washes out, disappears or "looks wrong" in one variant, read that layer's `Styles -> Opacity` in that variant FIRST.** On 2026-10-02 three publishes were spent on geometry and on a missing video binding for what turned out to be a single `Opacity: 0.11` override on one `Image`. A purple property label means an override exists in the variant you are looking at — scroll the Styles section into view and read every row, not just Size.
+- **Class-swapping does NOT reproduce a hover.** It applies the variant's CSS, which is enough for geometry, but Framer's JS variant switch also remounts children, swaps bindings and writes motion styles — none of which happen. So a class-swap can render a state as perfectly fine while the real hover is visibly broken. Hover-specific defects must be found by reading layer properties in the editor, or confirmed by a human in a real window. Do not conclude "the end state is correct, therefore it's fixed."
+- **Renaming a layer or variant DOES work under automation** — an earlier note here claimed it did not, and that was wrong (corrected 2026-10-02 after renaming both 6th-pair variants this way). Single-click the row, then **double-click the row label**: a real `<input>` appears in the layer tree carrying the old name, and because the tree is in the main document (not the canvas iframe) you can confirm it with `document.activeElement.value` before sending a key. Then `Ctrl+A`, type, `Enter`. `Ctrl+A` is safe here precisely because focus is in that input — check `activeElement` first, or it hits the canvas and opens the delete dialog.
+- **Editing canvas text works the same way, but blind.** Double-click the word on the canvas and Framer selects that word; typing replaces it. You cannot verify focus first because the canvas is a cross-origin iframe, so take a screenshot after the double-click and look for the selection highlight before typing. Text content is **shared across variants** unless explicitly overridden — one edit changed the menu label on both `Variant 1` and `Desktop Full Menu`.
+- **A rename publishes as "1 change" even though names are not emitted.** Harmless, but it means a tidy-up rename leaves the project dirty; publish it or expect it to ride along with whatever you do next.
+
+## Verified baseline — 2026-10-02
+
+Known-good published state of **fulfilled-development-106906.framer.app**, measured after the last publish of the day (class prefix `framer-U4lA5`; the prefix changes every publish, so match on the layer classes, not on it). Anything that disagrees with this is a regression.
+
+**Home projects row — every emitted `aspect-ratio` is `1.17458`:**
+
+```
+base          .framer-15m2r2a            1.17458 / width 120%
+base          .framer-u1j3y9             1.17458 / width 120%
+base          .framer-q1bc20-container   1.17458 / width 120%
+base          .framer-zff0ca-container   1.17458 / width 120%
+v-1rizoid     .framer-15m2r2a            1.17458 / width 100%     (left card hovered)
+v-1rizoid     .framer-u1j3y9             1.17458 / width 150%
+v-1rizoid     .framer-zff0ca-container   1.17458 / width 150%, right -1px
+v-3q8m7a      .framer-u1j3y9             1.17458 / width 100%     (right card hovered)
+```
+
+`v-1rizoid .framer-q1bc20-container` and `v-3q8m7a .framer-zff0ca-container` emit **no rule at all** — those are the two hover `Video` layers now set `Visible: No`. If either reappears, someone re-enabled a video layer.
+
+**Measured geometry at 1536 wide, all three states:**
+
+| State | Left card | Right card | ar | Overlay tracks image |
+|---|---|---|---|---|
+| Resting | 761.11 | 761.11 | 1.17458 | yes |
+| `v-1rizoid` (hover left) | 761.11 | 761.11 | 1.17458 | yes |
+| `v-3q8m7a` (hover right) | 761.11 | 761.11 | 1.17458 | yes |
+
+Images are `894 x 761.11` throughout, identical on both sides in all three states. These numbers superseded the earlier 761.63 set when the row gap went 15 -> 16 on 2026-10-02 (see below) — the cards are half a pixel narrower, so the height follows through the aspect ratio. What matters is that the two sides match exactly, which they now do to the hundredth.
+
+**Navigation:** first menu row reads **`Fixtures`** and links to `./products` (label renamed 2026-10-02; the slug was deliberately left alone).
+
+**There are TWO projects-row components, not one — mirror every change across both (found 2026-10-02).**
+
+| Component | Published hash | Renders on Home as |
+|---|---|---|
+| `Home - Projects Row` | `framer-FHOjC` | the two-up **Fixtures / Elements** cards |
+| `Home - Projects Row 2` | changes per publish (was `framer-D4P7g`, then `framer-8Ouu1`) | the full-width **case-study** card (`Home Project Single - Wide`) |
+
+Both live in Assets -> Project (`Row 2` sits at the top level, not inside the `Home` folder) and **both carry the same nine variant names** — `Home Projects - Initial State`, `… Left Open`, `… Right Open`, `Before Scroll State - Below Hero`, `Home Project Single - Wide`, `… Tablet`, `… Mobile`, `Home Project Single Wide - Mobile`, `… Tablet Below Hero`. Identical layer trees inside. It is very easy to edit one, verify the live page, and conclude the job is done.
+
+**How to tell them apart on the published page:** walk up from a `Product Card` to the ancestor carrying a 5-character `framer-XXXXX` class. Two different hashes means two different components. Do not match on the variant name — both use the same names.
+
+In both components the gap pattern was identical: the base variant at 15 **not** overridden, and `Left Open` / `Right Open` each carrying their own purple 15. Both were set to 16, and both `Product Card` radii to 10, on 2026-10-02.
+**Row gap is 16, not 15, and it must stay even (changed 2026-10-02).** A faint vertical line was visible in the gutter between the two cards. It is not an element — the gutter contains no DOM at all. It was **sub-pixel antialiasing**: at `devicePixelRatio` 1.5 the inner edges landed on fractional device pixels and the browser blended them.
+
+```
+gap 15 :  card 745.5   left edge 760.5 -> 1140.75 device px   right edge 775.5 -> 1163.25   both blurred
+gap 16 :  card 745     left edge 760   -> 1140    device px   right edge 776   -> 1164      both exact
+```
+
+**An odd gap can never satisfy both edges at once.** Solving for whole device pixels at 1.5 dpr: with gap 15 the left edge needs `viewport = 3 (mod 4)` and the right edge needs `viewport = 1 (mod 4)` — contradictory, so at *every* viewport width one of the two inner edges is blurred, and which one flips as you resize. With gap 16 both edges need `viewport = 0 (mod 4)`, i.e. they share a phase. This is the same even/odd trap as the menu dividers, on the horizontal axis.
+
+**Set the gap on all four variants, not just the base.** `Home Projects Left Open` and `Home Projects - Right Open` each carried their own purple `15` override. Leaving those would have made the gap *animate* 16 -> 15 on hover, shifting both inner edges by a pixel mid-transition — worse than the original. All four now read 16.
+
+The hover states still land on half-device-pixels (`909 -> 1363.5`), which is a uniform 50% blend rather than the old asymmetric 0.75/0.25 — better, but intermediate widths during an animation are fractional by nature and cannot be made exact. Whether this is what caused the reported "narrowing on the inner edge while the hover settles" is **unconfirmed** — it is a measured sub-pixel defect at exactly the right location, but the animation itself still cannot be observed from an automated tab.
+**Card corner radius — a deliberate divergence from stock (2026-10-02).** Stock Ora ships the left card's `Product Card` at **`border-radius: 0`** while the right card's is **`10px`**, so the left card has square corners sandwiched between a rounded `Project Left` (10px) parent and a rounded `Image Wrapper Left` (10px) child. It reads as a template oversight, not a design choice. **We set the left `Product Card` to `10px`** on the base variant of BOTH row components (see the two-components note above) so every card matches; it cascades to the hover and breakpoint variants. Our site now intentionally differs from stock here — **do not "restore" it to 0**.
+
+Verify it with an element probe rather than by eye: sample `elementsFromPoint(card.left + 2, card.bottom - 2)` and the same at `right - 2`. A 10px radius puts that point outside the shape, so a correct card returns the **row background**; a square-cornered one returns **`Product Card`** itself. Reading zoomed screenshots for this is unreliable and produced a wrong call on 2026-10-02 before the probe settled it.
+**CMS, re-read and clean 2026-10-02:** Home = 2 (`Fixtures` Live / `polestar` / 1, `Elements` Live / `arrival` / 2). Projects = 10, three Live at Sorting Order 1/2/3 (`positive-energy`, `first-round`, `the-leader`, all with Next Project 1 = 1 and 2 = 2) and seven Draft at 4–10. Fixtures = 11, Elements = 5, News = 7.
+
+**How to re-check.** Open the published page, scroll to ~1300, then class-swap the row root through `framer-v-1rizoid` and `framer-v-3q8m7a`, measuring the enclosing `Product Card` each time (see the class-swap gotcha). Remember this only validates CSS-driven geometry — it cannot reproduce a hover, so anything animation- or binding-dependent still needs a human in a real window.
+
+**Four long-standing "known-open" items were re-tested on 2026-10-02 and are stale — do not re-open them without re-testing first:**
+
+| Item as recorded | Actual state |
+|---|---|
+| `Navigation Desktop` `Click -> Tap 2` swallows the logo's home link | **Works.** The logo publishes as `<a href="./">`, nothing covers it (`elementFromPoint` resolves to the anchor), and a real click took `/projects-list` -> `/`. The nav containers are plain `div`s with `cursor: auto`. |
+| `/projects-list` reports collection-filter errors | **None.** No error text anywhere in the editor UI, no error badges on the canvas, and the published page renders `Main` 878 tall with a 478px `Projects List` and all three rows. |
+| `Before Scroll State` redundant `120% / 204.329` override | **Gone.** Both labels read grey (not purple) at `120% / 203.504`, i.e. the base values, so there is no override left to reset. |
+| Static "(3)" count label is wrong | **Correct as it stands.** It reads `(3)` and there are exactly 3 Live projects. It is still *static*, so it does need editing by hand whenever that count changes — but nothing is wrong today. |
+
+**The "Made in Framer" badge is not a canvas layer.** It is `#__framer-badge-container`, injected by Framer's platform into the published page (an `<a>` reading "Create a free website with Framer…"). It cannot be deleted in the editor or by removing layers — it goes away with a paid Site Plan on the domain. The old `FramerButton` component was a third-party badge-hider hack; its 12 instances were deleted 2026-10-02 instead.
 
 ## Dispatch board (cross-surface coordination)
 
@@ -234,10 +537,10 @@ The shared board is **GitHub issue #1** in the **private repo `shak-alkimi/dispa
 
 As of 2026-10-01, carried over between sessions:
 
-- `Variant 15` / `Variant 16` in `Line Animation Global` still need renaming to "Line Mobile Menu 6 Active" / "Line Mobile Menu 6".
 - Home page "First Round" project card has `Source: External` — should be `Projects`, which is why replacing its CMS thumbnail had no effect.
-- `Navigation Desktop` root carries a `Click → Tap 2` interaction, so the whole bar acts as the menu button and swallows the logo's home link. The `×` on an Interactions row rejects automation.
-- `/projects-list` reports collection-filter errors; the Projects menu item links there.
-- `FramerButton (delete this)` still sits on `/projects-grid` and `/projects-list`. `Pagination.tsx` and `FramerButton.tsx` were deleted from this repo 2026-06-12 but still exist in Framer's code panel.
+- `Pagination.tsx` and `FramerButton.tsx` were deleted from this repo 2026-06-12 but **still exist in Framer's code panel**. All 12 canvas instances of `FramerButton (delete this)` were deleted 2026-10-02 and the published site is verified clean, but the two code files remain: rows in Assets -> Code do not respond to selection clicks, so deleting them needs a right-click -> Delete by hand.
+- **Mirror completeness (resolved 2026-10-05).** The repo now mirrors 12 of the 14 code files in `Alkimi (Shak)`; the two omissions (`Pagination.tsx`, `FramerButton.tsx`) are deliberate. All 12 were verified byte-identical to Framer on 2026-10-05. The two files still sitting in Framer's code panel can now be removed with `codeFile.remove()`.
 - The three Live projects still publish under Ora template slugs: Belmont Park at `/projects/positive-energy`, Resorts World at `/projects/first-round`, Tuft at `/projects/the-leader`. Pre-launch is the cheap moment to rename them; re-check the Home and nav links afterwards.
+- Home projects row, hover: the ~4px card-height mismatch and the right card's vanishing photo are both **fixed and confirmed by the user 2026-10-02**. The one thing never confirmed either way is whether the cards still look momentarily narrow on their inner edge *during* the transition — the end state measures correct, so it is a transition question and needs a side-by-side screen recording, not CSS reading.
+- Both cards' hover `Video` layers are now **`Visible: No`** (2026-10-02). Their `Source -> URL` was bound to a CMS field `Thumbnail Video URL - Wide` that does not exist on the **Home** collection, which Framer showed as a purple `Missing` pill on `Visible`. Hiding them also removed the last `aspect-ratio: 1.18045` outlier from the published CSS, since a hidden layer emits no rule. **If hover video is ever wanted, add the field to the Home collection, rebind, and set these back to `Visible: Yes`.**
 - Seven Draft projects occupy `Sorting Order` 4–10, two of them duplicates (`Glossier Copy`, `Hyundai Motor Group Copy`) created 2026-10-01 purely to fill grid slots 9/10 in the canvas. They are invisible on the published site. If any go Live, the static "(3)" count label needs updating by hand.
