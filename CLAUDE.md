@@ -670,7 +670,17 @@ Verify radius with an element probe rather than by eye: sample `elementsFromPoin
 The shared board is **GitHub issue #1** in the **private repo `shak-alkimi/dispatch`** — the single coordination channel between desktop agent sessions (this repo, the configurator repo) and Shak's Claude mobile app. It stays open permanently. Body sections: Now / Next / Blocked / Needs-Shak's-call / Decisions-log; the comment thread is the running log (mobile drops decisions there).
 
 - **Session start:** `gh issue view 1 --repo shak-alkimi/dispatch --json body` for state, AND `--comments` for decisions Shak left from mobile.
-- **Session end (or after shipping something):** update the body — overwrite the state sections, APPEND to Decisions-log, bump the "Last updated" footer.
+- **Update trigger — do NOT wait for "session end".** Update the body **as soon as anything ships**, where "ships" is a checkable list, not a judgement call:
+  - a write to Framer (`setFileContent`, `setAttributes`, `codeFile.remove()`, a CMS edit) — **and any publish**
+  - a file added or deleted in this repo
+  - a report, audit or decision record produced
+  - a verdict overturned, or a claim in this file corrected
+
+  Then: overwrite the state sections, APPEND to Decisions-log, bump the "Last updated" footer.
+
+  **Why this is spelled out.** The old wording was "session end (or after shipping something)", and on 2026-10-05 the second clause got dropped in practice: the board tracked correctly until 17:00, then **seven commits landed between 17:08 and 17:48 with no update** — a full-site audit carrying two launch-blocking findings, plus four code files deleted from Framer and the repo. The cause was that each task flowed straight into the next request, so the conversational pause that had been triggering updates never arrived. **"Session end" is not a checkable condition in a long run; "something shipped" is.** The gap was only closed because Shak noticed the board had stalled.
+
+  **This matters more than ordinary record-keeping**, because the board is last-writer-wins coordination that other surfaces *trust*. During those 40 minutes a mobile or Codex session reading the board would have seen a healthy site with no audit and no deletions. **Stale coordination data is worse than none.**
 - **Clobber guard (mandatory):** body updates are last-writer-wins — ALWAYS re-read the body immediately before overwriting and carry forward anything another session added. Never write from a stale copy.
 - **Content hygiene:** even though the repo is private, never post credentials/tokens/secret URLs, customer data, vulnerability details, patent-sensitive configurator logic, pricing formulas, or SOS/QBO account specifics.
 - Board is coordination only — it is not a source of truth for site content (that lives in Framer) or app data (SOS / QBO / Base44).
