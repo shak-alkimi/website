@@ -13,6 +13,13 @@ the Framer Agent CLI (`framer.getCodeFiles()`), not by hand.
 **Do not edit anything in this directory.** It is a point-in-time record, not
 working code. The maintained copies live at the repo root.
 
+**Expect it to differ from the repo, and do not treat that as drift.** This is
+Framer's state *before* the repo's audited code was pushed into it. As of
+2026-10-05, 5 of the 9 surviving files differ from the repo root -- `Copyright_year`,
+`Counter`, `FormSpark`, `Share_blob`, `Scroll_Progress` -- which is exactly the set
+that had drifted and was then reconciled. The repo root matches Framer; this
+directory matches what Framer held beforehand. That is the point of it.
+
 ## Why this exists
 
 On 2026-10-05 the mirror was found broken in both directions: 7 files existed

@@ -135,7 +135,7 @@ Then fill and submit. A correct build keeps the form and shows the alert; a brok
 
 ## The components
 
-The repo mirrors **all 9** code files in `Alkimi (Shak)` — a 1:1 mirror after the 2026-10-05 deletions (14 → 12 → 9). Instance counts are from the canvas, read 2026-10-05; **0 means nothing on the canvas renders it**, so changing it has no visible effect.
+The repo mirrors **all 8** code files in `Alkimi (Shak)` — a 1:1 mirror after the 2026-10-05 deletions (14 → 12 → 9 → 8). Instance counts are from the canvas, read 2026-10-05; **0 means nothing on the canvas renders it**, so changing it has no visible effect.
 
 | File | Kind | Instances | |
 |---|---|---|---|
@@ -143,7 +143,6 @@ The repo mirrors **all 9** code files in `Alkimi (Shak)` — a 1:1 mirror after 
 | [VideoThumbnail.tsx](VideoThumbnail.tsx) | component | **6** | |
 | [ProductsFilterPills.tsx](ProductsFilterPills.tsx) | component | **6** | products filter row |
 | [FormSpark.tsx](FormSpark.tsx) | component | **3** | contact form; `formId` is **empty** on staging — see the production-form section |
-| [Counter.tsx](Counter.tsx) | component | **0** | IntersectionObserver number counter. **Confirmed dead 2026-10-05** — 0 canvas instances, and its literal `End Number` appears in none of the 48 published chunks. |
 | [Valide/Scroll_Progress.tsx](Valide/Scroll_Progress.tsx) | component | **0** | **Confirmed dead 2026-10-05.** The canvas uses a *remote* module instead — `module:tZ4BBLxqep75fqWPDP07/…/Scroll_Progress.js` — so editing this copy changes nothing. Its distinctive literals (`Scroll Progress`, `framer-motion`) appear in no published chunk. |
 | [Copyright_year.tsx](Copyright_year.tsx) | override | — | **LIVE — do NOT delete.** An earlier note here called it unused; that was wrong. Its code is in the published bundle (`i.children.replace(`YYYY`, new Date().getFullYear())`) and it renders **`© Alkimi 2026`** on `/products` and `/elements`. `getFullYear` appears in no other local file. |
 | [Share_blob.tsx](Share_blob.tsx) | override | — | **PARTIALLY LIVE — do NOT delete.** An earlier note said none of it was attached; that was wrong, because the check looked for share *URLs* and the attached export has none. **`Clipboard_Share` IS attached** on all 3 news article pages — the minified bundle matches this file's implementation exactly (aria-label `Copy link to clipboard`, `location.href`, `clipboard?.writeText`, textarea fallback). The other six exports (X, LinkedIn, Facebook, Email, WhatsApp, Tumblr) are tree-shaken out, i.e. genuinely unattached. |
@@ -161,6 +160,10 @@ Override usage **cannot be read through the node API** — see the Agent CLI got
 6. **Confirm a positive by matching the implementation, not just a string.** The minified clipboard code was lined up against this repo's `Clipboard_Share` source — same aria-label, same `location.href`, same `clipboard?.writeText` path, same textarea fallback — before calling it live. And confirm by rendered output where possible: `Copyright_year` was settled by finding `© Alkimi 2026` on the page.
 
 Applying this on 2026-10-05 **overturned three of five recorded verdicts**: `Copyright_year` and `ElementCounts` are live, `Share_blob` is partially live, and only `Counter` and `Valide/Scroll_Progress` are genuinely dead.
+
+**Deleted from Framer and the repo 2026-10-05 — `Counter.tsx`** (3,662 bytes, `NumberCounter`, an IntersectionObserver number counter). A component with **0 canvas instances**, and its distinctive literal `End Number` appeared in none of the 48 published chunks. Framer went 9 code files → **8**; the repo matches. Two versions remain recoverable: the post-audit one in git history, and the **pre-audit** one in `framer-snapshot/Counter.tsx` (they differ — see the snapshot note below).
+
+**`Valide/Scroll_Progress.tsx` is KEPT DELIBERATELY as reference, despite being dead** (Shak's call, 2026-10-05). It has 0 canvas instances and the canvas renders a *remote* module instead — `module:tZ4BBLxqep75fqWPDP07/…/Scroll_Progress.js` — so **editing this file changes nothing on the site**. It is retained only as readable source for what that remote component does, since a remote module cannot be read any other way. Do not delete it as "dead code", and do not expect edits to it to have any effect.
 
 **Deleted from Framer and the repo 2026-10-05 — the three dead filter files:** `ElementsFilter.tsx` (7,602 bytes, a component with **0 canvas instances** — an earlier standalone implementation superseded by the unified `ProductsFilterPills`), and the sessionStorage deep-link pair `ProductElementsLink.tsx` (984 bytes) and `ProductsFilterAutoSelect.tsx` (1,480 bytes), **neither of which was attached to anything**. Verified before deleting by scanning **all 43 JS chunks referenced by all 10 published pages** for six distinctive strings (`products-filter`, `withElementsProductsLink`, `withProductsFilterAutoSelect`, `Elements filter`, `Tab Pad X`, `Active BG`) — **0 hits**, with the scan validated against the live filter component, which 3 chunks do reference. Framer went 12 code files → **9**; the repo matches. All three survive verbatim in `framer-snapshot/` and in git history.
 
