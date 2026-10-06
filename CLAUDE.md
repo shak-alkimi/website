@@ -484,6 +484,16 @@ The hero is `Home / Hero Header`, and the thing you see is **three layers deep**
 
 **Current values (2026-10-06):** video `d77bBFCntsmjWtY8JPzBcIZqc8.mp4` (3.7 MB), poster + background `gDcQ3ENSm2y233Kh79AcC5N6XD4.png`. The previous video was `IBiwWhp4RzTE9HPrBxW0cCnvoK8.mp4` (2.6 MB) with poster `lBa2FscGAOsSvNk8FF7SjmZHSnc.jpg` and background `Qzs3ssB5JVULhFptbf5LP7YzA.jpg`.
 
+**Hero height per breakpoint, and the white sliver on phone (changed 2026-10-06).** `Section Hero` under `Main` was `100vh` on Desktop and Tablet but **`90vh` on Phone**, so the top of `Section Projects` (white) showed as a bright strip under the hero. On iOS it reads as a thin *sliver* rather than a full 10% because `vh` resolves against the **large** viewport (toolbars retracted), and it changes size as the toolbar hides and reveals on scroll.
+
+**`svh` and `dvh` are NOT accepted — `setAttributes({ height: "100svh" })` is rejected SILENTLY.** The call returns without error and a fresh read still shows the old value. Both `100svh` and `100dvh` were tried on 2026-10-06 and both failed this way; `100vh` was accepted immediately. **Only classic `vh` works.** Treat any unit write as unverified until re-read in a separate `exec`.
+
+**The custom-CSS workaround is a trap — do not take it.** `framer.setCustomCode()` exists (all four slots were empty as of 2026-10-06) and could inject real `100svh`, but **there is no per-page scope**: the only stable selector is `[data-framer-name="Section Hero"]`, and that element exists on `/about`, `/careers`, `/contact`, `/news` and `/news/:slug` too, where the Phone hero is **`fit-content`** or a fixed `409px`. Forcing those to viewport height would break five pages to fix one.
+
+**So the fix was `100vh` plus raising the headline.** `100vh` alone is not safe here: the headline stack sat only **30px** from the hero's bottom edge, and iOS hides roughly the bottom 85-100px at load, which would have cut off "Measured lighting objects." until the visitor scrolled. The `Mobile` variant's `stack` padding was therefore changed from `0px 15px 30px 15px` to **`0px 15px 110px 15px`** (order is **t r b l**). Only the `Mobile` variant was touched — `Image` stays `50px` and `Image Active` stays `35px`, so Desktop and Tablet are unaffected.
+
+**The 110px is an estimate of the iOS toolbar overlap and has not been measured on a real device.** Chrome viewport emulation could not be made to work here — `resize_window` resized the window but the page kept reporting `1536 x 855`, so phone layout cannot be verified from this environment at all. **Confirm on a real phone after publishing, and tune the 110px if the headline sits too high or is still clipped.**
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
