@@ -494,31 +494,29 @@ The hero is `Home / Hero Header`, and the thing you see is **three layers deep**
 
 **The 110px is an estimate of the iOS toolbar overlap and has not been measured on a real device.** Chrome viewport emulation could not be made to work here — `resize_window` resized the window but the page kept reporting `1536 x 855`, so phone layout cannot be verified from this environment at all. **Confirm on a real phone after publishing, and tune the 110px if the headline sits too high or is still clipped.**
 
-**THE WHITE SLIVER UNDER THE PHONE HERO — SETTLED 2026-10-06 AS A TRADE-OFF, NOT A FIX.**
+**THE WHITE SLIVER UNDER THE PHONE HERO — SOLVED 2026-10-06 WITH A FIXED DARK BUFFER, NOT VIEWPORT MATH.**
 
-**What it is.** The hero is `90-101vh` on phone; whatever the viewport does not cover exposes **`Section Projects`, whose background is `#fff`**. (`Section News` is `#fff` too.) `html body` is already black and the hero's own background is dark and covered by the video, so **the only white that can reach the eye is that sibling section.**
+**The idea that worked (Shak's):** stop trying to make the hero cover the fold, and instead make the zone *below* it dark and **taller than anything a browser can expose**. A fixed pixel buffer cannot be defeated by a viewport-unit quirk, a toolbar state or a safe area — unlike `100vh`/`101vh`, which are each a bet that some margin is enough.
 
-**Final state (Phone only; Desktop and Tablet untouched):**
+**Final configuration (Phone only — Desktop and Tablet untouched):**
 
-| Thing | Value |
-|---|---|
-| `Section Hero` height | `101vh` |
-| `Section Hero` background | `#080200` |
-| `Section Projects` background | **`#fff`** — kept white deliberately |
-| `Mobile` variant `stack` padding | `0px 15px 110px 15px` (t r b l) |
-| custom code `headEnd` | `<meta name="theme-color" content="#080200">` |
+| Thing | Value | Why |
+|---|---|---|
+| `Section Hero` height | **`90vh`** | the original, deliberate 10% peek that signals scrollability. No longer needs to overflow the fold |
+| `Section Hero` background | `#080200` | insurance against a gap opening *inside* the hero |
+| `Section Projects` background | **`#080200`** | the peek is dark |
+| **`Section Projects` top padding** | **`120px`** | **the load-bearing value.** Covers a 10% peek on the tallest phone (~93px on a 932pt Pro Max) with ~27px spare |
+| `Home Projects - Mobile` variant | `background #fff` (inline), `padding: 15px` | the card buffer, supplied by the **component**, independent of the section |
+| `Mobile` variant `stack` padding | `0px 15px 30px 15px` | the original headline composition |
+| custom code `headEnd` | `<meta name="theme-color" content="#080200">` | tints Chrome's toolbar; Safari ignores it for its bottom bar |
 
-**Why `Section Projects` is NOT dark, despite that removing the white.** It was set to `#080200` and it *did* remove the sliver — but it also **destroyed the white buffer that frames the project cards**. On phone that section is a bare backdrop whose **only child is a component instance with no background of its own**, so there is nowhere to put white *around* the cards while keeping the top of the section dark. With it dark, the cards sit directly on black and the hero appears to run straight into them. **You can have the card buffer or the dark peek, not both.** Shak chose the buffer. Reverted 2026-10-06.
+**Two layers do two different jobs — do not collapse them.** `Section Projects` is dark and supplies the peek colour; the **row component** carries its own white background and 15px padding and supplies the card frame. Earlier attempts made the section do both, which is why darkening it destroyed the card buffer.
 
-**Things already tried that do NOT work — do not repeat them:**
+**Framer emits per-element backgrounds INLINE, not as CSS rules.** The row component's white is `style="background-color:rgb(255, 255, 255)"` on the variant root. Grepping the published stylesheet for it finds nothing, and that false negative caused a wrong "the component paints no background" conclusion and an unnecessary rebuild scope. **Check inline `style=` attributes before concluding anything about a background.**
 
-- **Raising the hero height.** `90 -> 100 -> 101vh` shrank the band but never closed it; at `101vh` roughly 60-80px still showed on iOS Safari. Closing it would need a guessed `~108-110vh`, which Safari can invalidate whenever it changes toolbar behaviour, and which pushes the headline off the fold.
-- **`svh` / `dvh`.** Cannot be set in Framer at all — silently rejected (see the unit note above).
-- **Custom CSS for real `svh`.** No per-page scope exists; the only stable selector also matches five pages whose Phone hero is `fit-content` or a fixed `409px`.
-- **`viewport-fit=cover`.** Applied by script, made no difference, and was removed because it is global and lets content run under the notch on every page.
-- **Darkening `Section Projects`.** Works, but costs the card buffer — see above.
+**Everything tried that did NOT work — do not repeat:** raising the hero height (`90→100→101vh`, shrank but never closed it); `svh`/`dvh` (silently rejected by Framer); custom CSS for `svh` (no per-page scope, would break five pages); `viewport-fit=cover` (no effect, removed); darkening `Section Projects` *without* the component buffer (killed the card frame); reverting to `90vh` while the dark zone was only 15px (white reappears below the padding).
 
-**The residual strip in Safari is browser chrome and is not fixable from the page.** Safari's top status bar tints dark from `theme-color` while its bottom toolbar stays light, with "Allow Website Tinting" confirmed ON — that bottom bar is a system material following the device appearance setting. Chrome differs only because it paints its own toolbar and honours `theme-color`, and **Chrome on phone is fully correct**. Treat the remainder as a strip of Safari UI below the page, not a defect in the site, and **stop editing page geometry to chase it.**
+**If the buffer ever needs tuning**, `Section Projects` top padding is the single value — raise it if any white returns, lower it if the gap above the cards looks too large. Nothing else depends on it.
 
 ### Project detail template ("More projects" row)
 
