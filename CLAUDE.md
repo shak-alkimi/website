@@ -403,15 +403,26 @@ Shak reported that on tablet and phone the product object in the **Elements** ca
 
 **At `width: 100%` the image exactly fills the card, so there is no overflow and the `flex-end` anchoring does nothing.** Desktop's 120% overflow, pulled to the outer edge, happens to cancel the image's own 8% offset almost exactly. That is why the same asset reads centred on one breakpoint and skewed on the others — nothing about the alignment settings differs; they are byte-identical across breakpoints (`place-content: center flex-end` on the right wrapper everywhere).
 
-**Fix: give tablet and phone the same mechanism, and compensate the aspect ratio so card height does not move.** Since rendered height is `width / aspectRatio`, multiplying **both** by 1.2 leaves height identical:
+**Fix: give tablet and phone the same mechanism, and solve for the width rather than guessing it.** Since rendered height is `width / aspectRatio`, changing both together leaves height untouched. The width that centres the subject is:
 
-| variant (Row 1, RIGHT image only) | width | aspectRatio |
-|---|---|---|
-| `Home Projects - Tablet` | `100%` -> **`120%`** | `0.780612` -> **`0.9372`** |
-| `Home Projects - Tablet Below Hero` | `100%` -> **`120%`** | `0.780612` -> **`0.9372`** |
-| `Home Projects - Mobile` | `100%` -> **`120%`** | `0.734694` -> **`0.882`** |
+```
+k = 1 + 2 * sigma * (f - 0.5)          sigma = sourceAspect * h,  h = boxHeight / cardWidth
+newAspect = k / h                       (keeps rendered height identical)
+```
 
-Verified in a fresh `exec`: left and right implied heights match (`1.2804W` vs `1.2807W` tablet, `1.3605W` both on mobile), so **the old card-height mismatch bug is not reintroduced**. Residual offset is `+1.4%` tablet and `+2.1%` phone, down from `+11.4%` and `+12.1%`.
+**`f` was measured, not estimated** — the PNG was decoded (zlib inflate + un-filter + palette lookup) and a per-column ink profile taken against the background sample. The subject's bounding box is **x 817 .. 1514 of 2000**, midpoint **1165.5**, so **`f = 0.58275`**. Use the bounding-box midpoint, not the ink centroid (`0.607`), which is dragged right by the denser second component and is not what the eye reads as centred.
+
+| variant (Row 1, RIGHT image only) | width | aspectRatio | subject offset |
+|---|---|---|---|
+| `Home Projects - Tablet` | `100%` -> **`124%`** | `0.780612` -> **`0.967959`** | **-0.22%** |
+| `Home Projects - Tablet Below Hero` | `100%` -> **`124%`** | `0.780612` -> **`0.967959`** | **-0.22%** |
+| `Home Projects - Mobile` | `100%` -> **`125%`** | `0.734694` -> **`0.918367`** | **+0.01%** |
+
+**Use INTEGER widths.** The Agent API's read rounds `width` to whole percent and `aspectRatio` to 3 dp, so a fractional width written as `123.550%` reads back as `124%` and there is no way to tell from the API whether the fraction was stored. Integer widths make the stored and displayed value the same under either behaviour. Derive the aspect from the **left** card's exact *published* ratio (`0.780612` / `0.734694`), never from an API read.
+
+Verified in a fresh `exec`: implied heights are `1.281046W` right vs `1.281045W` left (tablet) and `1.361111W` on both (mobile), so **the old card-height mismatch bug is not reintroduced**.
+
+**The model was validated against a real device.** At the intermediate `120%` setting it predicted the subject sitting `+2.51%` right of centre on phone; Shak's handset screenshot measured roughly `+2.4%` on an ~820px-wide card. Agreement at that level is why the final width could be solved directly instead of tuned by eye.
 
 **Why the Fixtures card needed nothing.** Its asset is `ZNDr58rLGauZUC5QuYpJBIDWaSk.png`, **775 x 775**, a full-bleed diagonal composition that runs off the edges. Re-cropping it just reframes a texture — there is no discrete object to sit off-centre. **This is the general rule: a card image with a small centred subject is sensitive to the crop maths; a full-bleed one is not.**
 
