@@ -96,6 +96,8 @@ Dump that, diff against the repo, and **normalise line endings first** — Frame
 - **`removeNodes` sometimes needs a second pass.** First call appears to do nothing (stale read), second call reports zero remaining.
 - **`WebPageNode.clone({ path })` is documented as creating a draft but returns `draft: false`.** Set `draft: true` explicitly and verify, or the half-built page ships on the next publish.
 - **The `H1` text style is white** (`rgb(255,255,255)`, built for a dark hero). Applied unmodified on a white `Main` it is invisible. Spread it and override `color`. Likewise `Article Title` is **Inter**, not General Sans — the semantic `h2` style `dQyDA_Lpr` is the General Sans one.
+- **Image-valued attributes need a LIVE `ImageAsset`, and a hand-built object fails SILENTLY.** `setAttributes({ backgroundImage: {...} })` or a `poster` control set from a plain `{ id, url, thumbnailUrl, resolution }` literal **returns without error and stores nothing** — a fresh read shows the old image. `ImageAsset` is a class instance, not a plain object. **The working method: read the asset off a node that already holds it and pass that object straight through, in the same `exec`, with no `JSON.parse(JSON.stringify(...))` round-trip** — serialising it turns it back into a dead literal. Verified 2026-10-06 when repointing the Home hero poster: `const asset = droppedFrame.backgroundImage; await container.setAttributes({ backgroundImage: asset }); await video.setAttributes({ controls: { ...video.controls, poster: asset } })`. `framer.uploadImage()` returns a real `ImageAsset` if there is no node to copy one from. Note the contrast — **plain string controls (a video `srcUrl`) write fine**; it is specifically asset-typed values that need the live object.
+- **A dropped video node carries TWO different asset URLs and the obvious one is usually wrong.** On a `Video` instance with `srcType: "Upload"`, the real file is `controls.srcFile.url`; `controls.srcUrl` holds a stale leftover. Both times a video was dropped on this project (2026-10-06) `srcUrl` pointed at a 2024 asset while `srcFile` held that day's upload. **Always take `srcFile.url` when `srcType` is `Upload`, and confirm with an HTTP `HEAD` — `last-modified` identifies the real drop unambiguously.**
 
 ## Production contact form — fixed 2026-10-05
 
@@ -466,6 +468,21 @@ The left card's equivalent is `1`, which is why it was one-sided. Set it to `1` 
 **The diagonal stripes are Framer's placeholder tile, and they are always there.** A classless `<div>` sits at **child index 0 of both `Image Wrapper Left` and `Image Wrapper Right`**, carrying an inline-SVG background (`126x126` diagonal bars, `repeat`, `background-size: 64px auto`). The `Image` above it has `z-index: 1`, so the tile is normally invisible. **Seeing those stripes anywhere means the image above them went transparent — it is never a geometry or missing-asset problem.** Go straight to that layer's `Opacity` in the variant you are in.
 
 **The hover `Video` on both cards is bound to a CMS field that does not exist.** The `Video` component's **Source -> URL** points at **`Thumbnail Video URL - Wide`**, and the **Home** collection has no such field (its fields are Status, Slug, Sorting Order, Sorting Next Project 1, Sorting Next Project 2, 5 Images on List View, Thumbnail Image - Wide, Title). Framer reports this as a purple **`Missing`** pill on the layer's `Visible` row. The right card's `Video` was set **Visible: No** on 2026-10-02 because there is no video content behind the binding; the left card's is untouched and still broken. If hover video is ever wanted, add the field to the Home collection and rebind rather than hiding the layer.
+
+
+### Home hero — video and poster (changed 2026-10-06)
+
+The hero is `Home / Hero Header`, and the thing you see is **three layers deep**, which is why a one-line change is never enough:
+
+| What | Where | Note |
+|---|---|---|
+| The video | instance control **`xTAfQvz3w`** on `Home / Hero Header` | a plain URL string. Set it on the **Desktop** instance only — it propagates to Tablet and Phone automatically |
+| The poster | `Container -> Video` -> control **`poster`** | what shows before the video plays, and the fallback if it fails or reduced-motion is on |
+| The canvas/background fallback | `Container` -> `backgroundImage` | **this is what the Framer canvas renders**, because the canvas does not play video. A stale value here is why the canvas kept showing the old hero after the video was swapped |
+
+**The component has three variants — `Image` (`h5u62WBaL`, used by Desktop + Tablet), `Image Active` (`LHWkCoKos`), `Mobile` (`Ga1eDgeVy`, used by Phone)** — and poster/background live **per variant**, so all three must be set. They were not previously uniform: `Image` and `Mobile` shared one background while `Image Active` had its own. As of 2026-10-06 all three use the same poster PNG; if `Image Active` was meant to differ, that divergence was deliberately collapsed and can be restored.
+
+**Current values (2026-10-06):** video `d77bBFCntsmjWtY8JPzBcIZqc8.mp4` (3.7 MB), poster + background `gDcQ3ENSm2y233Kh79AcC5N6XD4.png`. The previous video was `IBiwWhp4RzTE9HPrBxW0cCnvoK8.mp4` (2.6 MB) with poster `lBa2FscGAOsSvNk8FF7SjmZHSnc.jpg` and background `Qzs3ssB5JVULhFptbf5LP7YzA.jpg`.
 
 ### Project detail template ("More projects" row)
 
