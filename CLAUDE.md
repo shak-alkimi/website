@@ -515,6 +515,20 @@ Desktop and Tablet are **unchanged**: `Section Projects` stays `#fff` there, and
 
 **The generalisable lesson, and the second time in two days it applied:** when something *looks* wrong but every measurement checks out, the defect is **paint**, not geometry. The hover "narrowing" was a `border-radius`, and this was a background colour. Both resisted repeated geometric fixes because the geometry was never wrong. **Ask "what colour is the thing that shows?" before "what size is the thing that should cover it?"**
 
+**CUSTOM CODE — the project's only custom code lives at `headEnd` (added 2026-10-06).** All other slots (`headStart`, `bodyStart`, `bodyEnd`) are empty. It does two things, both aimed at the phone browser chrome that CSS cannot reach:
+
+```html
+<meta name="theme-color" content="#080200">
+<script>…sets viewport-fit=cover on the existing viewport meta…</script>
+```
+
+- **`theme-color`** tints the browser's own toolbar. **Chrome honours it — confirmed working on a real device.** **Safari did not**, with "Allow Website Tinting" confirmed ON, which is why the second piece was added.
+- **`viewport-fit=cover`** is applied by *script*, not by a second `<meta name="viewport">`, because duplicate viewport metas are handled inconsistently across browsers. Framer emits only `width=device-width` and gives no way to edit it, so the script appends to whatever Framer wrote. It is guarded with `try/catch` and a `viewport-fit` presence check, so it is idempotent and cannot throw.
+
+**`viewport-fit=cover` is GLOBAL and has a real side effect:** content may now extend under the notch, status bar and home indicator on **every** page, not just Home. After any publish that includes it, check the top navigation on a notched phone. If it causes problems elsewhere, the fix is `padding: env(safe-area-inset-*)` on the affected containers — or remove the script, which reverts cleanly since it is one block.
+
+**If Safari still shows light chrome after this, stop chasing it.** The page content is provably correct (`Section Projects` is `#080200` inside `@media (max-width:809.98px)`, hero `90vh`, `html body` black, `theme-color` present) and Chrome renders it perfectly on the same markup. What remains is Safari's own UI, which a page can only influence through `theme-color`. It is a strip of browser chrome, not the site.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
