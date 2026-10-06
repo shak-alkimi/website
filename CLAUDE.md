@@ -389,6 +389,38 @@ The two-up cards on Home are `Home / Home - Projects Row`. The right (Elements) 
 
 **Verifying any of this requires a scroll sweep across both variants, not a single measurement** — see the variant-mounting note under automation gotchas. Confirmed good: images and overlays all 761.63 at scroll 0/700/840 (`Before Scroll State - Below Hero`) and 950/1100/1600 (`Home Projects - Initial State`).
 
+### Elements card — why its object sat off-centre on tablet and phone (fixed 2026-10-06)
+
+Shak reported that on tablet and phone the product object in the **Elements** card was not centred above the word "Elements", while desktop was correct.
+
+**The cause is the source image, and desktop was only centred by accident.** `UjMpyh3RsttSP0DzGSEJHP0AmQ.png` is **2000 x 1800** and the product sits at about **58%** of the width, not 50%. Every breakpoint renders that same asset with `object-fit: cover; object-position: center`, so the only thing that differs is the box it is poured into:
+
+| | image width | aspect | wrapper anchor | object lands at |
+|---|---|---|---|---|
+| Desktop | **120%** | 1.17458 | `flex-end` | `0.58 x 1.2W - 0.2W` = **0.496W** — centred |
+| Tablet | 100% | 0.780612 | `flex-end` (no effect) | **0.614W** — 11.4% right |
+| Phone | 100% | 0.734694 | `flex-end` (no effect) | **0.621W** — 12.1% right |
+
+**At `width: 100%` the image exactly fills the card, so there is no overflow and the `flex-end` anchoring does nothing.** Desktop's 120% overflow, pulled to the outer edge, happens to cancel the image's own 8% offset almost exactly. That is why the same asset reads centred on one breakpoint and skewed on the others — nothing about the alignment settings differs; they are byte-identical across breakpoints (`place-content: center flex-end` on the right wrapper everywhere).
+
+**Fix: give tablet and phone the same mechanism, and compensate the aspect ratio so card height does not move.** Since rendered height is `width / aspectRatio`, multiplying **both** by 1.2 leaves height identical:
+
+| variant (Row 1, RIGHT image only) | width | aspectRatio |
+|---|---|---|
+| `Home Projects - Tablet` | `100%` -> **`120%`** | `0.780612` -> **`0.9372`** |
+| `Home Projects - Tablet Below Hero` | `100%` -> **`120%`** | `0.780612` -> **`0.9372`** |
+| `Home Projects - Mobile` | `100%` -> **`120%`** | `0.734694` -> **`0.882`** |
+
+Verified in a fresh `exec`: left and right implied heights match (`1.2804W` vs `1.2807W` tablet, `1.3605W` both on mobile), so **the old card-height mismatch bug is not reintroduced**. Residual offset is `+1.4%` tablet and `+2.1%` phone, down from `+11.4%` and `+12.1%`.
+
+**Why the Fixtures card needed nothing.** Its asset is `ZNDr58rLGauZUC5QuYpJBIDWaSk.png`, **775 x 775**, a full-bleed diagonal composition that runs off the edges. Re-cropping it just reframes a texture — there is no discrete object to sit off-centre. **This is the general rule: a card image with a small centred subject is sensitive to the crop maths; a full-bleed one is not.**
+
+**Do NOT "fix" this by re-centring the PNG.** Moving the subject to 50% would break desktop, which depends on the 58% offset cancelling its 120%/`flex-end` overflow. Desktop would then read 10% left of centre.
+
+**`Home - Projects Row 2` was deliberately NOT mirrored**, despite the standing rule to mirror both row components. Row 2 carries the same nine variants with identical values, but on Home it renders only the **full-width case-study card**, not the two-up Fixtures/Elements pair — so its `Home Projects - Tablet/Mobile` right image is not on screen anywhere that was verified. Changing an unrendered path risks a new defect for no gain. **If Row 2's two-up variants are ever brought into use, apply the same three edits there.**
+
+**Not verifiable from this environment.** Chrome viewport emulation does not work here (the page keeps reporting `1536 x 855`), so the tablet and phone result is established by the crop arithmetic plus the stored values, not by measurement. **Confirm on a real device after publishing.**
+
 ### Home projects row — hover behaviour (2026-10-02)
 
 Hovering a card switches the row to `Home Projects Left Open` / `Home Projects - Right Open`: the hovered column goes `1fr -> 1.5fr`, the other stays `1fr`. Measured at 1536 wide, the cards go 745.5 -> 894.6 / 596.4.
