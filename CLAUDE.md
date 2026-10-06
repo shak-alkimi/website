@@ -519,13 +519,27 @@ The hero is `Home / Hero Header`, and the thing you see is **three layers deep**
 
 **If the buffer ever needs tuning**, `Section Projects` top padding is the single value — raise it if any white returns, lower it if the gap above the cards looks too large. Nothing else depends on it.
 
-**Softening the seam between the hero video and the black section below (Phone).** The hero already carries the mechanism — `Home / Hero Header` → variant → `Container` → **`Overlay`**, a 100%/100% absolute layer with `angle 180`, stops `0.70 : rgba(255,255,255,0)` → `1 : rgba(0,0,0,0.39)`. It only reaches **39% black**, so there is a visible step into the solid `#080200` below. **The minimal fix is to change that bottom stop to fully opaque `#080200`** — same angle, same 70% start, giving ~230px of blend on a phone so the video dissolves into exactly the section colour.
+**Softening the seam between the hero video and the black section below (Phone) — APPLIED 2026-10-06, by hand, verified on the canvas.** The hero already carried the mechanism: `Home / Hero Header` → variant → `Container` → **`Overlay`**, a 100%/100% absolute layer at `angle 180`. Its bottom stop only reached **39% black**, so the video stepped visibly into the solid `#080200` section below.
 
-**Do it on the `Mobile` variant ONLY.** On Desktop and Tablet the hero sits above a **white** `Section Projects`, so fading the hero to black there would put a black band against white — worse than the current hard edge.
+**What changed — one stop, one variant:**
 
-**It must be done by hand.** Gradients can only be set by borrowing a live instance (see the gradient note above), and the project contains only **four** distinct gradients: the hero's grey→white, and three overlay fades topping out at **alpha 0.6**. None reaches opaque dark, so there is nothing to borrow. Once this gradient exists it becomes a donor that *can* be copied to other nodes through the API.
+| Variant | Bottom stop (position `1`) | Used by |
+|---|---|---|
+| `Image` (`h5u62WBaL`) | `rgba(0, 0, 0, 0.39)` — **unchanged** | Desktop + Tablet |
+| `Image Active` (`LHWkCoKos`) | `rgba(0, 0, 0, 0.39)` — **unchanged** | — |
+| **`Mobile`** (`Ga1eDgeVy`) | **`rgb(8, 2, 0)`** = opaque `#080200` | Phone |
 
-Tuning: move the first stop later (~80%) for a tighter fade that preserves more footage, or earlier (~60%) for a longer, softer blend. The headline sits 30px from the bottom and will land on solid black rather than a 39% scrim, which slightly improves its legibility.
+Angle stays `180` and the first stop stays `0.70 : rgba(255,255,255,0)` on all three, so only the Phone hero now dissolves into exactly the section colour (~230px of blend on a phone). The Overlay node on the Mobile variant is `Ga1eDgeVyrSfcq_veC`.
+
+**Desktop and Tablet were deliberately left at 39%.** There the hero sits above a **white** `Section Projects`, so fading to black would put a black band against white — worse than the hard edge it replaces.
+
+**Note there are TWO layers named `Overlay` per variant.** The gradient one is `…rSfcq_veC`; the other (`…uixrAYhm4`) carries no `backgroundGradient` at all. Reading by name alone will give you the wrong one half the time — match on the id or check that `backgroundGradient` is non-null.
+
+**It had to be done by hand, and that constraint still holds for the next one.** Gradients can only be set through the API by borrowing a live instance (see the gradient note above), and before this change the project held only four distinct gradients — the hero's grey→white and three overlay fades topping out at alpha 0.6. None reached opaque dark, so there was nothing to borrow. **This gradient is now itself a donor** and can be copied to other nodes through the API.
+
+**The panel is not proof — verify from the canvas.** The edit was confirmed by reading `backgroundGradient.stops` back through the Agent CLI in a separate `exec`, not from the Fill panel, which in this project has displayed values it never stored.
+
+Tuning: move the first stop later (~80%) for a tighter fade that preserves more footage, or earlier (~60%) for a longer, softer blend. The headline sits 30px from the bottom and now lands on solid black rather than a 39% scrim, which slightly improves its legibility.
 
 ### Project detail template ("More projects" row)
 
