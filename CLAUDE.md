@@ -551,7 +551,21 @@ Angle stays `180` and the first stop stays `0.70 : rgba(255,255,255,0)` on all t
 
 **Desktop and Tablet were deliberately left at 39%.** There the hero sits above a **white** `Section Projects`, so fading to black would put a black band against white — worse than the hard edge it replaces.
 
-**Note there are TWO layers named `Overlay` per variant.** The gradient one is `…rSfcq_veC`; the other (`…uixrAYhm4`) carries no `backgroundGradient` at all. Reading by name alone will give you the wrong one half the time — match on the id or check that `backgroundGradient` is non-null.
+**THERE WERE THREE layers named `Overlay` per variant, and two of them were STRAY WHITE FRAMES rendering on the live site (found 2026-10-06, hidden).** An earlier version of this note said there were two and treated the second as normal structure. That was wrong, and it meant a live visual defect sat in the published build unexamined.
+
+| id | what it is |
+|---|---|
+| `…rSfcq_veC` | the real gradient overlay |
+| `…uixrAYhm4` | **stray** — 200x150, `rgba(255,255,255,1)`, radius 10px, z-index 11, **zero children** |
+| `…dod_6eCm9` | **stray** — identical |
+
+Both sat inside `Container > Overlay`, were `visible: true`, and painted a **white rounded box over the top of the hero** on the published site. `200x150` is Framer's default size for a newly created frame, and the **stock Ora template contains no 200x150 rule at all**, so they are ours, not template residue.
+
+**They are the strays from the failed `createFrameNode` attempts of 2026-10-05.** This file previously recorded that those were "confirmed not to have persisted, and the strays removed" — **that cleanup silently failed for exactly these two**, because they landed *inside a `ComponentNode`*, and `removeNodes` does not reach inside a component (see the canvas-editing limits). The cleanup appeared to succeed because the nodes it could see were gone.
+
+**Hidden rather than deleted.** `setAttributes({ visible: false })` on all six (two frames x three variants) — mutating an existing component-internal node works, deleting one does not. Verified `6/6 visible: false` in a separate `exec`. **Deleting them properly still needs the editor by hand**; until then they are inert but will keep showing up in audits.
+
+**THE REASON THIS SURVIVED A DELIBERATE DEFECT SWEEP — a backgrounded tab produced a FALSE NEGATIVE.** A DOM probe for white elements overlapping the hero, run at five scroll positions on the published site, returned **nothing** while the Chrome tab was backgrounded. The same probe found the box immediately once Shak brought the tab to the front. The documented warning about hidden tabs was written as a source of false *positives* ("content stuck at `opacity: 0.001`, screenshots look blank"). **It cuts both ways: in a hidden tab an element whose appear animation never ran is simply absent from a paint-based sweep, so "I checked and it is clean" is not a safe conclusion.** Any sweep for an unexpected *visible* element must be run with the tab foregrounded, or confirmed by a human.
 
 **It had to be done by hand, and that constraint still holds for the next one.** Gradients can only be set through the API by borrowing a live instance (see the gradient note above), and before this change the project held only four distinct gradients — the hero's grey→white and three overlay fades topping out at alpha 0.6. None reached opaque dark, so there was nothing to borrow. **This gradient is now itself a donor** and can be copied to other nodes through the API.
 
