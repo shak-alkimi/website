@@ -539,6 +539,8 @@ Angle stays `180` and the first stop stays `0.70 : rgba(255,255,255,0)` on all t
 
 **The panel is not proof — verify from the canvas.** The edit was confirmed by reading `backgroundGradient.stops` back through the Agent CLI in a separate `exec`, not from the Fill panel, which in this project has displayed values it never stored.
 
+**Published and verified live 2026-10-06.** The published home page carries exactly **two** hero overlay gradients, and Framer SSRs each breakpoint separately, so the scoping is directly checkable: the `ssr-variant` wrapper that is hidden on tablet and desktop renders `data-framer-name="Mobile"` with `rgb(8, 2, 0)`, while the wrapper hidden on phone renders `Image` with `rgba(0, 0, 0, 0.39)`. **That is the method for confirming any breakpoint-scoped change from the published HTML** — find the enclosing `class="ssr-variant hidden-…"` wrapper rather than guessing from document order; the three tokens map `72rtr7`=desktop, `1veez17`=tablet, `wpowcz`=phone, and a wrapper carries the two it is hidden on.
+
 Tuning: move the first stop later (~80%) for a tighter fade that preserves more footage, or earlier (~60%) for a longer, softer blend. The headline sits 30px from the bottom and now lands on solid black rather than a 39% scrim, which slightly improves its legibility.
 
 ### Project detail template ("More projects" row)
