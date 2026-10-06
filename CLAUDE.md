@@ -494,25 +494,26 @@ The hero is `Home / Hero Header`, and the thing you see is **three layers deep**
 
 **The 110px is an estimate of the iOS toolbar overlap and has not been measured on a real device.** Chrome viewport emulation could not be made to work here — `resize_window` resized the window but the page kept reporting `1536 x 855`, so phone layout cannot be verified from this environment at all. **Confirm on a real phone after publishing, and tune the 110px if the headline sits too high or is still clipped.**
 
-**THE WHITE SLIVER ON PHONE — ACTUAL CAUSE AND FINAL CONFIG (settled 2026-10-06).**
+**THE WHITE SLIVER ON PHONE — SOLVED BY PAINT, NOT GEOMETRY (settled 2026-10-06).**
 
-**It is `Section Projects` showing through, and nothing else.** The published CSS is unambiguous: `.framer-4dlfzu{background-color:#fff}` is `Section Projects`, and `@media (max-width:809.98px){ … {height:90vh} }` gave the hero only 90% of the viewport on phone — so the remaining 10% exposed the white section beneath. `Section News` is also `#fff`.
+**The white was `Section Projects` (`background-color:#fff`) showing in the gap below the hero.** On phone the hero is `90vh`, so the bottom 10% of the viewport exposes the section beneath. `Section News` is `#fff` too.
 
-**A WRONG DIAGNOSIS WAS RECORDED HERE FIRST — do not repeat it.** `Section Hero` carried `linear-gradient(#545454 0%, #fff 5%)` and that looked like the culprit, so it was replaced with a dark solid. **It changed nothing**, because that background sits *behind* the video and is never visible in normal operation. The lesson: `html body` was already `rgb(0,0,0)` and the hero's background is covered by the video, so **the only white that can reach the eye is a sibling section below the hero.** Check what is *underneath the gap*, not what is behind the video.
+**Three geometry attempts failed, and the pattern is the lesson.** Hero height went `90vh -> 100vh -> back to 90vh -> 101vh -> back to 90vh`. Each increase shrank the band but never closed it — at `101vh` roughly 60-80px still showed on iOS Safari, which would have needed ~`108-110vh` to close, a number that is a guess and that Safari can invalidate whenever it changes toolbar behaviour. **`svh`/`dvh`, which would be the correct units, cannot be set in Framer at all** (see the unit note above). Chasing the viewport was the wrong axis.
 
-**Final configuration:**
+**The fix: make what peeks DARK, on the Phone breakpoint only.**
 
-| Breakpoint | Hero height | Why |
-|---|---|---|
-| Desktop | `100vh` | unchanged |
-| Tablet | `100vh` | unchanged |
-| **Phone** | **`101vh`** | the extra 1% guarantees the hero overlaps the fold in every browser and toolbar state, so no gap can open at all |
+| Phone | Value |
+|---|---|
+| `Section Hero` height | `90vh` — the original, deliberate 10% "peek" that signals scrollability |
+| `Section Hero` background | `#080200` |
+| **`Section Projects` background** | **`#080200`** — this is the one that actually fixed it |
+| `Mobile` variant `stack` padding | `0px 15px 30px 15px` — the original headline position |
 
-Plus: `Mobile` variant `stack` padding **`0px 15px 110px 15px`** (order t r b l) so the headline clears the iOS toolbar, which hides roughly the bottom 85-100px at load. `Image` (50px) and `Image Active` (35px) are untouched, so Desktop and Tablet keep their headline position. `Section Hero` keeps `backgroundColor: #080200` on all three breakpoints — it did not fix this symptom, but it is correct insurance against any gap opening *inside* the hero, and it is sampled from the poster so it joins the footage seamlessly.
+Desktop and Tablet are **unchanged**: `Section Projects` stays `#fff` there, and `Image` / `Image Active` keep their 50px / 35px padding. `Section Projects` on phone is a bare backdrop — `padding: 15px 0 0 0` with a single child, the projects row — so no text sits on it and darkening it cannot break content. The visible consequence is that the gaps between the stacked cards on phone are dark rather than white, which reads correctly under a dark hero.
 
-**Why 101vh rather than chasing viewport units.** `svh`/`dvh` cannot be set in Framer at all (see the unit note above), and `100vh` still left a hairline because of safe-area and sub-pixel rounding — confirmed on a real device: at `100vh` the band was a hairline, at `90vh` it was a thick white strip. Overlapping by 1vh removes the failure mode instead of trying to match a moving target. Cost is ~8px of hero below the fold.
+**Plus the project's FIRST custom code**, at `headEnd`: `<meta name="theme-color" content="#080200">`. Safari and Chrome tint their own toolbar chrome from this, and without it they default to light — that area is outside the page's control and no amount of CSS reaches it. All other custom-code slots remain empty. **Note this is global**, which is intended here; see the warning above about custom CSS having no per-page scope, which does NOT apply to a meta tag.
 
-**The evidence that settled it** was two real-device screenshots compared against what was published at the time — `100vh` gave a hairline, `90vh` gave a thick band. Phone layout **cannot be checked from this environment**: Chrome viewport emulation does not work here (`resize_window` reports success but the page keeps reporting `1536 x 855`), so anything phone-specific needs a human with a handset and a publish.
+**The generalisable lesson, and the second time in two days it applied:** when something *looks* wrong but every measurement checks out, the defect is **paint**, not geometry. The hover "narrowing" was a `border-radius`, and this was a background colour. Both resisted repeated geometric fixes because the geometry was never wrong. **Ask "what colour is the thing that shows?" before "what size is the thing that should cover it?"**
 
 ### Project detail template ("More projects" row)
 
