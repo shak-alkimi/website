@@ -515,19 +515,20 @@ Desktop and Tablet are **unchanged**: `Section Projects` stays `#fff` there, and
 
 **The generalisable lesson, and the second time in two days it applied:** when something *looks* wrong but every measurement checks out, the defect is **paint**, not geometry. The hover "narrowing" was a `border-radius`, and this was a background colour. Both resisted repeated geometric fixes because the geometry was never wrong. **Ask "what colour is the thing that shows?" before "what size is the thing that should cover it?"**
 
-**CUSTOM CODE — the project's only custom code lives at `headEnd` (added 2026-10-06).** All other slots (`headStart`, `bodyStart`, `bodyEnd`) are empty. It does two things, both aimed at the phone browser chrome that CSS cannot reach:
+
+**CUSTOM CODE — the project's only custom code lives at `headEnd`.** All other slots (`headStart`, `bodyStart`, `bodyEnd`) are empty. It is a single line:
 
 ```html
 <meta name="theme-color" content="#080200">
-<script>…sets viewport-fit=cover on the existing viewport meta…</script>
 ```
 
-- **`theme-color`** tints the browser's own toolbar. **Chrome honours it — confirmed working on a real device.** **Safari did not**, with "Allow Website Tinting" confirmed ON, which is why the second piece was added.
-- **`viewport-fit=cover`** is applied by *script*, not by a second `<meta name="viewport">`, because duplicate viewport metas are handled inconsistently across browsers. Framer emits only `width=device-width` and gives no way to edit it, so the script appends to whatever Framer wrote. It is guarded with `try/catch` and a `viewport-fit` presence check, so it is idempotent and cannot throw.
+**Chrome honours it — confirmed on a real device, its toolbar goes dark.** **Safari does not tint its bottom toolbar from it**, with "Allow Website Tinting" confirmed ON.
 
-**`viewport-fit=cover` is GLOBAL and has a real side effect:** content may now extend under the notch, status bar and home indicator on **every** page, not just Home. After any publish that includes it, check the top navigation on a notched phone. If it causes problems elsewhere, the fix is `padding: env(safe-area-inset-*)` on the affected containers — or remove the script, which reverts cleanly since it is one block.
+**`viewport-fit=cover` was tried and REMOVED on 2026-10-06 — do not re-add it to fix this.** It was applied by script (not a second viewport meta, since duplicates are handled inconsistently) and **made no difference to Safari**. It was removed because it is global and lets content run under the notch and home indicator on *every* page — a real site-wide risk for zero benefit.
 
-**If Safari still shows light chrome after this, stop chasing it.** The page content is provably correct (`Section Projects` is `#080200` inside `@media (max-width:809.98px)`, hero `90vh`, `html body` black, `theme-color` present) and Chrome renders it perfectly on the same markup. What remains is Safari's own UI, which a page can only influence through `theme-color`. It is a strip of browser chrome, not the site.
+**Why Safari cannot be fixed from the page, and the evidence.** In the real-device screenshots Safari's **status bar at the top is dark while the bottom toolbar is light**. If Safari were ignoring the page outright, both would be light. That split indicates the bottom toolbar is a translucent system material following the **device appearance setting**, not `theme-color` — `theme-color` reaches the top bar only. Chrome differs because it paints its own toolbar and honours `theme-color` for it. **Confirm by switching the phone to Dark Mode: if the bottom bar goes dark, it is system appearance and no page change can alter it in Light Mode.**
+
+**The page content is provably correct, so do not keep editing it.** `Section Projects` is `#080200` inside `@media (max-width:809.98px)`, the hero is `90vh` with `background-color:#080200`, `html body` is black, and `theme-color` is present — and **Chrome renders that exact markup with no white at all.** What remains in Safari is a strip of browser UI below the page, not a defect in the site.
 
 ### Project detail template ("More projects" row)
 
