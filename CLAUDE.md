@@ -509,7 +509,7 @@ The hero is `Home / Hero Header`, and the thing you see is **three layers deep**
 | **`Section Projects` top padding** | **`150px`** | **the load-bearing value, and the only tuning lever.** Calibrated on a real device: **`120px` left a thin strip on Safari**, **`180px` cleared it with room to spare**, so the true threshold is between them and `150px` is the midpoint. If white ever returns, raise it; nothing else depends on it. |
 | `Home Projects - Mobile` variant | `background #fff` (inline), `padding: 15px` | the card buffer, supplied by the **component**, independent of the section |
 | `Mobile` variant `stack` padding | `0px 15px 30px 15px` | the original headline composition |
-| custom code `headEnd` | `<meta name="theme-color" content="#080200">` | tints Chrome's toolbar; Safari ignores it for its bottom bar |
+| custom code `headEnd` | `<meta name="theme-color" content="#080200">` | colours the **phone browser's own toolbar**, not the page; global, and **settled — keep** (see below) |
 
 **`Section Hero`'s background was NOT phone-only, and that shipped as a visible desktop regression (found and fixed 2026-10-06).** The table above previously listed it under "Phone only — Desktop and Tablet untouched". It was in fact written to the **Desktop (primary) breakpoint**, so it cascaded to all three, and the published build carried `background-color:#080200` on the **base** rule with the phone media query overriding only `height:90vh`.
 
@@ -528,6 +528,12 @@ The hero is `Home / Hero Header`, and the thing you see is **three layers deep**
 **THE TRAP, and it nearly reinstated the white sliver: writing the gradient to Desktop silently cascaded it to Phone.** The script deliberately skipped Phone, and Phone still came back carrying the grey→white gradient on the verification read — which would have put a near-white 50px band directly under the phone hero, exactly the defect the dark buffer exists to prevent. **A breakpoint you skip is not a breakpoint you preserved.** Phone had to be written explicitly afterwards. Always re-read **all three** breakpoints after any background or spacing write, not just the ones you touched.
 
 **`Section Hero`'s phone `#080200` is load-bearing, not insurance.** It paints that 50px padding band. Do not clear it.
+
+**`theme-color` is SETTLED — keep it (Shak, 2026-10-06). Do not propose removing it again.** It is the project's only custom code and it sits in `headEnd`, so it is **global**: verified live on `/`, `/about`, `/products`, `/contact`, `/news` and `/careers`. Framer's custom code has **no per-page scope**, so Home-only is not an option.
+
+What it actually does is colour the **phone browser's own UI** — the strip holding the clock and address bar — not the page. **Desktop browsers ignore it entirely.** It originated as a white-sliver experiment (it helped Chrome; Safari ignores it for its bottom bar, which is why the dark buffer was needed), but it is kept now for a different and better reason:
+
+**Removing it does not give a neutral result.** The bar reverts to the browser default, which on a light phone is a **white strip directly above Home's dark hero** — visually the same defect the dark buffer exists to remove. A dark bar over a white interior page reads as deliberate brand chrome; a white bar over the dark hero reads as a bug. The asymmetry is why "it is inconsistent across pages" is not a reason to drop it.
 
 **Two layers do two different jobs — do not collapse them.** `Section Projects` is dark and supplies the peek colour; the **row component** carries its own white background and 15px padding and supplies the card frame. Earlier attempts made the section do both, which is why darkening it destroyed the card buffer.
 
