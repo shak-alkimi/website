@@ -494,6 +494,16 @@ The hero is `Home / Hero Header`, and the thing you see is **three layers deep**
 
 **The 110px is an estimate of the iOS toolbar overlap and has not been measured on a real device.** Chrome viewport emulation could not be made to work here — `resize_window` resized the window but the page kept reporting `1536 x 855`, so phone layout cannot be verified from this environment at all. **Confirm on a real phone after publishing, and tune the 110px if the headline sits too high or is still clipped.**
 
+**THE WHITE SLIVER ON PHONE — ROOT CAUSE AND THE FIX THAT ACTUALLY HOLDS (2026-10-06).** The white strip under the hero on phones was **never `Section Projects` showing through.** It was **`Section Hero`'s own background**, which carried `linear-gradient(#545454 0%, #fff 5%)` — grey at the very top, then **white for the remaining 95%**. Any pixel the video did not cover rendered white. That is also why Chrome and Safari looked different: each exposes a different amount of that background depending on how it handles toolbars and `vh`, but the white was always the same layer underneath.
+
+**The fix is to make the hero's background dark, not to chase viewport heights.** Set on all three breakpoints 2026-10-06: `backgroundGradient: null`, `backgroundColor: **#080200**`. That value was sampled from the live poster with `ffmpeg` — the 25th-percentile dark tone of the whole image and of its bottom rows are **both exactly `#080200`**, a near-black with a warm cast, so it joins the footage without a visible seam. (Darkest pixel is `#000000`; bottom-row average is `#1F1309`.)
+
+**Why this is the right layer to fix it at.** It does not depend on `vh` / `svh` / `dvh`, which do not behave alike across browsers and, in Framer, cannot even be set (see the unit note above). It does not depend on toolbar state, notch, home indicator or orientation. The worst case becomes a dark band that reads as part of the hero. Any height-based fix is a guess about one browser's chrome; this removes the failure mode.
+
+**Two earlier changes were therefore REVERTED on 2026-10-06 and should not be reinstated:** Phone hero height went `90vh -> 100vh -> back to 90vh`, and the `Mobile` variant's `stack` padding went `30px -> 110px -> back to 30px`. Both were attempts to fix the symptom by making the video cover more of the section. With the background dark they are unnecessary, and reverting restores the original headline position and the deliberate 10% "peek" of the next section that signals scrollability. `Image` (50px) and `Image Active` (35px) were never touched.
+
+**Note on the gradient:** it was a **Desktop** value that Tablet and Phone inherited — clearing it on Desktop cleared all three. If a light gradient is ever wanted back at the top of the hero, re-add it on Desktop and expect it to cascade.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
