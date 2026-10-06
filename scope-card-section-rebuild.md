@@ -77,3 +77,34 @@ One background: dark from 0% to ~N%, white below, so the peek is dark and the ca
 The entire payoff is removing a **~60-80px strip of white under the hero, on iOS Safari only**. Chrome on phone is already correct. Some of the remaining strip is Safari's own toolbar chrome, which **no page change can reach** (see the settled trade-off note in `CLAUDE.md`) — so this work may reduce the strip without eliminating it.
 
 Against that, still open and more consequential: `/careers` advertises **fabricated job openings** and `/contact` lists **four fictitious staff** with `@ora.com` addresses, both live and linked from every footer, plus the template `<title>` and share image on every page.
+
+---
+
+## PROBE RESULT — 2026-10-06. Option 1 applied. The scope above was WRONG.
+
+**The claim "the row component does not paint a background" is false.** It paints white — **inline**, not via a CSS rule:
+
+```html
+<div class="framer-9dkxz … framer-1dlme80 framer-v-1wk9ftb"
+     data-framer-name="Home Projects - Mobile"
+     style="background-color:rgb(255, 255, 255);width:100%">
+```
+
+All three variants carry it — `Before Scroll State - Below Hero`, `Home Projects - Tablet Below Hero` and **`Home Projects - Mobile`**. The earlier conclusion came from grepping **CSS rules only** and never checking inline styles — the same error that produced the hero-gradient misdiagnosis. **When looking for a background in a Framer build, check inline `style=` attributes first; Framer emits per-element backgrounds there, not in classes.**
+
+**So no rebuild is needed.** The component already supplies the card buffer on three sides. The only thing missing was a **top** buffer, because the mobile variant's padding was `0px 15px 15px 15px`.
+
+**Applied (two writes):**
+
+| Change | From | To |
+|---|---|---|
+| `Home Projects - Mobile` padding | `0px 15px 15px 15px` | **`15px 15px 15px 15px`** |
+| `Section Projects` background (Phone only) | `#fff` | **`#080200`** |
+
+The peek below the hero is now dark; the cards keep a white frame on all four sides from the component itself. Desktop and Tablet are untouched (`Section Projects` stays `#fff` there).
+
+**Blast radius to check after publishing:** the mobile variant is shared with **`/projects/:slug`** (the "Lighting options" row), which now gains 15px of top padding on phone. Minor spacing change, but confirm it.
+
+**If this looks right, the follow-up is to put the hero back to `90vh` with `30px` headline padding** — the original design and its deliberate peek, which is now dark instead of white. Currently `101vh` / `110px`, which no longer needs to compensate for anything.
+
+**Options 2 and 3 above are now unnecessary.** Leaving them recorded only in case this is reverted.
