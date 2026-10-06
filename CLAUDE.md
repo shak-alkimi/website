@@ -414,9 +414,11 @@ newAspect = k / h                       (keeps rendered height identical)
 
 | variant (Row 1, RIGHT image only) | width | aspectRatio | subject offset |
 |---|---|---|---|
-| `Home Projects - Tablet` | `100%` -> **`124%`** | `0.780612` -> **`0.967959`** | **-0.22%** |
-| `Home Projects - Tablet Below Hero` | `100%` -> **`124%`** | `0.780612` -> **`0.967959`** | **-0.22%** |
-| `Home Projects - Mobile` | `100%` -> **`125%`** | `0.734694` -> **`0.918367`** | **+0.01%** |
+| `Home Projects - Tablet` | `100%` -> **`127%`** | `0.780612` -> **`0.991377`** | **-1.72%** |
+| `Home Projects - Tablet Below Hero` | `100%` -> **`127%`** | `0.780612` -> **`0.991377`** | **-1.72%** |
+| `Home Projects - Mobile` | `100%` -> **`128%`** | `0.734694` -> **`0.940408`** | **-1.49%** |
+
+**These sit ~1.5% LEFT of mathematical centre, on purpose.** Solving for offset 0 gave `124%`/`125%`; Shak asked for it slightly further left than that, so each width was raised 3 points. **`d(offset)/dk = -0.5`, so +2 points of width = 1% of card width to the LEFT** — that is the tuning knob, and it is linear, so any further request converts directly. Always change `aspectRatio` with it (`newAspect = k / h`) or the card height moves.
 
 **Use INTEGER widths.** The Agent API's read rounds `width` to whole percent and `aspectRatio` to 3 dp, so a fractional width written as `123.550%` reads back as `124%` and there is no way to tell from the API whether the fraction was stored. Integer widths make the stored and displayed value the same under either behaviour. Derive the aspect from the **left** card's exact *published* ratio (`0.780612` / `0.734694`), never from an API read.
 
