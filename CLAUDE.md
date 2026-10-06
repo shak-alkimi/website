@@ -504,12 +504,30 @@ The hero is `Home / Hero Header`, and the thing you see is **three layers deep**
 | Thing | Value | Why |
 |---|---|---|
 | `Section Hero` height | **`90vh`** | the original, deliberate 10% peek that signals scrollability. No longer needs to overflow the fold |
-| `Section Hero` background | `#080200` | insurance against a gap opening *inside* the hero |
+| `Section Hero` background | `#080200` **(Phone only — see the correction below)** | paints the 50px padding band at the bottom edge of the hero |
 | `Section Projects` background | **`#080200`** | the peek is dark |
 | **`Section Projects` top padding** | **`150px`** | **the load-bearing value, and the only tuning lever.** Calibrated on a real device: **`120px` left a thin strip on Safari**, **`180px` cleared it with room to spare**, so the true threshold is between them and `150px` is the midpoint. If white ever returns, raise it; nothing else depends on it. |
 | `Home Projects - Mobile` variant | `background #fff` (inline), `padding: 15px` | the card buffer, supplied by the **component**, independent of the section |
 | `Mobile` variant `stack` padding | `0px 15px 30px 15px` | the original headline composition |
 | custom code `headEnd` | `<meta name="theme-color" content="#080200">` | tints Chrome's toolbar; Safari ignores it for its bottom bar |
+
+**`Section Hero`'s background was NOT phone-only, and that shipped as a visible desktop regression (found and fixed 2026-10-06).** The table above previously listed it under "Phone only — Desktop and Tablet untouched". It was in fact written to the **Desktop (primary) breakpoint**, so it cascaded to all three, and the published build carried `background-color:#080200` on the **base** rule with the phone media query overriding only `height:90vh`.
+
+**Why it was visible at all.** `Section Hero` is `padding: 0 0 50px 50px` with `overflow:hidden`, so a **50px band along the bottom and left** of the hero shows the section's own background rather than the video. Stock Ora fills that band with a gradient; ours had turned it black, which is what Shak spotted on desktop.
+
+**The original value — established, not guessed.** The stock Ora template serves `.framer-h21q5l{background:linear-gradient(#545454 0%,#fff 5%)}` on the same layer (same class, same `id="home-hero"`, same padding), and **twelve nodes in our own project still carried exactly `0:rgb(84, 84, 84) → 0.05:rgb(255, 255, 255)`** — including a sibling `Section Hero` on another page across all three of its breakpoints. Two independent sources agreeing is what made this safe to restore rather than approximate.
+
+**Restored by borrowing that live gradient** (the only way to set one — see the gradient note above). Final state:
+
+| Breakpoint | `Section Hero` | `Section Projects` |
+|---|---|---|
+| Desktop | gradient `#545454 0%` → `#fff 5%` | `rgba(255,255,255,1)` |
+| Tablet | gradient `#545454 0%` → `#fff 5%` | `rgba(255,255,255,1)` |
+| **Phone** | **`#080200`** | **`#080200`** |
+
+**THE TRAP, and it nearly reinstated the white sliver: writing the gradient to Desktop silently cascaded it to Phone.** The script deliberately skipped Phone, and Phone still came back carrying the grey→white gradient on the verification read — which would have put a near-white 50px band directly under the phone hero, exactly the defect the dark buffer exists to prevent. **A breakpoint you skip is not a breakpoint you preserved.** Phone had to be written explicitly afterwards. Always re-read **all three** breakpoints after any background or spacing write, not just the ones you touched.
+
+**`Section Hero`'s phone `#080200` is load-bearing, not insurance.** It paints that 50px padding band. Do not clear it.
 
 **Two layers do two different jobs — do not collapse them.** `Section Projects` is dark and supplies the peek colour; the **row component** carries its own white background and 15px padding and supplies the card frame. Earlier attempts made the section do both, which is why darkening it destroyed the card buffer.
 
