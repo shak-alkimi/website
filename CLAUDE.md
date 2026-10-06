@@ -506,7 +506,7 @@ The hero is `Home / Hero Header`, and the thing you see is **three layers deep**
 | `Section Hero` height | **`90vh`** | the original, deliberate 10% peek that signals scrollability. No longer needs to overflow the fold |
 | `Section Hero` background | `#080200` | insurance against a gap opening *inside* the hero |
 | `Section Projects` background | **`#080200`** | the peek is dark |
-| **`Section Projects` top padding** | **`180px`** | **the load-bearing value.** Covers a 10% peek on the tallest phone (~93px on a 932pt Pro Max) with ample spare; raised from 120px on 2026-10-06 after a real-device check still showed a thin strip on Safari |
+| **`Section Projects` top padding** | **`150px`** | **the load-bearing value, and the only tuning lever.** Calibrated on a real device: **`120px` left a thin strip on Safari**, **`180px` cleared it with room to spare**, so the true threshold is between them and `150px` is the midpoint. If white ever returns, raise it; nothing else depends on it. |
 | `Home Projects - Mobile` variant | `background #fff` (inline), `padding: 15px` | the card buffer, supplied by the **component**, independent of the section |
 | `Mobile` variant `stack` padding | `0px 15px 30px 15px` | the original headline composition |
 | custom code `headEnd` | `<meta name="theme-color" content="#080200">` | tints Chrome's toolbar; Safari ignores it for its bottom bar |
