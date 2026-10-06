@@ -494,41 +494,31 @@ The hero is `Home / Hero Header`, and the thing you see is **three layers deep**
 
 **The 110px is an estimate of the iOS toolbar overlap and has not been measured on a real device.** Chrome viewport emulation could not be made to work here — `resize_window` resized the window but the page kept reporting `1536 x 855`, so phone layout cannot be verified from this environment at all. **Confirm on a real phone after publishing, and tune the 110px if the headline sits too high or is still clipped.**
 
-**THE WHITE SLIVER ON PHONE — SOLVED BY PAINT, NOT GEOMETRY (settled 2026-10-06).**
+**THE WHITE SLIVER UNDER THE PHONE HERO — SETTLED 2026-10-06 AS A TRADE-OFF, NOT A FIX.**
 
-**The white was `Section Projects` (`background-color:#fff`) showing in the gap below the hero.** On phone the hero is `90vh`, so the bottom 10% of the viewport exposes the section beneath. `Section News` is `#fff` too.
+**What it is.** The hero is `90-101vh` on phone; whatever the viewport does not cover exposes **`Section Projects`, whose background is `#fff`**. (`Section News` is `#fff` too.) `html body` is already black and the hero's own background is dark and covered by the video, so **the only white that can reach the eye is that sibling section.**
 
-**Three geometry attempts failed, and the pattern is the lesson.** Hero height went `90vh -> 100vh -> back to 90vh -> 101vh -> back to 90vh`. Each increase shrank the band but never closed it — at `101vh` roughly 60-80px still showed on iOS Safari, which would have needed ~`108-110vh` to close, a number that is a guess and that Safari can invalidate whenever it changes toolbar behaviour. **`svh`/`dvh`, which would be the correct units, cannot be set in Framer at all** (see the unit note above). Chasing the viewport was the wrong axis.
+**Final state (Phone only; Desktop and Tablet untouched):**
 
-**The fix: make what peeks DARK, on the Phone breakpoint only.**
-
-| Phone | Value |
+| Thing | Value |
 |---|---|
-| `Section Hero` height | `90vh` — the original, deliberate 10% "peek" that signals scrollability |
+| `Section Hero` height | `101vh` |
 | `Section Hero` background | `#080200` |
-| **`Section Projects` background** | **`#080200`** — this is the one that actually fixed it |
-| `Mobile` variant `stack` padding | `0px 15px 30px 15px` — the original headline position |
+| `Section Projects` background | **`#fff`** — kept white deliberately |
+| `Mobile` variant `stack` padding | `0px 15px 110px 15px` (t r b l) |
+| custom code `headEnd` | `<meta name="theme-color" content="#080200">` |
 
-Desktop and Tablet are **unchanged**: `Section Projects` stays `#fff` there, and `Image` / `Image Active` keep their 50px / 35px padding. `Section Projects` on phone is a bare backdrop — `padding: 15px 0 0 0` with a single child, the projects row — so no text sits on it and darkening it cannot break content. The visible consequence is that the gaps between the stacked cards on phone are dark rather than white, which reads correctly under a dark hero.
+**Why `Section Projects` is NOT dark, despite that removing the white.** It was set to `#080200` and it *did* remove the sliver — but it also **destroyed the white buffer that frames the project cards**. On phone that section is a bare backdrop whose **only child is a component instance with no background of its own**, so there is nowhere to put white *around* the cards while keeping the top of the section dark. With it dark, the cards sit directly on black and the hero appears to run straight into them. **You can have the card buffer or the dark peek, not both.** Shak chose the buffer. Reverted 2026-10-06.
 
-**Plus the project's FIRST custom code**, at `headEnd`: `<meta name="theme-color" content="#080200">`. Safari and Chrome tint their own toolbar chrome from this, and without it they default to light — that area is outside the page's control and no amount of CSS reaches it. All other custom-code slots remain empty. **Note this is global**, which is intended here; see the warning above about custom CSS having no per-page scope, which does NOT apply to a meta tag.
+**Things already tried that do NOT work — do not repeat them:**
 
-**The generalisable lesson, and the second time in two days it applied:** when something *looks* wrong but every measurement checks out, the defect is **paint**, not geometry. The hover "narrowing" was a `border-radius`, and this was a background colour. Both resisted repeated geometric fixes because the geometry was never wrong. **Ask "what colour is the thing that shows?" before "what size is the thing that should cover it?"**
+- **Raising the hero height.** `90 -> 100 -> 101vh` shrank the band but never closed it; at `101vh` roughly 60-80px still showed on iOS Safari. Closing it would need a guessed `~108-110vh`, which Safari can invalidate whenever it changes toolbar behaviour, and which pushes the headline off the fold.
+- **`svh` / `dvh`.** Cannot be set in Framer at all — silently rejected (see the unit note above).
+- **Custom CSS for real `svh`.** No per-page scope exists; the only stable selector also matches five pages whose Phone hero is `fit-content` or a fixed `409px`.
+- **`viewport-fit=cover`.** Applied by script, made no difference, and was removed because it is global and lets content run under the notch on every page.
+- **Darkening `Section Projects`.** Works, but costs the card buffer — see above.
 
-
-**CUSTOM CODE — the project's only custom code lives at `headEnd`.** All other slots (`headStart`, `bodyStart`, `bodyEnd`) are empty. It is a single line:
-
-```html
-<meta name="theme-color" content="#080200">
-```
-
-**Chrome honours it — confirmed on a real device, its toolbar goes dark.** **Safari does not tint its bottom toolbar from it**, with "Allow Website Tinting" confirmed ON.
-
-**`viewport-fit=cover` was tried and REMOVED on 2026-10-06 — do not re-add it to fix this.** It was applied by script (not a second viewport meta, since duplicates are handled inconsistently) and **made no difference to Safari**. It was removed because it is global and lets content run under the notch and home indicator on *every* page — a real site-wide risk for zero benefit.
-
-**Why Safari cannot be fixed from the page, and the evidence.** In the real-device screenshots Safari's **status bar at the top is dark while the bottom toolbar is light**. If Safari were ignoring the page outright, both would be light. That split indicates the bottom toolbar is a translucent system material following the **device appearance setting**, not `theme-color` — `theme-color` reaches the top bar only. Chrome differs because it paints its own toolbar and honours `theme-color` for it. **Confirm by switching the phone to Dark Mode: if the bottom bar goes dark, it is system appearance and no page change can alter it in Light Mode.**
-
-**The page content is provably correct, so do not keep editing it.** `Section Projects` is `#080200` inside `@media (max-width:809.98px)`, the hero is `90vh` with `background-color:#080200`, `html body` is black, and `theme-color` is present — and **Chrome renders that exact markup with no white at all.** What remains in Safari is a strip of browser UI below the page, not a defect in the site.
+**The residual strip in Safari is browser chrome and is not fixable from the page.** Safari's top status bar tints dark from `theme-color` while its bottom toolbar stays light, with "Allow Website Tinting" confirmed ON — that bottom bar is a system material following the device appearance setting. Chrome differs only because it paints its own toolbar and honours `theme-color`, and **Chrome on phone is fully correct**. Treat the remainder as a strip of Safari UI below the page, not a defect in the site, and **stop editing page geometry to chase it.**
 
 ### Project detail template ("More projects" row)
 
