@@ -31,7 +31,7 @@ The largest category by far. All of it is reachable today.
 
 | # | Finding | Detail |
 |---|---|---|
-| B1 | **`/careers` publishes completely empty.** Its HTML body is `<div id="main"></div>` — **0** `data-framer-name` layers, against **151** when rendered in a browser. 28 KB where every other page is 215–397 KB. | It *works* for a human (client-side render, 4799 px tall) but any crawler that does not execute JS sees a blank page. It is the only page that behaves this way, which points at a publish/SSR failure rather than a setting. |
+| ~~B1~~ | ~~**`/careers` publishes completely empty.**~~ **RETRACTED 2026-10-06 — this finding was WRONG.** | Re-tested: `/careers` serves **259,445 bytes with 377 layers**. The original 28,577-byte reading was a **cold-start shell** that Framer returns while a page is being generated on demand. Four pages showed it, all at an identical 28,684 bytes, and every one returned full content on a second request. **Method note: always fetch twice before calling a Framer page empty.** |
 | B2 | **Footer placement is inconsistent.** On `/products` and `/elements` the footer sits *inside* `Main`; on every other page it is a sibling of `Main`. | Both render a footer, so nothing is visibly broken — but any layout rule applied to `Main` reaches the footer on those two pages only. |
 | B3 | **News title/slug contradiction.** Title reads "Mush Energy just won 2 **gold** awards"; the slug is `…has-just-won-2-silver-awards`. | The title was edited and the slug was not. The slug is the public URL. |
 | B4 | **Multiple `<h1>` per page**: `/contact` has 5, `/about` 4, `/` 2, `/news` 2. | Template behaviour, but worth a deliberate decision before launch. |
@@ -108,7 +108,7 @@ So re-enabling hover video does not require adding a field — only populating i
 
 1. **A4, A6** — fabricated jobs and fictitious staff emails. Public, and a visitor can act on them.
 2. **A1–A3** — titles, descriptions, share images. One fix each, affects every page and every share.
-3. **B1** — `/careers` publishing empty. Diagnose before launch; it may indicate a wider publish fault.
+3. ~~**B1** — `/careers` publishing empty.~~ **Retracted — the page is fine; see B1.**
 4. **A5, A7, A8** — stock news, social links, `hello@ora.com`.
 5. **D1–D3** — slugs, while renames are still free.
 6. **B2, B3, C, E, F** — housekeeping, no user impact.
