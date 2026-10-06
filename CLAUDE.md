@@ -519,6 +519,14 @@ The hero is `Home / Hero Header`, and the thing you see is **three layers deep**
 
 **If the buffer ever needs tuning**, `Section Projects` top padding is the single value — raise it if any white returns, lower it if the gap above the cards looks too large. Nothing else depends on it.
 
+**Softening the seam between the hero video and the black section below (Phone).** The hero already carries the mechanism — `Home / Hero Header` → variant → `Container` → **`Overlay`**, a 100%/100% absolute layer with `angle 180`, stops `0.70 : rgba(255,255,255,0)` → `1 : rgba(0,0,0,0.39)`. It only reaches **39% black**, so there is a visible step into the solid `#080200` below. **The minimal fix is to change that bottom stop to fully opaque `#080200`** — same angle, same 70% start, giving ~230px of blend on a phone so the video dissolves into exactly the section colour.
+
+**Do it on the `Mobile` variant ONLY.** On Desktop and Tablet the hero sits above a **white** `Section Projects`, so fading the hero to black there would put a black band against white — worse than the current hard edge.
+
+**It must be done by hand.** Gradients can only be set by borrowing a live instance (see the gradient note above), and the project contains only **four** distinct gradients: the hero's grey→white, and three overlay fades topping out at **alpha 0.6**. None reaches opaque dark, so there is nothing to borrow. Once this gradient exists it becomes a donor that *can* be copied to other nodes through the API.
+
+Tuning: move the first stop later (~80%) for a tighter fade that preserves more footage, or earlier (~60%) for a longer, softer blend. The headline sits 30px from the bottom and will land on solid black rather than a 39% scrim, which slightly improves its legibility.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
