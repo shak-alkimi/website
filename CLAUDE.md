@@ -590,17 +590,25 @@ What it actually does is colour the **phone browser's own UI** — the strip hol
 
 **Softening the seam between the hero video and the black section below (Phone) — APPLIED 2026-10-06, by hand, verified on the canvas.** The hero already carried the mechanism: `Home / Hero Header` → variant → `Container` → **`Overlay`**, a 100%/100% absolute layer at `angle 180`. Its bottom stop only reached **39% black**, so the video stepped visibly into the solid `#080200` section below.
 
-**What changed — one stop, one variant:**
+**What changed — one stop, now on ALL THREE variants:**
 
 | Variant | Bottom stop (position `1`) | Used by |
 |---|---|---|
-| `Image` (`h5u62WBaL`) | `rgba(0, 0, 0, 0.39)` — **unchanged** | Desktop + Tablet |
-| `Image Active` (`LHWkCoKos`) | `rgba(0, 0, 0, 0.39)` — **unchanged** | — |
-| **`Mobile`** (`Ga1eDgeVy`) | **`rgb(8, 2, 0)`** = opaque `#080200` | Phone |
+| `Image` (`h5u62WBaL`) | **`rgb(8, 2, 0)`** (changed 2026-10-06, second pass) | Desktop + Tablet |
+| `Image Active` (`LHWkCoKos`) | **`rgb(8, 2, 0)`** (same pass) | — |
+| `Mobile` (`Ga1eDgeVy`) | **`rgb(8, 2, 0)`** = opaque `#080200` | Phone |
 
-Angle stays `180` and the first stop stays `0.70 : rgba(255,255,255,0)` on all three, so only the Phone hero now dissolves into exactly the section colour (~230px of blend on a phone). The Overlay node on the Mobile variant is `Ga1eDgeVyrSfcq_veC`.
+Angle stays `180` and the first stop stays `0.70 : rgba(255,255,255,0)` on all three.
 
-**Desktop and Tablet were deliberately left at 39%.** There the hero sits above a **white** `Section Projects`, so fading to black would put a black band against white — worse than the hard edge it replaces.
+**The desktop fade was applied as a SECOND pass, and the reasoning behind the first pass was wrong — do not restore it.** This file previously said *"Desktop and Tablet were deliberately left at 39%. There the hero sits above a white `Section Projects`, so fading to black would put a black band against white — worse than the hard edge it replaces."* That assumed the fade's purpose was to **blend the hero into the section below**. It is not. **The fade is a dark bottom vignette on the video itself**, which is why it works identically regardless of what colour follows it. Shak's words: *"this should be a fade from the bottom of the hero up to mimic what the phone is doing. not trying to transition into the white."*
+
+**It also removed a conflict that only existed under the wrong reading.** Fading *to white* on desktop would have washed out the headline, which is `--framer-text-color: #fff` on every breakpoint and sits about a third of the way into the ramp. Fading to **dark** does the opposite — it deepens the scrim the white headline already relies on.
+
+**Tablet comes along, unavoidably.** `Image` serves both Desktop and Tablet, so the variant cannot be scoped to one. There is no breakpoint-level override for a variant's gradient.
+
+**Known consequence, accepted:** on Desktop and Tablet the hero's bottom edge is now solid `#080200` meeting the 50px white padding band and the white `Section Projects` below it — a harder boundary than the old 39% produced. That is inherent to a dark vignette over a light page and was raised before applying.
+
+**Applied by borrowing the Mobile overlay as a donor** — the first use of the note below that this gradient became a donor once it existed. `framer.getNode("LXjJUpECH")` -> find the `Overlay` carrying a `backgroundGradient` on the `Mobile` variant -> assign that live object to the other two in the **same `exec`**. Verified in a separate `exec`: all three read `0.70 : rgba(255,255,255,0) -> 1.00 : rgb(8, 2, 0)` at `angle 180`.
 
 **THERE WERE THREE layers named `Overlay` per variant, and two of them were STRAY WHITE FRAMES rendering on the live site (found 2026-10-06, hidden).** An earlier version of this note said there were two and treated the second as normal structure. That was wrong, and it meant a live visual defect sat in the published build unexamined.
 
