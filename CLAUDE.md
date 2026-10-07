@@ -473,6 +473,26 @@ The grid button is parked **below** the card and rises into place. The Home butt
 
 `91 = 31 + 60`, so it rises the same 60px the grid card does and lands on its designed position. The resting change is invisible (`opacity: 0`, `position: absolute`, so it neither shows nor affects layout). Verified by variant id in a separate `exec`: the other eight variants remain `31px / 0`.
 
+**FIRST ATTEMPT FAILED, AND THE REASON IS A GENERAL RULE: Framer only emits `top`/`bottom` for ABSOLUTELY positioned nodes.** The Home button was a flow child of the `CTA` column stack (`align-self: stretch`), so writing `top: 91px` on the base and `top: 31px` on the hover **stored fine on the canvas and published nothing** — the served CSS was `position: relative` with **no `top` at all**, and the live button measured `top: 0px`, `transform: none`. It faded without moving, exactly as Shak reported.
+
+**The canvas read is what misled me.** It reported `position: "absolute"` on that node, while the published rule says `relative` — Framer's layout engine overrides the stored value for a stack child. **Treat a stored `position` as intent, not as what ships; the published rule is the authority.**
+
+**The fix was to give it the grid card's structure rather than invent one:**
+
+| | `position` | `bottom` | `centerX` | `opacity` |
+|---|---|---|---|---|
+| grid base | absolute | `-60px` | `50%` | 0 |
+| grid hover | absolute | `-60px` | `50%` | 1 |
+| **Home base** `Q__AVxo4P` | absolute | **`-60px`** | `50%` | 0 |
+| **Home hover** `uR6T4xhGK` | absolute | **`0px`** | `50%` | 1 |
+
+Home carries an **explicit** `-60px -> 0px` rise, which is the part the grid card gets from the effect the API cannot read. Also note `centerX` needed `left`/`right` cleared to `null` in the same write before it would store — setting it alone left `left: -13px` behind on one variant.
+
+**Two consequences to check on the published page:**
+
+- **The resting card will reflow.** The button is no longer a flow child, so the `CTA` stack loses its height plus the `24px` gap and the text block shifts. That is the same structure the grid card has, so it is a match rather than a regression — but it is a visible change to the resting card.
+- **`pointer-events: none` was on the old published container rule** (`.framer-h6av0r-container`), and the grid card's equivalent does **not** have it. If it survives the change the button will be visible but unclickable. Verify a real click reaches `/projects/:slug`.
+
 **Not replicated: the scale ramp.** The grid card's button also scales during the reveal; that comes from the effect the node API cannot see, so the Home version rises and fades without it. **Confirm by eye on the published page** — if it needs the scale, that is editor work.
 
 ### Home projects row — hover behaviour (2026-10-02)
