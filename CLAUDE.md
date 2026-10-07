@@ -512,6 +512,20 @@ Home carries an **explicit** `-60px -> 0px` rise, which is the part the grid car
 
 **`#35790B` already exists as a colour style — named `Signal Orange`.** It is green, not orange; the name is template-era nonsense. The new variant uses the literal `#35790B` rather than that token, deliberately, so it does not depend on a mis-named style — but if the palette is ever cleaned up, point it at the token instead.
 
+**HOW IT WAS ACTUALLY DONE — the `Ora Blue` colour style was repointed to `#35790B` (2026-10-07), because the scoped route is BLOCKED.** Two separate API walls, and the second is the one that matters:
+
+1. A component instance's **`variant` control cannot be set** through `setAttributes` — silent failure, by id and by name (above).
+2. **An API-created variant is not offered to instances at all.** `addVariant` genuinely works — `Button Alkimi Green - No Hover` (`hLYcAEbg2`) exists, renders correctly green on the component canvas, and the component's own variant row lists it 13th. But the **instance's Variant dropdown stops at the original 12**, before and after a full editor reload. A full attribute diff against a working sibling (`C1hBM5Wy4`) shows no difference beyond id, name, colour and canvas position, and the child-layer counts match at 4 — so nothing about the variant is malformed. The working theory is that the instance enum comes from the component's compiled module, which an API write does not recompile; it was not worth more of Shak's time to prove.
+
+**So the one-token route was taken instead:** `colorStyle.setAttributes({ light: "rgba(53, 121, 11, 1)" })` on `Ora Blue`. Verified in a separate `exec`. This turns **9 button instances** green — the Home wide card, 3 grid-card `View Case Study`, 2 `Global / Section CTA`, and the `Button Blue to Outline` / `Button Blue - No Hover` uses on `/careers`. It is one attribute to revert.
+
+**Two bits of debris left behind, both needing the editor:**
+
+- **`hLYcAEbg2` (`Button Alkimi Green - No Hover`) is now redundant** and sits unused on a component shared by 16 instances, off to the right of the others on its canvas (~x 943). `removeNodes` does not reach inside a component, so it must be deleted by hand.
+- **Two colour styles now hold the identical value `rgb(53, 121, 11)` under misleading names** — `Ora Blue` (which is green) and `Signal Orange` (which was always green). Worth renaming `Ora Blue` to something honest and merging or deleting `Signal Orange` during the stock-template cleanup, or a future audit will not know which is canonical.
+
+**Note the button still turns WHITE on its own hover**, because the instance uses the `Button Blue to White` variant and only its resting fill came from the token. That is pre-existing behaviour, not something this change introduced.
+
 ### Home projects row — hover behaviour (2026-10-02)
 
 Hovering a card switches the row to `Home Projects Left Open` / `Home Projects - Right Open`: the hovered column goes `1fr -> 1.5fr`, the other stays `1fr`. Measured at 1536 wide, the cards go 745.5 -> 894.6 / 596.4.
