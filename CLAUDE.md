@@ -771,6 +771,31 @@ Both sat inside `Container > Overlay`, were `visible: true`, and painted a **whi
 
 Tuning: move the first stop later (~80%) for a tighter fade that preserves more footage, or earlier (~60%) for a longer, softer blend. The headline sits 30px from the bottom and now lands on solid black rather than a 39% scrim, which slightly improves its legibility.
 
+### /elements product photos were hidden layers, not a broken binding (fixed 2026-10-07)
+
+Shak added **Product Photo** images to all 5 Elements CMS items and nothing appeared on the published page.
+
+**The CMS was fine.** All five items carry a `Product Photo` (`w7KPkTziV`), all `draft: false`. **`Technical Drawing` (`f5JSD5nVj`) is empty on every item.**
+
+**The page was fine too — except the image layers were switched off.** Row structure:
+
+```
+Elements Row > Media > Photo Placeholder          visible: true    (empty 1fr x 100px box)
+                     > Photo Placeholder > Product Photo       visible: FALSE
+             > Media > Drawing Placeholder        visible: true
+                     > Drawing Placeholder > Technical Drawing visible: FALSE
+```
+
+**3 rows x 3 breakpoints = 9 `Product Photo` layers, every one `visible: false`.** Set to `true`; `Technical Drawing` deliberately left hidden because its field is empty on all five items, so unhiding it would render nothing.
+
+**The diagnosis that saved time — count `<img>` tags on the published page.** The page had the asset URLs (4 occurrences each) **and** the rendered titles, which looks like a working binding. But it had **zero `<img>` tags and zero `background-image` references to `framerusercontent`**. Asset URLs alone prove nothing: **Framer ships the whole CMS payload as serialised JSON at the end of the page whether or not anything renders it.** So:
+
+- asset URL present + `<img>` present -> rendering
+- asset URL present + **no** `<img>` -> the data reached the page and a *layer* is the problem (hidden, unbound, or zero-size)
+- asset URL absent -> a CMS or filter problem
+
+That distinction is the quick way to tell a binding fault from a layer fault, and it applies to any Framer CMS page.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
