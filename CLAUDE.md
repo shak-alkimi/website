@@ -542,6 +542,21 @@ const probe = (val, where, depth) => {
 
 **NARROWING AN EARLIER CLAIM: it is specifically the `variant` control that cannot be written, not `controls` in general.** The note above says a component instance's control write fails silently; that is true of `variant` and **false** of the others. Writing the button's label control — `setAttributes({ controls: { XqpXZUGU6: "Projects" } })` — **worked first time and verified**. So treat `variant` as the known-bad one and verify any other control in a separate `exec` rather than assuming the whole surface is read-only.
 
+**TWO `setAttributes` CALLS ON THE SAME NODE IN ONE `exec` — THE SECOND IS SILENTLY DROPPED (found 2026-10-07).** Matching the phone wide card ran, on one button node and in one script:
+
+```js
+await btn.setAttributes({ opacity: 1, position: "absolute", bottom: "0px", centerX: "50%", … })
+await btn.setAttributes({ controls: { XqpXZUGU6: "Projects" } })   // <- never applied
+```
+
+The geometry landed; the label did **not**, and a fresh read still showed `View Case Study`. Re-issuing the identical control write **in its own `exec`** worked first time. The same pairing had worked earlier only because those were two *different* nodes.
+
+**Rule: one `setAttributes` per node per `exec`.** If a node needs both geometry and controls changed, split it across calls — and verify, because this failure is silent and looks exactly like the `variant`-control problem, which it is not.
+
+**Phone wide card now matches desktop** (`Home Project Single Wide - Mobile`, `tDcw55E8Q`): `Text Wrapper` hidden, label `Projects`, button `absolute / bottom:0 / centerX:50% / fit-content`. **Its `opacity` is `1`, deliberately unlike desktop's `0`** — desktop reveals on hover and a phone has no hover, so a `0` there would mean the button never appears at all. It sits where desktop's button lands at the end of its rise.
+
+**One difference left on purpose:** phone uses button variant `Button Blue - No Hover` while desktop uses `Button Blue to White`. Both now resolve to `Alkimi Green` through the token; the difference is only that desktop's turns white when the *button itself* is hovered, which is meaningless on touch.
+
 **STILL OUTSTANDING, and it genuinely cannot be scripted: deleting the orphan variant `hLYcAEbg2`.** Both `node.remove()` and `framer.removeNodes(["hLYcAEbg2"])` were called, **twice**, each reporting success; a fresh read still shows 13 children on `Utilities / Primary Button`. This is `removeNodes` not reaching inside a `ComponentNode`, now confirmed for component **variants** as well as nested layers, and confirmed not to be the documented "needs a second pass" case. **Delete it by hand**: open `Utilities / Primary Button`, select `Button Alkimi Green - No Hover` (it sits right of the others, ~x 943 on the component canvas), delete.
 
 ### Home projects row — hover behaviour (2026-10-02)
