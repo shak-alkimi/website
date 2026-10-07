@@ -73,6 +73,10 @@ Dump that, diff against the repo, and **normalise line endings first** — Frame
 
 **Gotchas worth knowing before you start:**
 
+- **AN AGENT CLI SESSION CAN SERVE A STALE DOCUMENT — start a fresh session before contradicting the user (found 2026-10-07).** After Shak deleted a variant **by hand in the editor**, the long-running `exec` session kept reporting it present across repeated reads. A **brand-new session** read the same component and correctly showed it **gone**. Nothing about the read was wrong; the session's snapshot was.
+  - **This is not blanket staleness.** The same session *did* pick up a new image frame dropped on the canvas minutes earlier, so some changes propagate and some do not — do not assume a long session is either reliably live or reliably stale.
+  - **The rule: if a fresh read contradicts what the user says they just did in the editor, open a new session and re-read before telling them it did not work.** On 2026-10-07 that mistake was made — the orphan variant was reported as still present when it had in fact been deleted.
+  - Sessions are cheap: `npx @framer/agent@latest session new "<projectId>"`. Treat a new session as the first debugging step for any editor-side change, the way `exec`-level staleness is already handled by re-reading in a separate call.
 - **Sessions expire** when the relay restarts, failing with "Session is invalid or has expired". It fails cleanly, but verify after each write rather than batching a long sequence.
 - `exec` returns a bare string for string returns, **not** JSON — do not `JSON.parse` it.
 - Top-level `return` inside an `exec` script works; top-level `return` in a browser-side `javascript_tool` eval does not.
