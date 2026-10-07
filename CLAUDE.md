@@ -806,6 +806,23 @@ That distinction is the quick way to tell a binding fault from a layer fault, an
 | larger without cropping | make the box itself bigger — `Media` is `2fr` of `Elements Row`, split between `Photo Placeholder` and `Drawing Placeholder` (each `1fr`, `aspect-ratio: 1`, `12px` gap) |
 
 Applied the first: all **9** `Product Photo` layers (3 rows x 3 breakpoints) set to **`120%` / `120%` with `centerX: 50%`, `centerY: 50%`**. These are product renders on white, so the 10% cropped from each edge is margin, not product — **but it is a crop, so check nothing clips at the extremes before trusting it.** Raise or lower the single `SCALE` value to tune.
+**Settled at `140%` on all nine (2026-10-07).** Tried 120, then 140, then LED-only at 100 for a side-by-side, then back to a uniform 140.
+
+**PER-ITEM SCALING IS NOT POSSIBLE HERE — do not promise it.** The three `Product Photo` layers are **one per Collection List**, not one per item:
+
+```
+Connector Section > Connector List > … > Product Photo    ->  Liga T, Liga W
+Driver Section    > Driver List    > … > Product Photo    ->  Driver 5-1
+LED Section       > LED List       > … > Product Photo    ->  Rima 5 AND Rima 10
+```
+
+Each list renders every one of its items from that single layer template, so a scale change hits every row in the category. Framer will not bind a layer's **width** to a CMS number the way it binds text, images, links or visibility, so there is no per-row override either.
+
+**Shak asked for Rima 10 to appear larger than Rima 5. That needs ARTWORK, not layout** — and two blockers stack: the two items share the **same asset** (`kvgBkNzGbs9xlMnzquAabMJlOk.png`), so even independent scaling would only enlarge an identical picture; and they share the one layer. The right fix is a per-item render with the product sized to relative scale inside a consistent canvas, which also closes the content gap of two different products showing one photo.
+
+**The layout escape hatch exists but was advised against:** splitting a section into two Collection Lists filtered to one item each, with their own photo scales. It doubles the section markup, needs the heading and count handled, and breaks again as soon as a third product joins that category.
+
+**Real dimensions for reference** (Imperial, from the CMS; Metric is empty on every item): Rima 5 `0.20 × 0.25″`, Rima 10 `0.31 × 0.31″` — so Rima 5 is about **65%** of Rima 10's width, not half. Liga T `0.35 × 0.38″`, Liga W `0.44 × 0.52″`, Driver 5-1 `0.44 × 0.50″`. True relative scale across the set would render Rima 5 at under half its neighbours in a 100px box, which is why filling each card is the defensible default while the dimensions sit in the spec columns alongside.
 
 ### Project detail template ("More projects" row)
 
