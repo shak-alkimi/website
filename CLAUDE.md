@@ -447,6 +447,34 @@ Verified in a fresh `exec`: implied heights are `1.281046W` right vs `1.281045W`
 
 **Not verifiable from this environment.** Chrome viewport emulation does not work here (the page keeps reporting `1536 x 855`), so the tablet and phone result is established by the crop arithmetic plus the stored values, not by measurement. **Confirm on a real device after publishing.**
 
+### Hover "View Case Study" button (grid cards, and the Home wide card — added 2026-10-07)
+
+The button is a **`Utilities / Primary Button`** instance (`local-module:canvasComponent/dzNJ99hkN:default`) with controls `XqpXZUGU6 = "View Case Study"` and `NhREodF7M = "/projects/:slug"`. It already existed, at `opacity: 0`, on both the grid card **and** the Home wide card — nothing had to be created.
+
+**The reveal is a RISE plus a fade, not a fade alone — and the canvas diff does NOT show the rise.** A full attribute diff of `Grid Card` vs `Grid Card - Hover` across every layer reports **exactly one** difference, `opacity 0 -> 1`, with `bottom: -60px` on the button in *both*. That is misleading. Measured on the live site (ours and stock behave identically), the button's computed `bottom` goes **`-60px` -> `0px`** — a **60px rise** — alongside a transform carrying a Y offset and a scale ramp (`matrix(1, 0, 0, 1.30887, 0, 27.7981)` caught mid-flight).
+
+**So the motion is driven by something the node API does not expose.** This is the horizontal twin of the `border-radius` lesson: the canvas is authoritative for *what exists and what it is bound to*, but **for anything animated, measure the rendered element**. A variant diff that comes back with a single property changed is a reason to go and look, not a reason to conclude the effect is simple.
+
+**Geometry differs between the two cards, which is why the Home one needed more than an opacity flip:**
+
+| | grid card button | Home wide card button |
+|---|---|---|
+| position | `absolute`, `bottom: -60px`, `centerX: 50%` | `absolute`, `top: 31px`, inside `CTA` (`absolute`, `bottom: 40px`, `centerX: 50%`, `zIndex 8`) |
+| size | `fit-content` / `fit-content` | `1fr` / `30px` |
+
+The grid button is parked **below** the card and rises into place. The Home button sat at its final spot with nowhere to travel, so an opacity flip alone would only fade.
+
+**What was applied to `Home - Projects Row 2` -> `Home Project Single - Wide`:**
+
+| | base variant `Q__AVxo4P` | hover gesture `uR6T4xhGK` |
+|---|---|---|
+| button `top` | `31px` -> **`91px`** | **`31px`** |
+| button `opacity` | `0` | **`1`** |
+
+`91 = 31 + 60`, so it rises the same 60px the grid card does and lands on its designed position. The resting change is invisible (`opacity: 0`, `position: absolute`, so it neither shows nor affects layout). Verified by variant id in a separate `exec`: the other eight variants remain `31px / 0`.
+
+**Not replicated: the scale ramp.** The grid card's button also scales during the reveal; that comes from the effect the node API cannot see, so the Home version rises and fades without it. **Confirm by eye on the published page** — if it needs the scale, that is editor work.
+
 ### Home projects row — hover behaviour (2026-10-02)
 
 Hovering a card switches the row to `Home Projects Left Open` / `Home Projects - Right Open`: the hovered column goes `1fr -> 1.5fr`, the other stays `1fr`. Measured at 1536 wide, the cards go 745.5 -> 894.6 / 596.4.
