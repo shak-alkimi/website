@@ -526,6 +526,24 @@ Home carries an **explicit** `-60px -> 0px` rise, which is the part the grid car
 
 **Note the button still turns WHITE on its own hover**, because the instance uses the `Button Blue to White` variant and only its resting fill came from the token. That is pre-existing behaviour, not something this change introduced.
 
+**TIDY-UP, 2026-10-07 — two of three done, and one API claim above needs narrowing.**
+
+**The colour styles are now honest.** `Ora Blue` renamed to **`Alkimi Green`** (it holds `rgb(53, 121, 11)`), and the duplicate **`Signal Orange` was DELETED** after a deep scan proved **0 references** project-wide. Five styles remain: `Black`, `White`, `Alkimi Green`, `Light Grey`, `Gray 20%`. `Alkimi Green`'s only four uses are all inside `Utilities / Primary Button` — three variant `backgroundColor`s plus one `border`.
+
+**The usage scan is worth reusing — a background-only check is not enough.** Colour styles are also referenced from **`inlineTextStyle`**, which is where 54 of `White`'s uses live. The reliable method is to walk every node, then **recursively probe every attribute value that is an object** for an `id` matching a style id:
+
+```js
+const probe = (val, where, depth) => {
+  if (!val || typeof val !== "object" || depth > 4) return
+  if (typeof val.id === "string" && ids[val.id]) hits[ids[val.id]].push(where)
+  for (const k in val) probe(val[k], where, depth + 1)
+}
+```
+
+**NARROWING AN EARLIER CLAIM: it is specifically the `variant` control that cannot be written, not `controls` in general.** The note above says a component instance's control write fails silently; that is true of `variant` and **false** of the others. Writing the button's label control — `setAttributes({ controls: { XqpXZUGU6: "Projects" } })` — **worked first time and verified**. So treat `variant` as the known-bad one and verify any other control in a separate `exec` rather than assuming the whole surface is read-only.
+
+**STILL OUTSTANDING, and it genuinely cannot be scripted: deleting the orphan variant `hLYcAEbg2`.** Both `node.remove()` and `framer.removeNodes(["hLYcAEbg2"])` were called, **twice**, each reporting success; a fresh read still shows 13 children on `Utilities / Primary Button`. This is `removeNodes` not reaching inside a `ComponentNode`, now confirmed for component **variants** as well as nested layers, and confirmed not to be the documented "needs a second pass" case. **Delete it by hand**: open `Utilities / Primary Button`, select `Button Alkimi Green - No Hover` (it sits right of the others, ~x 943 on the component canvas), delete.
+
 ### Home projects row — hover behaviour (2026-10-02)
 
 Hovering a card switches the row to `Home Projects Left Open` / `Home Projects - Right Open`: the hovered column goes `1fr -> 1.5fr`, the other stays `1fr`. Measured at 1536 wide, the cards go 745.5 -> 894.6 / 596.4.
