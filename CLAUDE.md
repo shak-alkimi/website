@@ -495,6 +495,23 @@ Home carries an **explicit** `-60px -> 0px` rise, which is the part the grid car
 
 **Not replicated: the scale ramp.** The grid card's button also scales during the reveal; that comes from the effect the node API cannot see, so the Home version rises and fades without it. **Confirm by eye on the published page** — if it needs the scale, that is editor work.
 
+**Card text removed, and the button colour is HALF DONE — the last step needs the editor (2026-10-07).**
+
+**Text:** `CTA > Text Wrapper` (holding `Project` and the title layer still named `First Round`) set `visible: false` on the wide card's base **and** hover states only. Verified: the other eight variants still show it, including **`Home Project Single Wide - Mobile`**, which is the phone version of the same card — decide whether that should match.
+
+**Colour — two API facts, one of them a silent failure:**
+
+- **`ComponentNode.addVariant` WORKS** (alpha, like `addGestureVariant`). Created **`Button Alkimi Green - No Hover`** (`hLYcAEbg2`) on `Utilities / Primary Button`, based on the primary variant `PQb6JRcY1`, `backgroundColor: #35790B`. Verified in a separate `exec`.
+- **A component instance's `variant` control is NOT settable.** `setAttributes({ controls: { variant: "hLYcAEbg2" } })` **returns success and stores nothing** — and the same is true passing the variant *name* instead of the id. It is a **silent** failure, in the same family as `ImageAsset` literals and gradient literals. Other controls were not tested, so this may be specific to `variant` or general to `controls`; **verify any control write in a separate `exec`.**
+
+**So the green variant exists but nothing points at it.** To finish, by hand: open `Home / Home - Projects Row 2` -> variant `Home Project Single - Wide` -> `Project Left > Product Card > CTA >` the `Utilities / Primary Button` instance -> set its **Variant** property to **`Button Alkimi Green - No Hover`**. Do it on the **hover gesture state** too, or the button will change colour as it appears.
+
+**If the green is abandoned, delete `hLYcAEbg2`** — it is an unused variant sitting on a component shared by 16 instances.
+
+**Scope was Shak's explicit choice: this button only.** The alternative was repointing the **`Ora Blue`** colour style, which feeds `Button Blue to White`, `Button Blue to Outline` and `Button Blue - No Hover` — **9 blue button instances site-wide** (3 grid-card `View Case Study`, 2 `Global / Section CTA`, the `/careers` and `/404` buttons). That remains the one-line option whenever the template blue is finally retired.
+
+**`#35790B` already exists as a colour style — named `Signal Orange`.** It is green, not orange; the name is template-era nonsense. The new variant uses the literal `#35790B` rather than that token, deliberately, so it does not depend on a mis-named style — but if the palette is ever cleaned up, point it at the token instead.
+
 ### Home projects row — hover behaviour (2026-10-02)
 
 Hovering a card switches the row to `Home Projects Left Open` / `Home Projects - Right Open`: the hovered column goes `1fr -> 1.5fr`, the other stays `1fr`. Measured at 1536 wide, the cards go 745.5 -> 894.6 / 596.4.
