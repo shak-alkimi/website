@@ -796,6 +796,17 @@ Elements Row > Media > Photo Placeholder          visible: true    (empty 1fr x 
 
 That distinction is the quick way to tell a binding fault from a layer fault, and it applies to any Framer CMS page.
 
+**Making those photos bigger — the obvious levers are INERT, and knowing why saves a wasted publish (2026-10-07).** `Photo Placeholder` carries `padding: 12px` and `place-content: flex-start flex-end; align-items: flex-start`, which looks like the thing to change. **Neither touches the image.** `Product Photo` is `position: absolute; inset: 0`, and an absolutely-positioned child resolves `inset` against its ancestor's **padding box** — so it already spans the full square, padding included, and `place-content`/`align-items` only govern *flow* children. The `<img>` inside is `width/height:100%; object-fit:cover; object-position:center`.
+
+**So the only two real levers are:**
+
+| Want | Change |
+|---|---|
+| product reads larger, card unchanged | scale `Product Photo` past 100% and let `Photo Placeholder`'s `overflow: clip` crop the margins |
+| larger without cropping | make the box itself bigger — `Media` is `2fr` of `Elements Row`, split between `Photo Placeholder` and `Drawing Placeholder` (each `1fr`, `aspect-ratio: 1`, `12px` gap) |
+
+Applied the first: all **9** `Product Photo` layers (3 rows x 3 breakpoints) set to **`120%` / `120%` with `centerX: 50%`, `centerY: 50%`**. These are product renders on white, so the 10% cropped from each edge is margin, not product — **but it is a crop, so check nothing clips at the extremes before trusting it.** Raise or lower the single `SCALE` value to tune.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
