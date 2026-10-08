@@ -824,6 +824,36 @@ Each list renders every one of its items from that single layer template, so a s
 
 **Real dimensions for reference** (Imperial, from the CMS; Metric is empty on every item): Rima 5 `0.20 × 0.25″`, Rima 10 `0.31 × 0.31″` — so Rima 5 is about **65%** of Rima 10's width, not half. Liga T `0.35 × 0.38″`, Liga W `0.44 × 0.52″`, Driver 5-1 `0.44 × 0.50″`. True relative scale across the set would render Rima 5 at under half its neighbours in a 100px box, which is why filling each card is the defensible default while the dimensions sit in the spec columns alongside.
 
+### Fixtures product renders — aligning the right edges (2026-10-08)
+
+Shak asked for the `/products` photos to have their right edges align, be centred, and scale to 140%. **Two of those three are impossible in layout, and the third makes the first worse.**
+
+**The boxes already align.** All 11 `Photo Placeholder` elements share ONE published rule — `aspect-ratio: 1; width: 1px` (flex-grow); `padding: 12px; overflow: clip` — and every `Product Photo` is `position: absolute; inset: 0`. Same column, same width, so their right edges are already on one vertical line. **The raggedness is entirely inside the artwork.**
+
+**Measured, all 11 at 2000x2000:** every product's left edge is at **0.0%** (they all bleed off the left) and the right edge ranges **55.6% to 72.5%** — a 16.8-point spread. Vertical centres also vary, **47.5% to 57.0%**, and the backgrounds are four different near-whites (`247,246,242` / `248,247,243` / `248,246,242` / `247,246,243`).
+
+**Scaling the card to 140% magnifies the misalignment by 1.4x** — at that zoom the card shows the middle 71% of each render, so right edges would land `57.8% .. 81.5%` instead of `55.6% .. 72.5%`. Anything above 100% widens the spread. **If alignment matters, 100% is the best the layout can do.**
+
+**Shak's call: scale each product to a common length** (the alternative was shifting, which would have broken the uniform left bleed). This trades away relative product size — the same property he wanted *more* of on the Rima rows, so the two pages now take opposite positions deliberately.
+
+**Method, reusable for any future batch:**
+
+1. Decode each PNG (zlib inflate + un-filter + palette lookup) and take a per-column ink profile against the corner background sample to get the product bbox.
+2. Target the **longest** product's right edge (`1450px`, Flow 20) so nothing has to shrink; scale factor `s = 1450 / x1` per image, ranging `1.000` to `1.304`.
+3. Anchor at `x = 0` to preserve the left bleed, and offset vertically by `vc * (1 - s)` so each product's vertical centre stays where it was.
+4. ffmpeg, **forced through an RGB pipeline** — `format=rgb24` on both inputs, on the overlay, and `-pix_fmt rgb24` out. Without this ffmpeg round-trips through YUV and shifts every background 1-2 levels (`247,246,242` became `246,244,240`). Harmless to the eye, trivially avoidable, and the kind of thing that compounds.
+5. Pad with **each image's own** background colour, not a shared one, since all four near-whites differ.
+
+**Result: right edges at `72.5% .. 72.8%`** — 0.3 points of spread, down from 16.8, with backgrounds byte-matching the originals. Files at `C:\Users\shaki\alkimi-renders\fixtures-aligned\`.
+
+**UPLOADING THEM BACK CANNOT BE AUTOMATED FROM HERE — this is the hard limit.** `framer.uploadImage` takes `AssetInput = string | File | BytesData`, and all three routes fail from an `exec`:
+
+- **`BytesData`** — a `Uint8Array` built inside the `exec` is rejected with *"Asset input must be a URL string, File, or { bytes: Uint8Array, mimeType: string }"*. The shape is right; the typed array does not survive marshalling across the relay.
+- **`File`** — same marshalling problem, and there is no file system in the `exec` context anyway.
+- **URL string** — accepted as a shape (`{ image: "https://…" }`, and note the bare string is NOT accepted), but Framer fetches it **server-side** and rejects anything non-public: *"URL … is not an external URL"*. A localhost server does not work.
+
+So new image bytes only enter the project **by hand**. The two routes that do work: assign in the CMS cell directly, or **drop the files on a canvas** and read `backgroundImage.url` off the dropped node — the latter is the one already proven twice on this project, and it lets the CMS rewiring be scripted.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
