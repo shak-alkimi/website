@@ -944,24 +944,15 @@ Verified: content **bit-identical** to the pre-pad set at the pad offset, **pad 
 
 The 11 sources carried four different near-whites (`#f7f6f2` x5, `#f8f7f3` x3, `#f8f6f2` x2, `#f7f6f3` x1). Normalised to `#f7f6f2` by a **uniform per-channel offset** (`lutrgb`), not by repainting background pixels — a global shift moves gradients, shadow falloff and product tone together, where a selective recolour would band at the soft edges. Verified: all 4 corners of all 11 exactly `247,246,242`, darkest pixel in the set `22` so nothing clipped, geometry untouched.
 
-**THEN THE IMPORTANT PART: it does not survive upload, because Framer re-encodes.** Three different values exist for the same image, and only one of them is what a visitor sees:
+**THE UPLOAD IS RE-ENCODED, BUT THE COLOUR SURVIVES — AN EARLIER VERSION OF THIS NOTE CLAIMED OTHERWISE AND WAS WRONG.** Framer does re-encode (the `.png` URL returns 65 KB against a 663 KB source) and **the `.png` URL is genuinely an 8-colour DITHERED palette image** — read straight from its `PLTE` chunk, so that part is not in doubt. **Do not measure colour from `framerusercontent.com/images/<id>.png`; it is not the file you uploaded.**
 
-| | value | note |
-|---|---|---|
-| local source | `247,246,242` | what was uploaded |
-| the `.png` URL | `248,247,243` | **an 8-colour DITHERED palette image**, 65 KB against a 663 KB source |
-| **the WebP derivative** | **`246,244,240`** | **flat, and what the browser actually loads** |
+**But the browser paints the SOURCE value.** Sampled from a screenshot of the published page: the photo card reads **`247,246,242`** — exactly `#f7f6f2`, the normalised source — across 13 distinct values, i.e. real image noise averaging to the right colour. **The normalisation carried through end to end.**
 
-**Do not measure colour from `framerusercontent.com/images/<id>.png`.** It is not the uploaded file — it is a quantised palette version (6-9 entries), and the dither is why a corner sample reads one of two alternating values. The page's `srcset` offers `?scale-down-to=512/1024` plus full size, and any modern browser takes **WebP**; fetch with `Accept: image/webp` and convert before sampling.
+**THE ERROR, AND IT REACHED THE LIVE SITE.** This file briefly recorded that the served WebP paints `246,244,240`, that Framer's encoder pulls near-white through YUV by `-1,-2,-2`, and therefore that "no source value can match a CSS fill" — on the strength of which all 36 placeholders were repainted `#f7f6f2 -> #f6f4f0` and published. **That `-1,-2,-2` was introduced by `ffmpeg`'s own WebP -> RGB decode, not by Framer.** The asset was fetched with `Accept: image/webp` and converted with `ffmpeg` before sampling, and that conversion step applied the shift. **The change therefore CREATED the mismatch it was meant to remove**, leaving the empty `Drawing Placeholder` a flat `#f6f4f0` against photo cards still painting `#f7f6f2`. Reverted; all 36 are `#f7f6f2` again, verified in a fresh session.
 
-**The WebP encoder pulls near-white through YUV by `-1,-2,-2`, and NO source value defeats it** — it is applied after upload. So **a source colour can never be made to match a CSS fill**; that match has to come from the CSS side.
+**This is the THIRD time in one session that ffmpeg's colour handling produced a false reading** — after the `lavfi color` source and the YUV round-trip on `overlay`. The first two were caught before shipping; this one was not, because it was treated as a *measurement* rather than a transformation. **Any decode or format conversion is a transformation, and must not sit between you and a colour you intend to trust.**
 
-**The normalisation was still worth doing, and the counterfactual proves it** (old assets were re-fetched to check rather than assumed): **before, the set painted TWO values** — `247,245,241` for the `#f8xxxx` sources and `246,244,240` for the `#f7xxxx` ones — **after, it paints ONE**, `246,244,240`, across all 11. **Card-to-card consistency is real; card-to-fill matching was not achievable from the artwork.**
-
-**So the fill was moved to meet the images: all 36 placeholders set `#f7f6f2` -> `#f6f4f0`** (`246,244,240`), verified `36/36` in a fresh session. **Both pages, deliberately** — `/products` 18 and `/elements` 18 — because `/elements` photos were measured painting the identical `246,244,240`, so fixing only one page would have moved the seam to its sibling rather than removing it. One attribute to revert.
-
-**The transferable rule: in this project, verify a colour by fetching the WebP derivative the browser requests, never the source file and never the `.png` URL.** Three values, two of them misleading.
-
+**The method that is actually reliable: sample a screenshot of the rendered page.** It captures the framebuffer after the browser's own decode, so it has no extra conversion in the path — and Shak supplying one is what exposed this. A re-decoded asset answers "what does my decoder think this file contains", which is a different question from "what does the visitor see".
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
