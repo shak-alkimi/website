@@ -902,6 +902,36 @@ Verified byte-identical on all four corners of all 11. **The general rule: every
 
 **One `DIFFER` in the final check was CORRECT and worth noting as a reading lesson.** Flow-20's bottom-right corner went `236,236,236` -> `248,247,243`. That is not a colour shift — it is the product's shadow leaving the corner because that image moved up 111px. **A corner-colour check is only a colour check where the corner holds background in both versions**; where content moved through it, a difference is the expected result. Its other three corners matched exactly, which is what settled it.
 
+**THIRD PASS — the artwork was re-cropped and the card scale came back to 100% (2026-10-08).** Shak asked why Flow 20's curve was cut and which route gave the best fidelity.
+
+**First, the finding that closes the question: the complete curve is NOT in the asset.** An ASCII deviation map of the left edge shows product body (`@`) sitting in column 0 across `y 796..876`, and the **untouched original from Framer does the same**, so the strip was composed running off the frame. **No scale, pad or crop can recover it — only a re-render.** Do not spend time trying.
+
+**The decisive measurement was the rendered card size, and it reframed the whole question.** `Photo Placeholder` measures **391.3 CSS px -> 587 device px** at `devicePixelRatio` 1.5 (read from the live `/products` DOM). Against a 2000px source that is **2.4x oversampled at 140%, 3.4x at 100%**. **So sharpness cannot separate the options** — every candidate is far above display resolution, including the items the first pass upscaled by up to `1.30x`. "Best fidelity" therefore means *how completely and how large the product reads*, not how sharp it is. **Measure the rendered box before reasoning about image quality in this project; the intuition that a bigger source is a better source is wrong here by a factor of two to three.**
+
+**What the 140% zoom was costing**, measured as ink falling outside the crop window: `Flow Spine 20.2%`, `Vena Round Mini 18.5%`, `Flow Straight 17.9%`, `Vena 17.7%`, `Prisma Link 1 15.3%`, `Flow 20 11.3%`, `Prisma Multiplier 7.8%`. **Flow 20 was among the least affected** — the zoom was fighting the whole set, not one image.
+
+**The route taken: crop the canvas instead of zooming the card.** Because all 11 had been normalised to the same geometry — left bleed at `x 0`, right edge at `1450`, vertical centre at `1000` — **a single identical crop serves every image**, which is what guarantees they stay aligned:
+
+```
+crop=1600:1600:0:200          # from the 2000x2000 centred set
+```
+
+Right edge lands at **90.6%** (was 72.5%), vertical centres stay at 50%, and the tightest vertical clearance is **432px** (`Prisma Link 1`, the tallest). Card scale then set **`140%` -> `100%`** on all 9 layers, so nothing is cropped at render time.
+
+| | 140% on 2000px | 100% on 1600px |
+|---|---|---|
+| product on screen | 478 device px, **clipped** | **532 device px, whole** |
+| right edges | 72.5% | **90.6%** |
+| resampling | — | **none** |
+
+**A pure crop is lossless, and that was verified rather than assumed** — 52,441 sampled pixels per image compared against the source at the crop offset, **bit-identical** on every one tested. This is why route 2 strictly dominated "just set the card back to 100%": same pixels, nothing cut, and the product reads *larger than the 140% zoom made it*.
+
+**Verified end to end:** 11/11 CMS items on the expected asset, 11 distinct, all 9 layers at `visible / 100% / centerY 50%` with insets cleared, and four assets pulled back off `framerusercontent.com` confirming `1600x1600`, right edges `90.5–90.8%`, v-centres `50.0–50.1%`.
+
+**The one tuning knob is the canvas size.** `1600` leaves a 9.4% right margin; `1500` would put the right edge at 96.7% and the product at ~568 device px but only 3.3% of breathing room. Everything else follows from it.
+
+**Still outstanding and only fixable with new artwork:** the left bleed on the long strip products, and `Rima 5` / `Rima 10` sharing one asset on `/elements`. Both are the same class of problem — **artwork, not layout** — and a re-render would also retire the up-to-`1.30x` interpolation the alignment pass introduced.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
