@@ -953,6 +953,30 @@ The 11 sources carried four different near-whites (`#f7f6f2` x5, `#f8f7f3` x3, `
 **This is the THIRD time in one session that ffmpeg's colour handling produced a false reading** — after the `lavfi color` source and the YUV round-trip on `overlay`. The first two were caught before shipping; this one was not, because it was treated as a *measurement* rather than a transformation. **Any decode or format conversion is a transformation, and must not sit between you and a colour you intend to trust.**
 
 **The method that is actually reliable: sample a screenshot of the rendered page.** It captures the framebuffer after the browser's own decode, so it has no extra conversion in the path — and Shak supplying one is what exposed this. A re-decoded asset answers "what does my decoder think this file contains", which is a different question from "what does the visitor see".
+### FRAMER QUANTISES EVERY UPLOADED PNG TO A TINY PALETTE — upload product renders as JPEG (found 2026-10-08)
+
+Shak reported "strange discoloration near the end cap" and said his source images do not have it. **He was right, and the first diagnosis here was wrong.** Boosting the cap face of the asset already in Framer showed scattered bright dots, which were called path-tracer "fireflies" in the render. **That file was not an original — it was an asset Framer had already processed.** The lesson is small and costly: **"untouched" must mean untouched by the whole pipeline, not merely untouched by me.** Fetching an asset back from the CDN and calling it the source is circular.
+
+**What is actually happening: Framer runs a pngquant-style quantiser on ingest, and the STORED MASTER is the quantised file.** Requested with no parameters at all, the full-size asset comes back as an **indexed-colour PNG**:
+
+| asset | served | palette |
+|---|---|---|
+| **a near-white product render** | 1674x1674, 88 KB | **7 colours** |
+| Elements card | 2000x1800, 321 KB | 12 |
+| Fixtures card | 775x775, 50 KB | 18 |
+| hero poster (photo) | 1920x1080, 257 KB | 42 |
+| spa photo | 4000x2250, 3549 KB | 99 |
+
+A 1,027 KB truecolour upload comes back as an 88 KB, 7-colour file. **The palette size is content-adaptive, which makes near-flat white renders the WORST case** — the quantiser meets its quality target with almost no colours, then dithers to fake the gradient. That dither is the "discoloration", and it is most visible on exactly the large smooth surfaces these products are made of.
+
+**JPEG is not quantised. Upload these as JPEG.** Served `.jpg` assets come back as real JPEGs — **11,846 distinct colours in a single 200x200 patch** against 7 for the whole PNG. Converted at `-q:v 2 -pix_fmt yuvj444p` (no chroma subsampling, so the thin dark profile edges stay crisp), the 11 renders keep **348 tones** in the cap region versus **7** through the PNG path, at **1.2 MB total** against ~8 MB of PNG.
+
+**Use JPEG for any photographic or smoothly-shaded artwork in this project.** Keep PNG only where transparency is required — and note that a PNG with alpha will be quantised just the same, so a logo or flat graphic is fine but a soft shadow on transparency is not.
+
+**Known side effect, do NOT "fix" it by moving the card fill:** JPEG's YUV round-trip shifts the flat background about one level (`247,246,242` -> `246,247,241`). That is below visibility, and **the card fill must not be adjusted to chase it** — doing exactly that, on a decoded measurement, is what put a wrong fill on the live site earlier the same day. Verify against a screenshot of the rendered page before changing any fill.
+
+**Why none of the earlier analysis caught this.** The investigation measured the `.png` URL, the WebP derivative and the source, and reasoned about delivery — but never compared the *stored* asset against the *uploaded* file. The one check that exposed it is trivial: **read the IHDR colour type of the asset Framer serves with no query parameters, and compare it to what you uploaded.** Colour type `3` means indexed, and the `PLTE` chunk length divided by three is the palette size.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
