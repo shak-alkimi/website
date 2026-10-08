@@ -940,6 +940,28 @@ The cost is linear and worth knowing: **~6 device px of product width per 1% of 
 
 Verified: content **bit-identical** to the pre-pad set at the pad offset, **pad colour exact** against each image's own background, 11/11 CMS items on the expected asset, and four pulled off the CDN confirming `1674x1674` with right edges `86.6-86.7%` and v-centres `50.0-50.1%`.
 
+**FIFTH PASS — background normalisation, and the discovery that FRAMER RE-ENCODES EVERY UPLOAD (2026-10-08).** `Photo Placeholder` and `Drawing Placeholder` carry their own fill — `background-color:#f7f6f2; border-radius:10px; padding:12px; aspect-ratio:1; overflow:clip` — shared by six classes. **On the photo card the fill is never seen** (the image resolves `inset`/100% against the padding box, so it covers the square edge to edge and is clipped to the same radius), **but `Drawing Placeholder` is pure fill**, because `Technical Drawing` is empty on all 11 items and hidden. So every row shows a photo beside a bare `#f7f6f2` square, which makes the fill a reference colour the artwork is judged against.
+
+The 11 sources carried four different near-whites (`#f7f6f2` x5, `#f8f7f3` x3, `#f8f6f2` x2, `#f7f6f3` x1). Normalised to `#f7f6f2` by a **uniform per-channel offset** (`lutrgb`), not by repainting background pixels — a global shift moves gradients, shadow falloff and product tone together, where a selective recolour would band at the soft edges. Verified: all 4 corners of all 11 exactly `247,246,242`, darkest pixel in the set `22` so nothing clipped, geometry untouched.
+
+**THEN THE IMPORTANT PART: it does not survive upload, because Framer re-encodes.** Three different values exist for the same image, and only one of them is what a visitor sees:
+
+| | value | note |
+|---|---|---|
+| local source | `247,246,242` | what was uploaded |
+| the `.png` URL | `248,247,243` | **an 8-colour DITHERED palette image**, 65 KB against a 663 KB source |
+| **the WebP derivative** | **`246,244,240`** | **flat, and what the browser actually loads** |
+
+**Do not measure colour from `framerusercontent.com/images/<id>.png`.** It is not the uploaded file — it is a quantised palette version (6-9 entries), and the dither is why a corner sample reads one of two alternating values. The page's `srcset` offers `?scale-down-to=512/1024` plus full size, and any modern browser takes **WebP**; fetch with `Accept: image/webp` and convert before sampling.
+
+**The WebP encoder pulls near-white through YUV by `-1,-2,-2`, and NO source value defeats it** — it is applied after upload. So **a source colour can never be made to match a CSS fill**; that match has to come from the CSS side.
+
+**The normalisation was still worth doing, and the counterfactual proves it** (old assets were re-fetched to check rather than assumed): **before, the set painted TWO values** — `247,245,241` for the `#f8xxxx` sources and `246,244,240` for the `#f7xxxx` ones — **after, it paints ONE**, `246,244,240`, across all 11. **Card-to-card consistency is real; card-to-fill matching was not achievable from the artwork.**
+
+**So the fill was moved to meet the images: all 36 placeholders set `#f7f6f2` -> `#f6f4f0`** (`246,244,240`), verified `36/36` in a fresh session. **Both pages, deliberately** — `/products` 18 and `/elements` 18 — because `/elements` photos were measured painting the identical `246,244,240`, so fixing only one page would have moved the seam to its sibling rather than removing it. One attribute to revert.
+
+**The transferable rule: in this project, verify a colour by fetching the WebP derivative the browser requests, never the source file and never the `.png` URL.** Three values, two of them misleading.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
