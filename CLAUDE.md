@@ -998,6 +998,16 @@ A 1,027 KB truecolour upload comes back as an 88 KB, 7-colour file. **The palett
 
 **Use JPEG for any photographic or smoothly-shaded artwork in this project.** Keep PNG only where transparency is required — and note that a PNG with alpha will be quantised just the same, so a logo or flat graphic is fine but a soft shadow on transparency is not.
 
+**HOME ELEMENTS CARD REPLACED WITH JPEG, FRAMING MATCHED EXACTLY (2026-10-08).** The card was a **12-colour** PNG — the most degraded asset on the site, dithered across 65% of its blocks, and sitting above the fold. Replaced with a JPEG built from Shak's original.
+
+**This card could not simply be swapped, because its geometry is load-bearing.** The whole tablet/phone centring solution depends on the subject sitting at `f ≈ 0.5828` of a **2000x1800** canvas — that is what makes desktop's `120%` + `flex-end` overflow cancel the subject's own offset, and what the `125%` / `126%` breakpoint widths were solved against. **Shak's new render is 2000x2000**, a different aspect, so dropping it in unchanged would have invalidated all of it.
+
+**Measured the live card first, then rebuilt to match:** current subject centre `x 0.58350, y 0.55500`; the replacement was padded and cropped to land at `x 0.58300, y 0.55556` on a `2000x1800` canvas. **Verified the layer settings afterwards and they are untouched** — `120% / 1.175` desktop, `125% / 0.976` tablet, `126% / 0.926` mobile, exactly as recorded. No breakpoint needed re-solving.
+
+**The new render is NOT an identical re-export** — the spacing between the plate and the side piece is tighter, so the subject is `870px` wide against `962px` while heights match to `0.4%`. **Natural scale was kept rather than stretching to the old bounding box**, since stretching would have rendered the products 10% larger than they are. The pair reads slightly narrower; the objects themselves are correct.
+
+**NEW FACT — A CMS IMAGE WRITE CAN COME BACK UNDER A DIFFERENT ASSET ID.** The canvas drop produced `LfDCvBFJ…jpg`; after assigning that URL to the `Thumbnail Image - Wide` field, two fresh sessions both reported `a5ZpkCXEdhhHHGdqrG6CIBsrSA.jpg`. Framer re-encoded it into a new asset on assignment. The content is correct (`2000x1800`, 2,291 colours against 12, subject in place) and still unquantised. **This did NOT happen on the Fixtures or Elements product-photo writes, where the stored id matched what was passed — so it is not universal and cannot be predicted.** **Verify a CMS image write by CONTENT — dimensions and measured geometry — never by asset id.**
+
 **HERO POSTER REBUILT FROM THE VIDEO ITSELF, NOT RECOVERED FROM THE PNG (2026-10-08).** The poster was a **40-colour** quantised PNG, and on a dark photographic image that is the worst case — the wall carried visible dither speckle and the falloff around the stair lighting banded. **Converting the CDN copy to JPEG would have recovered nothing.**
 
 **The poster is the hero video's own frame 0, so the clean original was already on the server.** Confirmed rather than assumed: the existing poster was matched against every 8th frame of `ege1ICH4tsMvwYK2FTfSBE2frbA.mp4` (1920x1080, 60fps, 476 frames), and **frame 0 scored an RMS difference of 1.38 against 3.10 for the next-closest and 42.73 worst-case** — unambiguous. Extracted at `-q:v 2 -pix_fmt yuvj444p`.
