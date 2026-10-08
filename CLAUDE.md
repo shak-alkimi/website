@@ -879,6 +879,29 @@ This is the same family as the already-recorded `centerX` needing `left`/`right`
 
 **State now: all 9 at `140%` with `centerX/centerY 50%` and insets cleared, verified in a fresh session.** `140%` is safe here only *because* the sources were aligned first — a centre crop at that zoom lands every right edge at ~81.5%, still in one line. **Revert to `100%` and the alignment survives too; any scale does, now that the artwork agrees.**
 
+**VERTICAL CENTRING — a SECOND pass, 2026-10-08, because right-edge alignment left the vertical ragged.** Shak asked how the images lined up vertically; the honest answer was that they did not. The first pass deliberately *preserved* each product's own vertical centre (the brief was right edges), which left centres spanning **47.6% to 57.2% — 9.6 points**, and not as random scatter: the larger products (Vena, Vena Corner, Flow Spine, Flow Straight) sat near 48% and the smaller ones near 56%, so it read as two groups at different heights. **At the 140% card scale that spread is magnified 1.4x, i.e. about 13% of card height.**
+
+Fixed by shifting each product so its vertical centre lands at exactly 50%, horizontal untouched. Shifts ran **-143 to +49 px**; nothing clipped (checked before rendering — compute `newTop`/`newBot` and refuse if either leaves the canvas). Result: **v-centre spread 0.0, every image at 50.0%**, right edges still `72.4 .. 72.8%`. Tops and bottoms still span 8.6 points, which is inherent — the products are genuinely different heights, and centring aligns centres, not edges.
+
+**THE FFMPEG COLOUR TRAP BIT AGAIN, IN A NEW PLACE — and the earlier fix was incomplete.** The recorded rule was "force an RGB pipeline with `format=rgb24`". That is necessary and **not sufficient**: a `-f lavfi -i color=c=#f7f6f2` source **generates its frame through YUV before any filter runs**, so `[0:v]format=rgb24` converts an already-degraded canvas. The pad strip came out `246,244,240` against the source's `247,246,242`.
+
+**It was only visible because the sample points were chosen to catch it.** Comparing all four corners plus a mid-edge point against the input showed the shift **only on the padded side** — Vena moved down 19px and its *top* corners differed while its *bottom* corners were exact. **A single-corner check would have passed and shipped the shift.** Sample every corner, and know which ones the operation actually touched.
+
+**The fix is to never introduce a second input at all** — do the shift with `pad` + `crop` on the image itself, where the fill colour is written directly into the existing rgb24 buffer:
+
+```bash
+# move DOWN by dy
+ffmpeg -i in.png -vf "format=rgb24,pad=${W}:$((H+dy)):0:${dy}:color=0xF7F6F2,crop=${W}:${H}:0:0" \
+  -pix_fmt rgb24 -frames:v 1 out.png
+# move UP by |dy|
+ffmpeg -i in.png -vf "format=rgb24,pad=${W}:$((H-dy)):0:0:color=0xF7F6F2,crop=${W}:${H}:0:${-dy}" \
+  -pix_fmt rgb24 -frames:v 1 out.png
+```
+
+Verified byte-identical on all four corners of all 11. **The general rule: every extra input is a colour-management risk; prefer a single-input filter chain over compositing whenever the operation allows it.**
+
+**One `DIFFER` in the final check was CORRECT and worth noting as a reading lesson.** Flow-20's bottom-right corner went `236,236,236` -> `248,247,243`. That is not a colour shift — it is the product's shadow leaving the corner because that image moved up 111px. **A corner-colour check is only a colour check where the corner holds background in both versions**; where content moved through it, a difference is the expected result. Its other three corners matched exactly, which is what settled it.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
