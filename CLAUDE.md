@@ -854,6 +854,31 @@ Shak asked for the `/products` photos to have their right edges align, be centre
 
 So new image bytes only enter the project **by hand**. The two routes that do work: assign in the CMS cell directly, or **drop the files on a canvas** and read `backgroundImage.url` off the dropped node — the latter is the one already proven twice on this project, and it lets the CMS rewiring be scripted.
 
+**DELIVERED INTO FRAMER 2026-10-08.** Shak dropped the 11 files on the canvas; each dropped node's `backgroundImage.url` was read and written to the matching Fixtures item's `Product Photo`, **matching node name to CMS title inside the script** (hyphens normalised away) rather than by a hand-written table — the mapping is the part most likely to go wrong silently, so it should never be transcribed. Verified in a fresh session: **11/11 items on the expected asset, 11 distinct assets, 0 drafts**, `Technical Drawing` untouched. Then verified the *hosted* files rather than trusting the upload: four assets were pulled back off `framerusercontent.com` and re-measured, giving right edges `72.5 / 72.5 / 73.0 / 72.5` — identical to the local originals. **Measuring the CDN copy is the check that actually proves delivery**, since it tests the asset the site will serve rather than the one on disk.
+
+**The `/products` photos were ALSO hidden — the same defect as `/elements`, found only because this work touched them.** All **9** `Product Photo` layers (3 Collection Lists x 3 breakpoints: `Flex List`, `Profile List`, `Optic List`, each through `Profile Row > Media > Photo Placeholder`) were `visible: false`. Nobody had reported it; `/elements` was fixed on 2026-10-07 and this page was never checked. **If a Framer page renders CMS text but no product imagery, check the layer's `visible` before anything else — this template ships these layers switched off.**
+
+**NEW SILENT-FAILURE MODE, and it is a good one: a node pinned on all four edges SILENTLY REFUSES `width`/`height`.** Setting `{ visible: true, width: "140%", height: "140%", centerX: "50%", centerY: "50%" }` on these nodes **applied `visible` and dropped everything else** — no error, and a fresh read showed `width: null`. Retrying the size attributes alone in their own `exec` failed the same way, which ruled out the one-write-per-node rule.
+
+The cause only showed up in a **full attribute dump compared against a node where the same write had worked**:
+
+| | `/elements` (write works) | `/products` (write dropped) |
+|---|---|---|
+| `top/right/bottom/left` | all `null` | all **`0px`** |
+| `centerX/centerY` | `50%` / `50%` | `null` |
+| `width/height` | `140%` / `140%` | `null` |
+
+A node pinned on opposite edges has its size **derived** from the insets, so `width` is not merely unset but unsettable. **Clearing the four insets to `null` in the SAME `setAttributes` call makes it store first time:**
+
+```js
+await node.setAttributes({ top: null, right: null, bottom: null, left: null,
+                           centerX: "50%", centerY: "50%", width: "140%", height: "140%" })
+```
+
+This is the same family as the already-recorded `centerX` needing `left`/`right` cleared in one write — **generalised: positioning attributes are a mode, not a set of independent fields, and writing the new mode's fields without clearing the old mode's is a silent no-op.** The diagnostic that found it is worth repeating: when a write vanishes, dump **every** attribute of the failing node beside one where the identical write succeeded, instead of re-trying variations of the write.
+
+**State now: all 9 at `140%` with `centerX/centerY 50%` and insets cleared, verified in a fresh session.** `140%` is safe here only *because* the sources were aligned first — a centre crop at that zoom lands every right edge at ~81.5%, still in one line. **Revert to `100%` and the alignment survives too; any scale does, now that the artwork agrees.**
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
