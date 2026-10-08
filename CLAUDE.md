@@ -998,6 +998,22 @@ A 1,027 KB truecolour upload comes back as an 88 KB, 7-colour file. **The palett
 
 **Use JPEG for any photographic or smoothly-shaded artwork in this project.** Keep PNG only where transparency is required — and note that a PNG with alpha will be quantised just the same, so a logo or flat graphic is fine but a soft shadow on transparency is not.
 
+**HERO POSTER REBUILT FROM THE VIDEO ITSELF, NOT RECOVERED FROM THE PNG (2026-10-08).** The poster was a **40-colour** quantised PNG, and on a dark photographic image that is the worst case — the wall carried visible dither speckle and the falloff around the stair lighting banded. **Converting the CDN copy to JPEG would have recovered nothing.**
+
+**The poster is the hero video's own frame 0, so the clean original was already on the server.** Confirmed rather than assumed: the existing poster was matched against every 8th frame of `ege1ICH4tsMvwYK2FTfSBE2frbA.mp4` (1920x1080, 60fps, 476 frames), and **frame 0 scored an RMS difference of 1.38 against 3.10 for the next-closest and 42.73 worst-case** — unambiguous. Extracted at `-q:v 2 -pix_fmt yuvj444p`.
+
+| | colours | size |
+|---|---|---|
+| old PNG, as Framer served it | **40** | 257 KB |
+| video frame 0, lossless | 16,243 | — |
+| **new JPEG, as served** | **22,174** | **109 KB** |
+
+**Note the video URL has changed since this file last recorded it** — the hero is now `ege1ICH4tsMvwYK2FTfSBE2frbA.mp4`, not `d77bBFCntsmjWtY8JPzBcIZqc8.mp4`. Read the instance control `xTAfQvz3w` rather than trusting the value written here.
+
+**The poster lives in SIX places and all six were set:** `backgroundImage` on `Container` and the `poster` control on `Container > Video`, across all three variants (`Image`, `Image Active`, `Mobile`). Both are asset-typed, so the live `ImageAsset` was read off the dropped node and assigned **in the same `exec`** with no serialisation — a URL string or a literal fails silently there. Verified across **two** fresh sessions.
+
+**The general lesson is worth more than the fix: before concluding an asset is unrecoverable, check whether a cleaner source of the same pixels already exists in the project.** A poster is a video frame; a thumbnail may be a crop of a full-size image. The quantised copy is not always the only copy.
+
 **SITE-WIDE PNG AUDIT, 2026-10-08 — all 28 PNGs are quantised; four are worth replacing.** Every image referenced by the 10 published pages plus the CMS detail pages was collected (**71 assets: 33 jpg, 28 png, 10 svg**) and each PNG fetched full-size with no query parameters. **28 of 28 are indexed-colour, 20 of them under 32 colours.** The JPEGs and SVGs are untouched by the quantiser, so this is a PNG-only problem.
 
 **Palette size alone does not predict visible damage** — detailed content hides dithering, smooth content shows it. Ranked instead by measured **dither density** (8x8 blocks holding 2-3 tones with >18% horizontal alternation, the dither signature):
