@@ -1009,6 +1009,21 @@ A 1,027 KB truecolour upload comes back as an 88 KB, 7-colour file. **The palett
 
 **Final state: right edges `86.3-86.7%`, v-centres `50.0-50.6%`, 700 KB for all 11** (against ~8 MB of PNG). Placeholder fills are back at `#f7f6f2` on all 36. **Needs a publish.**
 
+**ALIGNING ON THE END CAP WHEN A PRODUCT TRAILS A CABLE (2026-10-08).** `Flow Straight` and `Flow Spine` were replaced with assembled-fixture renders (`B-21`, `B-22`) that differ in kind from what they replaced — the old shots were a bare aluminium channel and loose mounting clips, the new ones are the finished fixture with a cable. **The shape matcher flagged them as not matching anything (score 8+ against a 0.3-1.4 range for genuine matches), which is how the content change was noticed** rather than assumed; worth trusting that signal.
+
+**They bleed off BOTH edges, so the default rule mis-framed them.** Aligning the rightmost ink put the *cable tip* on the 86.6% line and scaled the fixture **down** to `0.726`, leaving the body ending near 55% while every other product's body ends at 86.6% — they read as short products with a long tail. Shak's call: **align the end cap and let the cable overrun.**
+
+**Separating cable from body: use ink DENSITY per column, not ink height.** Height fails here because the cable curves and spans almost as much vertical range as the body (it never drops below ~61% of max height, so no height threshold finds the cap). **Density works cleanly** — the body is solid and the cable is a thin line:
+
+```
+B-21 density by column:  68 69 71 73 73 75 77 78 81 82 85 85 | 65 23 21 21 20 ...
+                                                  end cap ---^
+```
+
+Taking **the last column holding at least 50% of peak density** puts the cap at `63.0%` (B-21) and `63.6%` (B-22) — stable, where a 25% threshold is not (it returns 99.9% on B-22 because parts of the cable are locally dense). **Also compute the vertical centre from the body only, left of the cap**, or the curving cable drags it off.
+
+Result: end caps at `86.7%` against `86.6%` for Vena and `86.5%` for Flow 20, body v-centres `50.0-50.1%`, and the cable runs off the right edge instead of terminating inside the frame. **The general rule: when a product has an appendage — cable, lead, bracket — align on the body and let the appendage bleed, measuring the body boundary by column density.**
+
 **Known side effect, do NOT "fix" it by moving the card fill:** JPEG's YUV round-trip shifts the flat background about one level (`247,246,242` -> `246,247,241`). That is below visibility, and **the card fill must not be adjusted to chase it** — doing exactly that, on a decoded measurement, is what put a wrong fill on the live site earlier the same day. Verify against a screenshot of the rendered page before changing any fill.
 
 **Why none of the earlier analysis caught this.** The investigation measured the `.png` URL, the WebP derivative and the source, and reasoned about delivery — but never compared the *stored* asset against the *uploaded* file. The one check that exposed it is trivial: **read the IHDR colour type of the asset Framer serves with no query parameters, and compare it to what you uploaded.** Colour type `3` means indexed, and the `PLTE` chunk length divided by three is the palette size.
