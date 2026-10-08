@@ -973,6 +973,32 @@ A 1,027 KB truecolour upload comes back as an 88 KB, 7-colour file. **The palett
 
 **Use JPEG for any photographic or smoothly-shaded artwork in this project.** Keep PNG only where transparency is required — and note that a PNG with alpha will be quantised just the same, so a logo or flat graphic is fine but a soft shadow on transparency is not.
 
+**SITE-WIDE PNG AUDIT, 2026-10-08 — all 28 PNGs are quantised; four are worth replacing.** Every image referenced by the 10 published pages plus the CMS detail pages was collected (**71 assets: 33 jpg, 28 png, 10 svg**) and each PNG fetched full-size with no query parameters. **28 of 28 are indexed-colour, 20 of them under 32 colours.** The JPEGs and SVGs are untouched by the quantiser, so this is a PNG-only problem.
+
+**Palette size alone does not predict visible damage** — detailed content hides dithering, smooth content shows it. Ranked instead by measured **dither density** (8x8 blocks holding 2-3 tones with >18% horizontal alternation, the dither signature):
+
+| asset | where | palette | dithered blocks |
+|---|---|---|---|
+| `UjMpyh3Rstt…` | **Home — Elements category card** | **12** | **65.4%** |
+| `ifb6mXyk…` | **Careers — gradient abstract** | **16** | **45.2%** |
+| `8yvUOxGq…` | **Home — hero poster** | **40** | **40.4%** |
+| `ZNDr58rL…` | **Home — Fixtures category card** | **18** | **34.0%** |
+| `C6mk4sEY…` | Careers | 147 | 35.3% |
+| `iSENb6qU…` | Careers | 97 | 30.6% |
+| three photos | careers / news / projects-grid | 256 | 17-21% |
+| `dS88nmQ3…` | Home + projects-grid, spa photo | 99 | 9.6% |
+| `Zlz1h2Ps…` | **Contact — map** | 17 | **5.3%** |
+
+**The contact map is the instructive case: 17 colours but only 5.3% dithered**, because a dense map has no smooth regions for dithering to show in. **Do not replace on palette size alone.** Conversely the Home Elements card is a product render on near-white — the worst possible content — and it is the most degraded asset on the site while sitting on the home page.
+
+**A low score can also understate the damage.** A fixtures product render scores only 9.7%, because most of its frame is uniform background that quantised to a *single* colour and so is not counted; the dither is concentrated on the product itself, which is the only part anyone looks at. **Read the metric as "how much of the frame carries dither texture", not as "how bad it looks".**
+
+**REPLACEMENT REQUIRES THE ORIGINAL FILES.** Re-encoding a CDN copy as JPEG restores nothing — the colours are already gone. Anything whose original has been lost is permanently degraded at its current quality.
+
+**Note `FryzpZaIs…` on `/elements`: 3504x2478, 8 colours, WITH an alpha channel.** Transparency does not exempt a PNG from quantisation, so "it needs alpha" is not a reason to accept PNG for a soft-shadowed or gradient image.
+
+**Standing rule going forward: upload JPEG for anything photographic or smoothly shaded.** Reserve PNG for flat graphics and hard-edged UI art, where a small palette is lossless anyway.
+
 **Known side effect, do NOT "fix" it by moving the card fill:** JPEG's YUV round-trip shifts the flat background about one level (`247,246,242` -> `246,247,241`). That is below visibility, and **the card fill must not be adjusted to chase it** — doing exactly that, on a decoded measurement, is what put a wrong fill on the live site earlier the same day. Verify against a screenshot of the rendered page before changing any fill.
 
 **Why none of the earlier analysis caught this.** The investigation measured the `.png` URL, the WebP derivative and the source, and reasoned about delivery — but never compared the *stored* asset against the *uploaded* file. The one check that exposed it is trivial: **read the IHDR colour type of the asset Framer serves with no query parameters, and compare it to what you uploaded.** Colour type `3` means indexed, and the `PLTE` chunk length divided by three is the palette size.
