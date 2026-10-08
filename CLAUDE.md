@@ -932,6 +932,14 @@ Right edge lands at **90.6%** (was 72.5%), vertical centres stay at 50%, and the
 
 **Still outstanding and only fixable with new artwork:** the left bleed on the long strip products, and `Rima 5` / `Rima 10` sharing one asset on `/elements`. Both are the same class of problem — **artwork, not layout** — and a re-render would also retire the up-to-`1.30x` interpolation the alignment pass introduced.
 
+**FOURTH PASS — shifted 4% left, which is only possible by ADDING canvas (2026-10-08).** Shak asked to move the images slightly left in unison without cutting Flow 20's curve. **Those two are in direct conflict under the obvious reading:** the products sit *at* `x 0` and bleed off it, so there is no slack — moving the image left cuts product, Flow 20 first. **The only non-cutting leftward move is to add margin on the RIGHT**, which shifts every product left *relative to its card* while keeping their right edges aligned with each other.
+
+The cost is linear and worth knowing: **~6 device px of product width per 1% of leftward shift**, because the same 587px card then shows a wider canvas. Applied `1600 -> 1674` (`pad=1674:1674:0:37`), putting right edges at **86.6%** (from 90.6%) and the product at **508 device px** (from 532). Card scale stays at `100%` — raising it would crop the new margin straight back off.
+
+**Fidelity did not discriminate between the candidate shifts, and that was the answer to Shak's question.** 2% / 4% / 6% are all pure padding — no scaling, no resampling — and land at `2.79x / 2.85x / 2.92x` oversampling against the source, with even the most-upscaled item at `2.1-2.2x`. **Nothing in that range is visible as softness**, so the choice was aesthetic, not technical. The only option that would have cost anything was cutting, which destroys product permanently. **When a trade-off looks like quality vs. appearance, check whether the quality axis is actually in play before treating it as a trade-off.**
+
+Verified: content **bit-identical** to the pre-pad set at the pad offset, **pad colour exact** against each image's own background, 11/11 CMS items on the expected asset, and four pulled off the CDN confirming `1674x1674` with right edges `86.6-86.7%` and v-centres `50.0-50.1%`.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
