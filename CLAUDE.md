@@ -824,6 +824,19 @@ Each list renders every one of its items from that single layer template, so a s
 
 **Real dimensions for reference** (Imperial, from the CMS; Metric is empty on every item): Rima 5 `0.20 × 0.25″`, Rima 10 `0.31 × 0.31″` — so Rima 5 is about **65%** of Rima 10's width, not half. Liga T `0.35 × 0.38″`, Liga W `0.44 × 0.52″`, Driver 5-1 `0.44 × 0.50″`. True relative scale across the set would render Rima 5 at under half its neighbours in a 100px box, which is why filling each card is the defensible default while the dimensions sit in the spec columns alongside.
 
+**THE TWO PAGES USE DIFFERENT VERTICAL RULES, DELIBERATELY — SETTLED BY SHAK 2026-10-08. DO NOT "FIX" IT.**
+
+| | `/products` (Fixtures) | `/elements` (Elements) |
+|---|---|---|
+| vertical | **centred**, v-centres at 50%, bottoms spread `61.8-72.9%` | **baseline**, bottoms all at `73.1%` |
+| horizontal | **right-aligned** — end caps at `86.6%`, bleeding off the left | **centred** at `50%` |
+
+**Only the vertical is a genuine rule conflict.** The horizontal difference follows from the artwork: the fixture renders have no left edge to centre on (every one bleeds off `x = 0`), so end-cap alignment is the only coherent treatment for a continuous run, while a contained object centres. That is a consequence, not a choice, and does not need reconciling.
+
+**The vertical was raised with Shak and he chose to leave it**, on the grounds that the two pages are rarely seen together. The alternative offered was baseline on both — re-rendering the 11 fixtures to sit at `73%`, which was checked and would clip nothing (the tallest, `Prisma Link 1` at 44% of canvas, would sit top `29%` / bottom `73%`). **The argument FOR baseline, recorded so it can be weighed again if the pages ever converge:** both sets are products resting on a surface with ground shadows, a shared ground line is the catalogue convention and makes sizes comparable, and both pages use the identical square `Photo Placeholder` so `73%` means the same visual level on each. **The cost of changing it later is one render pass plus a canvas drop — it does not get harder with time**, so there is no urgency, but any new fixtures artwork should follow the centred rule to stay internally consistent.
+
+**Where `73%` came from:** three of the five Elements renders (`Rima 10`, `Liga T`, `Liga W`) already shared a ground plane at exactly that height, and it coincides with where the resting fixtures land (`Flow Spine 72.9`, `Prisma Link 1 72.5`, `Flow Straight 72.4`). It is the artwork's own ground line, not an invented number.
+
 **`/elements` PHOTOS REPLACED WITH JPEG, AND RIMA 5 / RIMA 10 FINALLY HAVE DISTINCT IMAGES (2026-10-08).** All five Elements `Product Photo` fields now point at `.jpg`, served unquantised. **The long-standing content gap is closed** — `Rima 5` and `Rima 10` had been sharing one asset (`kvgBkNzGbs9…png`), which is why "make Rima 10 look bigger" was previously impossible at any layout setting.
 
 **NO GEOMETRY PIPELINE WAS APPLIED, DELIBERATELY — and applying one would have destroyed the point.** Shak's `Rima 5` file is named *"Rimi COB coil - 75 percent - 5mm"* and measures **0.753x** the `Rima 10` render; the filename is literal. **He has solved the relative-scale problem in the artwork**, which is the only place it can be solved (one `Product Photo` layer serves every row of a Collection List). Note he chose **75%** over the true dimensional ratio of **64.5%** (`0.20in` vs `0.31in`) — a deliberate softening so the smaller part does not read as insignificant. **Any per-image rescale here silently undoes that decision.**
