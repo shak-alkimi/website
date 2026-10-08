@@ -998,6 +998,18 @@ A 1,027 KB truecolour upload comes back as an 88 KB, 7-colour file. **The palett
 
 **Use JPEG for any photographic or smoothly-shaded artwork in this project.** Keep PNG only where transparency is required — and note that a PNG with alpha will be quantised just the same, so a logo or flat graphic is fine but a soft shadow on transparency is not.
 
+**HOME FIXTURES CARD REPLACED — and the current card turned out to be a CROP of a render already on the canvas (2026-10-08).** The card was an **18-colour** `775x775` PNG. Shak pointed at `B-7` (`2000x2000`), which at a glance looks like a different shot — the full module chain receding, where the card is a tight close-up of three modules.
+
+**It is the same render. Found by template search rather than by eye:** the live card was downscaled to a template and matched against every square crop of `B-7`, anchored on both images' shared full-bleed left edge and their subject extremes. The result was a sharp minimum at **772x772 from (853, 720)**, rms **3.97** against **57.33** for the worst candidate — unambiguous. Refining the window and offsets in a second pass took it from 6.28 to 3.97.
+
+Output at `775x775` to match the live card exactly: **vertical bounds identical** (`0.2348..0.7097`), horizontal within `0.8%`, **18 colours becomes 1,570**, 17 KB against 50 KB.
+
+**THIS FIXES QUANTISATION, NOT RESOLUTION — and the distinction matters.** The matching crop is only **772px** of `B-7`, so it carries exactly the same real detail as the card it replaces. The left Home card renders at roughly **1340 device px** on desktop (`745 CSS px` x `120%` x `1.5 dpr`), so a 775px source is undersampled about **0.58x** and **will still look soft**. Upscaling adds nothing. **Fixing sharpness needs a render framed at this close-up directly, at 1500px or more — not a crop of the wide shot.** Worth bundling into the next render batch; it is not urgent, since the colour fix is the visible win.
+
+**The asset id changed on assignment again** (`ZU1dyILT4…jpg` written, `jMvkPme1bduPUF4Ah9fdh5WHJ4.jpg` stored), exactly as it did for the Elements card. **Two for two on Home-collection image fields, zero for sixteen on the product-photo fields** — so the behaviour may be field- or collection-specific, but either way it confirms the rule: **verify a CMS image write by content, never by id.**
+
+**The reusable technique is the template search.** When an existing asset must be matched and the replacement is framed differently, do not eyeball the crop: downscale the live asset to a template, search the candidate over a grid of crop sizes and offsets, and read the rms minimum. Anchor the search on features both images share — here, the full-bleed left edge and the subject's right and bottom extremes — which collapses a three-parameter search to one.
+
 **HOME ELEMENTS CARD REPLACED WITH JPEG, FRAMING MATCHED EXACTLY (2026-10-08).** The card was a **12-colour** PNG — the most degraded asset on the site, dithered across 65% of its blocks, and sitting above the fold. Replaced with a JPEG built from Shak's original.
 
 **This card could not simply be swapped, because its geometry is load-bearing.** The whole tablet/phone centring solution depends on the subject sitting at `f ≈ 0.5828` of a **2000x1800** canvas — that is what makes desktop's `120%` + `flex-end` overflow cancel the subject's own offset, and what the `125%` / `126%` breakpoint widths were solved against. **Shak's new render is 2000x2000**, a different aspect, so dropping it in unchanged would have invalidated all of it.
