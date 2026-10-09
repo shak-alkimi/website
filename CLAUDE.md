@@ -1171,6 +1171,38 @@ So each synthesised frame lands within **19% of the motion it is inventing** —
 
 **The green check needs the right spelling.** A sweep for `rgb(53, 121, 11)` returns **0** on Home while the colour is plainly there — Framer emits it as **`#35790B`** on this page. A colour absent in one notation is not a colour absent. Grep both forms before calling a brand colour missing.
 
+### /projects-list — the empty 5th image box is a per-instance BOOLEAN, not CMS (fixed 2026-10-09)
+
+Shak spotted that `Resorts World` rendered four photos **plus an empty striped placeholder**, while `Belmont Park` with the same number of photos rendered four and stopped cleanly. His question — CMS or canvas — is the right one, and the answer is **canvas**.
+
+**The CMS is identical on the two items, which is what rules it out.** Both carry `Image Hero`, `Image 1`, `Image 2`, `Image 3` filled and **`Image 4` empty**, and both have the enum **`5 Images on List View` (`fY2GuGkFp`) set to `Yes`** — as do all ten Projects items. **Same CMS value, different render, so that enum is demonstrably not the driver.** Do not reach for it; it is inert for this purpose.
+
+**The real switch is a boolean control on the row instance: `idiWQDru6` on `Projects / List View Row` (`local-module:canvasComponent/BPcTbqUr_:default`).** Each of the ten `/projects-list` rows is a Collection List holding one such instance, and the value was set per row, inconsistently:
+
+| row | item | was | renders |
+|---|---|---|---|
+| 1 | Resorts World | `true` | 5 slots, 4 images -> **empty box** |
+| 2 | Belmont Park | `false` | 4 slots -> clean |
+| 3 | Tuft | `true` | 5 slots, 5 images -> correct |
+
+**It gates `Image Wrapper 4` — the fifth slot — and that was proven from the PUBLISHED page, because the binding is invisible to the node API.** All five wrappers (`Image Wrapper Hero`, `1`, `2`, `3`, `4`) read `visible: true` inside the component, and a recursive probe of every attribute on every layer found **zero** references to `idiWQDru6`: conditional-visibility bindings simply do not surface through `getChildren`/attributes, the same blind spot as code overrides and the hover rise. Counting `data-framer-name="Image Wrapper …"` per row on the served HTML settles it in one query:
+
+```
+resorts-world   wrappers: Hero,1,2,3,4
+belmont-park    wrappers: Hero,1,2,3      <- slot 4 not emitted at all
+the-leader      wrappers: Hero,1,2,3,4
+```
+
+**That is the general method for any Framer conditional binding: do not look for the condition on the canvas, count what the published page actually emits.** A layer dropped by a false condition is absent from the HTML entirely, which is unambiguous — unlike `visible: false`, which the canvas does report.
+
+**Why the two look so different rather than just one box apart.** The image stack is right-aligned, so removing a wrapper shifts the remaining four right against the same edge; keeping it leaves a gap on the left and parks Framer's diagonal placeholder tile at the end. **Seeing that striped tile here means an empty bound slot, not a missing asset** — same tile as the Home card note, different cause.
+
+**Fixed** by writing `idiWQDru6: false` onto the Resorts World row instance (`K4t4HTTfI`). Verified in **two** fresh sessions, with `variant` and the `/projects/:slug` link preserved — **a partial `controls` write does not clobber the siblings it omits**, which is worth knowing given `variant` itself cannot be written at all. **Needs a publish.**
+
+**Tuft stays `true` deliberately** — it is the only live project with five real images (`Image 1-4` plus a hero poster), so turning its fifth slot off would drop a real photograph.
+
+**THIS IS A PER-ROW SETTING AND IT WILL BITE AGAIN.** The seven hidden draft rows carry mixed values (`4, 6, 7, 8, 9` = `true`; `5, 10` = `false`) with no relation to their items' image counts. **Whenever a project goes Live, set this row's `idiWQDru6` to match whether that item actually has an `Image 4`** — exactly as the static `(3)` count label has to be updated by hand. The underlying design flaw is that the component asks the canvas a question the CMS already knows the answer to; if the two are ever reconciled, bind the fifth wrapper's visibility to `Image 4` being non-empty and the whole class of defect disappears.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
