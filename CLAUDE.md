@@ -1140,6 +1140,29 @@ The middle Newsroom card on Home is not an image — it is **`Thumbnail Video MO
 
 **This is the fourth ffmpeg colour misreading recorded here, and the first on video.** The pattern is now unambiguous: **ffmpeg is a transformation tool, not a measuring instrument. For any colour question in this project, measure in a browser.**
 
+**THE ORB AT 60FPS — and how to tell real smoothness from a bigger file (2026-10-09).** Shak asked to make the enso thumbnail 60fps so it "runs smoother". **Setting the container to 60fps achieves nothing**, and that was proven rather than asserted: a `fps=60` filter produced frames whose consecutive deltas alternate `0.00, 2.04, 0.04, 2.04` — **half the frames are exact duplicates**, identical motion at +54% file size. Motion-compensated interpolation produced uniform deltas of `1.07-1.12`, i.e. genuinely new in-between frames.
+
+**THE VALIDATION IS THE REUSABLE PART — interpolation can be checked against GROUND TRUTH.** Rather than guess whether the synthesised motion is faithful, drop the source to **half** its rate, interpolate back up, and compare the invented frames against the real ones that were removed:
+
+| | mean error vs the real frame |
+|---|---|
+| synthesised frames | **0.44** |
+| carried-over frames | `0.10` (the encode noise floor) |
+| *real motion between consecutive frames* | *2.30* |
+
+So each synthesised frame lands within **19% of the motion it is inventing** — reconstructing about four-fifths of the true movement, with worst-case single pixels off by 57. **Soft content with no hard edges interpolates well; this test tells you before you commit.**
+
+**Judder was NOT obviously the problem, and that was said before building anything.** Inter-frame motion measured a mean delta of `2.30` with ~8.8% of pixels moving, **identical frame to frame** — a slow even drift, which is exactly the case where 30fps usually reads fine. Shak watched a 5-second A/B and judged 60fps smoother, so it shipped on his eye, not on the numbers.
+
+**Final: `alkimi-orb-enso-v7-60fps.mp4`, 997 frames, 16.617s, 4,280,052 bytes.** Verified served byte-identical, and **the background survived the extra encode at `247,246,241`**, re-checked in the browser across 20 samples — worth doing every time, since each encode is a fresh chance for colour to drift.
+
+**Two details worth carrying:**
+
+- **Higher frame rates compress BETTER per frame**, because each frame differs less from the last. The naive projection was 5.1 MB; at `2200k` it came in at **4.2 MB**, only +27% over the 30fps original rather than the expected +54%.
+- **`minterpolate` cannot synthesise past the final frame**, so the clip lost 3 frames (`16.667s -> 16.617s`). Invisible on a loop, but it means output duration is not exactly input duration.
+
+**A native 60fps re-render from the orb's source would still beat this** — no synthesised frames, no artifacts, probably smaller. Worth asking before treating v7 as permanent.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
