@@ -1163,6 +1163,14 @@ So each synthesised frame lands within **19% of the motion it is inventing** —
 
 **A native 60fps re-render from the orb's source would still beat this** — no synthesised frames, no artifacts, probably smaller. Worth asking before treating v7 as permanent.
 
+**PUBLISHED AND VERIFIED LIVE 2026-10-09.** Home serves the 60fps orb across all three breakpoints (3 references), hero video unchanged, no trace of any older enso asset, badge `0`. The served file re-confirmed after the publish: `4,280,052` bytes, `1000x1000`, `r_frame_rate=60/1`, `997` frames, `16.616667s`. Full Home regression sweep clean — **11** emitted `aspect-ratio:1.17458` with **0** stale `1.180xx`, both Elements breakpoint ratios (`.975765` / `.925714`) intact, 2 hero overlay `rgb(8, 2, 0)`, placeholder `#f7f6f2` with **0** of the wrong `#f6f4f0`, brand green present, and **0** stale `View Case Study` labels.
+
+**TWO QUANTISED PNGs REMAIN ON HOME, AND THEY ARE DELIBERATELY NOT BEING REPLACED.** The sweep found `40gwemCb3bx5lAB08TgvBTsc.png` (`2520x3100`, **69 colours**, 2,390 KB) and `IGRnLlfnV6mJeCUNwD1NOiidU.png` (`2287x1266`, 256 colours, 1,011 KB) still indexed-colour. Both are **stock Ora news-article thumbnails** — they hang off `./news/our-brand-for-mush-energy-has-just-won-2-silver-awards` and `./news/how-aesop-has-reshaped-the-industry`, two of the three template articles already queued for deletion in the cleanup bundle. **Replacing artwork for content that is about to be removed is wasted work**, which is the same reasoning that defers the four `/careers` PNGs. They go when the articles go.
+
+**Correcting an over-broad claim made on 2026-10-08:** the PNG audit's summary said the only PNGs left were the four on `/careers`. That was wrong — these two were on the home page the whole time. The audit itself had collected them; the *summary* lost them, because the ranking was by dither density and a detailed photograph scores low (the same reading trap already recorded two paragraphs up). **Rank for triage, but enumerate for completeness** — the count of remaining PNGs must come from the full list, never from the top of a ranked one.
+
+**The green check needs the right spelling.** A sweep for `rgb(53, 121, 11)` returns **0** on Home while the colour is plainly there — Framer emits it as **`#35790B`** on this page. A colour absent in one notation is not a colour absent. Grep both forms before calling a brand colour missing.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
