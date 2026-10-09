@@ -998,6 +998,26 @@ A 1,027 KB truecolour upload comes back as an 88 KB, 7-colour file. **The palett
 
 **Use JPEG for any photographic or smoothly-shaded artwork in this project.** Keep PNG only where transparency is required — and note that a PNG with alpha will be quantised just the same, so a logo or flat graphic is fine but a soft shadow on transparency is not.
 
+**BOTH HOME CARDS SET TO `#f7f6f2` — and the one-level discrepancy was MY PADDING, not Framer (2026-10-08/09).**
+
+**The measurement method matters more than the result here.** Three successive readings of "the card background" disagreed, and only the last was right:
+
+| method | said | verdict |
+|---|---|---|
+| ffmpeg decode of the served `.jpg` | Elements `#f7f5f2`, Fixtures `#f7f6f2` | misleading — modal average across a defect |
+| ffmpeg decode of the served WebP | both `#f6f4f0` | **wrong** — ffmpeg's WebP decode shifts `-1,-2,-2` |
+| **browser `fetch` + `createImageBitmap` + canvas `getImageData`** | **the truth** | **use this** |
+
+**The reliable technique: read the pixels in the browser.** `framerusercontent.com` serves permissive CORS, so a page-context `fetch` into `createImageBitmap` and an `OffscreenCanvas` gives the browser's own decode with nothing of ours in the path — numeric, repeatable, and not dependent on a human reading a screenshot. **Do this for any colour question in this project.** Note `<img>` elements will not help: in a backgrounded tab they never lazy-load and report `naturalWidth` 0, and long `await`s in `javascript_tool` time out because timers are throttled — fetch the URL directly and keep each call short.
+
+**The actual defect was self-inflicted.** Repositioning the Elements card to match the original framing meant padding 106px on the left, filled with a flat colour sampled from `B-35`'s corner. That colour sat a level below the background elsewhere in the frame, so the card carried a thin dark strip down its left edge — `0%: 246,245,241` against `10-100%: 247,246,242`, with the boundary at exactly 5.3% of 2000px. **Every "Framer shifted it" theory was wrong; the modal measurement was simply averaging my own strip into the background.**
+
+**Fix: smear, do not fill.** `fillborders=left=108:mode=smear` after the crop replicates the image's own adjacent column into the strip, so it takes the real background rather than an approximation and the encoder then treats the whole flat area as one region. Result verified in the browser: **uniform `247,246,242` at all four corners, the left edge midpoint, and 5% in.** **Prefer edge replication over a flat fill whenever padding a photographic background.**
+
+**The Fixtures card needs no fix and should not be "corrected".** It reads `#f7f6f2` across **55.1%** of frame with a gentle lighting gradient rising to `#f8f7f3` (17.2%) — which is the render's own backdrop falloff, and it **matches the original card's distribution almost exactly** (`58.3%` / `15.3%`). Flattening it would destroy real lighting.
+
+**A pre-compensated file was built and discarded.** It would have shifted the whole image up a level to fix what was wrong in 5% of it — the same error as the placeholder-fill incident earlier the same day, caught this time before it shipped.
+
 **HOME FIXTURES CARD REPLACED — and the current card turned out to be a CROP of a render already on the canvas (2026-10-08).** The card was an **18-colour** `775x775` PNG. Shak pointed at `B-7` (`2000x2000`), which at a glance looks like a different shot — the full module chain receding, where the card is a tight close-up of three modules.
 
 **It is the same render. Found by template search rather than by eye:** the live card was downscaled to a template and matched against every square crop of `B-7`, anchored on both images' shared full-bleed left edge and their subject extremes. The result was a sharp minimum at **772x772 from (853, 720)**, rms **3.97** against **57.33** for the worst candidate — unambiguous. Refining the window and offsets in a second pass took it from 6.28 to 3.97.
