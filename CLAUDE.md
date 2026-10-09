@@ -978,6 +978,56 @@ The 11 sources carried four different near-whites (`#f7f6f2` x5, `#f8f7f3` x3, `
 **This is the THIRD time in one session that ffmpeg's colour handling produced a false reading** — after the `lavfi color` source and the YUV round-trip on `overlay`. The first two were caught before shipping; this one was not, because it was treated as a *measurement* rather than a transformation. **Any decode or format conversion is a transformation, and must not sit between you and a colour you intend to trust.**
 
 **The method that is actually reliable: sample a screenshot of the rendered page.** It captures the framebuffer after the browser's own decode, so it has no extra conversion in the path — and Shak supplying one is what exposed this. A re-decoded asset answers "what does my decoder think this file contains", which is a different question from "what does the visitor see".
+**## THE HEADING BELOW IS WRONG. FRAMER DOES NOT QUANTISE ON INGEST — CORRECTED 2026-10-09. READ THIS FIRST.**
+
+**The stored master is full fidelity. The indexed-colour PNG is a DELIVERY DERIVATIVE, generated only when the client refuses WebP.** Everything below about palettes, dither density and the JPEG migration was built on a measurement artifact of my own fetch method.
+
+**The proof, and it is not interpretable any other way.** Same asset, same URL, **full size, no `scale-down-to`, so nothing resamples** — only the `Accept` header differs:
+
+| requested as | tones | dither blocks |
+|---|---|---|
+| `Accept: image/png` | **69** | **9.7%** |
+| `Accept: image/webp` + `?lossless=1` | **324,472** | **0%** |
+
+**A lossless encode cannot invent 324,000 tones from a 69-colour source, and cannot remove a dither pattern.** Confirmed on a second asset (Aesop thumbnail: `256` tones / `16.5%` dither through the PNG path, `899,070` tones / `0.5%` through lossless WebP).
+
+**And real visitors get the WebP.** Verified end to end rather than assumed: the page's own `<img>` transfers byte-match the WebP response exactly (`5,327,360` and `2,292,228`) and not the PNG response (`2,447,631` / `1,035,717`).
+
+**THE MISTAKE WAS THE `Accept` HEADER, AND IT IS THE SAME CIRCULARITY THIS FILE ALREADY WARNS ABOUT.** `curl` sends `Accept: */*`, which this CDN does **not** treat as WebP-capable, so it falls back to the quantised PNG. I fetched "with no parameters", got that derivative, and called it the stored master — then wrote a prescription ("read the IHDR colour type of the asset Framer serves with no query parameters") that bakes the error in permanently. The file already says *"untouched must mean untouched by the whole pipeline, not merely untouched by me"*; this is the same error pointing the other way. **Always send `Accept: image/webp,*/*` when asking what Framer stores, or measure in the browser, which sends it for you.**
+
+**What follows from this:**
+
+- **The site was never serving 7-colour images to anyone.** The PNG audit's severity ranking measured a derivative that no real browser requests.
+- **The "upload JPEG for anything photographic" rule is unnecessary — drop it.** It is also very slightly counterproductive: a JPEG master bakes in one generation of loss a PNG master does not. **No harm was done in practice** (at the rendered size the difference is far below visibility) and it is **not worth reverting**, but do not carry the rule forward and do not re-flag PNG as dangerous.
+- **The geometry pipeline is untouched by this.** Alignment, cropping, centring and the end-cap work were all real and remain correct — only the format rationale was wrong.
+- **Shak's original "strange discoloration near the end cap" is UNEXPLAINED AGAIN.** It was not PNG quantisation, because that only ever existed in my own fetches. If it is still visible, it needs a fresh diagnosis — start by sampling a screenshot of the rendered page, not an asset fetched by any means.
+
+### The Resolution dropdown (Auto / Auto lossless / Small / Medium / Large / Full) — use Auto
+
+Selecting an image in the editor exposes **Resolution**. It is a **delivery** setting and it is **not readable or settable through the Agent API** — no attribute on the node, nothing in `uploadImage`, and the `ImageAsset` does not even serialise across the relay. Editor-only.
+
+It controls the emitted `srcset`: `Auto` gives `scale-down-to=512 / 1024 / full`, and **`Auto (lossless)` adds `&lossless=1`** to every candidate. `Small`/`Medium`/`Large`/`Full` cap the pixel size instead.
+
+**Measured, on a real product render at the 1024w candidate the browser actually picks:**
+
+| | bytes | tones in the product band |
+|---|---|---|
+| `Auto` (lossy WebP) | **8,786** | 302 |
+| `Auto (lossless)` | **47,434** | 1,313 |
+
+Difference between the two images: **mean 0.153 levels**, max `10`, with only **0.86%** of channel samples differing by more than 2 and **0.03%** by more than 5. The card then downscales `1024 -> 587` device px, averaging roughly 3:1, which erases what little is there. **5.4x the bytes for a difference that cannot be seen.**
+
+**So: `Auto`.** Reach for `Auto (lossless)` only for flat-colour graphics, screenshots, text rendered into an image or hard-edged UI art, where lossy WebP ringing shows. Never for photographs or renders. **`Full` is also the wrong instinct** — the product cards render at 587 device px against 1674px sources, already ~2.8x oversampled, so capping higher buys nothing.
+
+**LOSSLESS IS CURRENTLY ON ACROSS THE SITE AND IT DOMINATES PAGE WEIGHT (measured 2026-10-09).** Count of `lossless=1` in the published HTML: **Home 31, `/projects-grid` 40, `/projects-list` 132, `/news` 20**; `/products`, `/elements`, `/about`, `/contact`, `/careers` are clean at 0.
+
+| page | image weight | of which lossless | switching to Auto saves |
+|---|---|---|---|
+| Home | **7,658 KB** | 7,441 KB in **2 images** | **6,266 KB (82%)** |
+| `/projects-list` | 2,075 KB | 1,761 KB in 9 images | **1,230 KB (59%)** |
+
+**Home's two offenders are the Mush Energy (5,203 KB) and Aesop (2,239 KB) article thumbnails** — i.e. **97% of the home page's image weight is two stock-template thumbnails already queued for deletion**, so that one resolves itself with the Ora cleanup. `/projects-list` and `/projects-grid` are real project photography that stays, and those are worth switching to `Auto` by hand.
+
 ### FRAMER QUANTISES EVERY UPLOADED PNG TO A TINY PALETTE — upload product renders as JPEG (found 2026-10-08)
 
 Shak reported "strange discoloration near the end cap" and said his source images do not have it. **He was right, and the first diagnosis here was wrong.** Boosting the cap face of the asset already in Framer showed scattered bright dots, which were called path-tracer "fireflies" in the render. **That file was not an original — it was an asset Framer had already processed.** The lesson is small and costly: **"untouched" must mean untouched by the whole pipeline, not merely untouched by me.** Fetching an asset back from the CDN and calling it the source is circular.
