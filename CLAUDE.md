@@ -1253,6 +1253,45 @@ the-leader      wrappers: Hero,1,2,3,4
 
 **THIS IS A PER-ROW SETTING AND IT WILL BITE AGAIN.** The seven hidden draft rows carry mixed values (`4, 6, 7, 8, 9` = `true`; `5, 10` = `false`) with no relation to their items' image counts. **Whenever a project goes Live, set this row's `idiWQDru6` to match whether that item actually has an `Image 4`** — exactly as the static `(3)` count label has to be updated by hand. The underlying design flaw is that the component asks the canvas a question the CMS already knows the answer to; if the two are ever reconciled, bind the fifth wrapper's visibility to `Image 4` being non-empty and the whole class of defect disappears.
 
+### The Resolution dropdown IS scriptable — and `addItems` SILENTLY UN-DRAFTS (2026-10-09)
+
+**The setting is `resolution: "auto" | "lossless" | "small" | "medium" | "large" | "full"`, and it lives in TWO different places depending on how the image got there.** An earlier reading of this concluded it was editor-only; that was wrong, and it was wrong because the first diff compared the wrong pair of nodes.
+
+| image source | where resolution lives | how to change it |
+|---|---|---|
+| placed on the canvas | `node.backgroundImage.resolution` (an `ImageAsset` field) | `asset.cloneWithAttributes({ resolution: "auto" })` then `setAttributes({ backgroundImage: next })`, **in the same `exec`** — it is a live asset, so the usual no-serialisation rule applies |
+| bound from the CMS | `item.fieldData[fieldId].value.resolution` | the write schema accepts **`null \| string` only**, so pass `value: v.url` — **writing the URL back resets resolution to `auto` and does NOT re-encode; the asset id is unchanged** (verified) |
+
+**Finding it took a second diff.** The first compared a CMS-bound `Image Hero` against a `Product Photo` and showed only layout differences, because **a CMS-bound layer's `backgroundImage` is a placeholder whose `resolution` reads `null`** — the real value is in the item data. Note `imageRendering` exists on every node and is `null` on all 219; it is **not** this setting. The answer was in `docs ImageAsset`: *"The resolution set on the image. Defaults to auto."*
+
+**What `full` and `lossless` actually emit** — two different wastes, and neither is what the name suggests:
+
+- **`full`** emits **no `srcset` at all**, just one full-size URL (`?width=1200&height=1384`). No responsive sizing; every visitor gets the full-resolution file.
+- **`lossless`** emits the normal `srcset` **plus `&lossless=1`** on every candidate — 5.4x the bytes for a difference measured at mean `0.153` levels.
+
+**Applied 2026-10-09: everything set to `auto`** — 92 CMS image values (Home 10, Projects 55, News 26, plus one test) and 17 canvas nodes at `full`. Verified in two fresh sessions: **117/117 CMS values `auto`, all 219 canvas nodes `auto` or unset.** No image carried alt text, so the URL rewrite lost nothing. **Needs a publish.**
+
+**!!! `Collection.addItems` RESETS `draft` TO FALSE ON ANY ITEM IT TOUCHES !!!**
+
+The CMS pass above passed only `{ id, fieldData }`. Every item it updated came back **`draft: false`**, taking **Projects from 3 Live / 7 draft to 10 Live** and **News from 3 Live / 4 draft to 7 Live** — seven stock-template case studies and four template articles armed to publish. Nothing shipped, because it was caught before any publish, but **a publish in that window would have put template content on the live site.**
+
+**`CollectionItemInput` carries `draft`, and omitting it does not mean "leave alone" — it means `false`.** Same family as the positioning-attribute trap (writing a mode's fields without clearing the old mode's) and the breakpoint-cascade trap — *"a breakpoint you skip is not a breakpoint you preserved"*. **Rule: every `addItems` call that updates existing items must pass `draft` explicitly**, carried through from the item you read: `{ id: i.id, draft: i.draft, fieldData: {…} }`.
+
+**Always re-check draft counts after any CMS write.** The check that caught this was incidental — a listing filtered on `!i.draft` showed `Sayso` and two `… Copy` items, which are known drafts. **A write-verification that only re-read the field it had changed would have passed clean and left the project armed.** Verify the invariants you did not intend to touch, not just the ones you did.
+
+**The authoritative record of which items were live is the PUBLISHED build, not this file.** `/news` and `/projects-list` list exactly the live slugs:
+
+```
+Projects LIVE: belmont-park, resorts-world, the-leader
+News     LIVE: how-aesop-has-reshaped-the-industry,
+               our-brand-for-mush-energy-has-just-won-2-silver-awards,
+               the-making-of-an-award-winning-website
+```
+
+Note those project slugs are **no longer the old Ora ones recorded elsewhere in this file** (`positive-energy` / `first-round` / `the-leader`) — two of the three have since been renamed, so that older note is stale.
+
+**Scripts: [repair/restore-draft-status.js](repair/restore-draft-status.js)** (aborts if any expected live slug is missing, then sets `draft: true` on everything else) and **[repair/verify-draft-status.js](repair/verify-draft-status.js)** (read-only; expects Projects 3, News 3, Home 2, Fixtures 11, Elements 5).
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
