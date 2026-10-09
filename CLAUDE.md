@@ -1306,6 +1306,26 @@ The `/projects-list` fifth-slot fix shipped in the same publish: `resorts-world`
 
 **Keep `repair/verify-draft-status.js`** — it is the cheapest guard against this trap recurring, and it should be run after **any** CMS write, not only after one that touched `draft`.
 
+**DID THE `auto` CHANGE COST ANY FIDELITY? Measured on both axes 2026-10-09 — resolution: no. Compression: nothing visible on renders, measurable on photographs.**
+
+**Axis 1, resolution — nothing lost.** Every image is still at or above display resolution. `/projects-list` thumbnails decode at `512px` into a `188` device-px box (**2.73x**), and the `/careers` images that were on `full` now sit at `1.05x-1.97x`. Three images on the site *are* below 1.0 — `EhDNivwW` on `/careers` (0.83), and `es1Imfj6` (0.53) and `G9BZgzpc` (0.58) on the project detail pages — but **all three are source-resolution limits that predate the change**, proven by diffing the pre- and post-change published HTML: their markup is byte-identical apart from the removed flag, and `EhDNivwW`'s master is only `1920x1080` against a `2304` device-px box. Only a bigger render fixes those. (`G9BZgzpc` is the 772px Home Fixtures crop already flagged as soft for exactly this reason.)
+
+**BEWARE `naturalWidth` WHEN A SRCSET USES `w` DESCRIPTORS — it is not the decoded size.** A first pass reported **every** `/projects-list` image as `0.66x` undersampled and looked like a serious regression. It was a measurement error: with `w` descriptors the browser divides intrinsic dimensions by the selected candidate's effective density, so a 512px file chosen for a 125px slot reports `naturalWidth: 124`. **Measure the real thing by fetching `currentSrc` and reading `createImageBitmap(...).width`** — that gave `512` and the true `2.73x`. The giveaway was that every image reported the identical `124` regardless of its source aspect.
+
+**Axis 2, compression — content-dependent, and the earlier blanket "not visible" was too broad.** Measured as mean absolute per-channel difference between the served lossy WebP and the lossless one at the same candidate size:
+
+| content | mean delta | max | where it renders |
+|---|---|---|---|
+| product render (`/products`) | **0.153** | 10 | 2.8x oversampled |
+| Home Fixtures card | **0.219** | 9 | — |
+| Home Elements card | **0.195** | 12 | — |
+| project photo, 512px thumbnail | **2.98** | 106 | downsampled 2.7x to 188px |
+| project detail large photos | **1.77 - 2.71** | 80 - 101 | only **1.17x - 1.83x** oversampled |
+
+**Renders and flat graphics are unaffected** — a mean of 0.2 levels out of 255 is not a visible quantity. **Detailed photographs genuinely differ**, and the thumbnails get away with it because the browser averages ~7 source pixels into each device pixel. **The project DETAIL pages are the one place with little headroom**, at 1.2-1.8x oversampling on large photographs.
+
+**Judgement: leave it at `auto`.** A mean of ~2/255 is below the just-noticeable threshold for photographic content, the max figures are isolated ringing at hard edges, and lossy WebP for photographs is the ordinary choice everywhere on the web — lossless WebP for photos is the unusual option, which is why it cost 5.4x. **If a conservative call is ever wanted, the only defensible candidates are the `Image Hero` / `Image 1-4` fields on the three live Projects items** — a handful of values, rendering large, on the portfolio pages. Everything else should stay `auto`.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
