@@ -1292,6 +1292,20 @@ Note those project slugs are **no longer the old Ora ones recorded elsewhere in 
 
 **Scripts: [repair/restore-draft-status.js](repair/restore-draft-status.js)** (aborts if any expected live slug is missing, then sets `draft: true` on everything else) and **[repair/verify-draft-status.js](repair/verify-draft-status.js)** (read-only; expects Projects 3, News 3, Home 2, Fixtures 11, Elements 5).
 
+**RESOLVED AND PUBLISHED 2026-10-09.** Shak ran the repair and published. Draft status verified in **two fresh sessions** (Projects 3/10, News 3/7, Home 2/2, Fixtures 11/11, Elements 5/5) **and against the published build, which is the check that matters** — the live site serves exactly `belmont-park`, `resorts-world`, `the-leader` plus the three template articles. **No template content leaked.**
+
+**Measured result of the `auto` change:**
+
+| | before | after |
+|---|---|---|
+| Home image weight | 7,658 KB | **1,037 KB** (-86%) |
+| `/projects-list` | 2,075 KB | **561 KB** (-73%) |
+| `lossless=1` across all 9 pages | 223 | **0** |
+
+The `/projects-list` fifth-slot fix shipped in the same publish: `resorts-world` renders **4 wrappers / 4 images** with no empty placeholder, matching `belmont-park`; `the-leader` keeps its genuine 5/5. Full Home regression sweep passes (11x `1.17458`, 0 stale `1.180xx`, both Elements breakpoint ratios, 2 hero overlays, `#f7f6f2` with no `#f6f4f0`, brand green, no stale `View Case Study`, 60fps orb on 3 breakpoints, badge 0).
+
+**Keep `repair/verify-draft-status.js`** — it is the cheapest guard against this trap recurring, and it should be run after **any** CMS write, not only after one that touched `draft`.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
