@@ -1326,6 +1326,14 @@ The `/projects-list` fifth-slot fix shipped in the same publish: `resorts-world`
 
 **Judgement: leave it at `auto`.** A mean of ~2/255 is below the just-noticeable threshold for photographic content, the max figures are isolated ringing at hard edges, and lossy WebP for photographs is the ordinary choice everywhere on the web — lossless WebP for photos is the unusual option, which is why it cost 5.4x. **If a conservative call is ever wanted, the only defensible candidates are the `Image Hero` / `Image 1-4` fields on the three live Projects items** — a handful of values, rendering large, on the portfolio pages. Everything else should stay `auto`.
 
+**CORRECTION — one of the two "stock template" Home thumbnails is ALKIMI'S OWN ARTWORK (2026-10-09).** Earlier today both Newsroom card images were dismissed as *"two stock-template thumbnails already queued for deletion"*, on the strength of the articles they hang off being the template's (Aesop, Mush Energy). **The Aesop card's image is not template art.** `IGRnLlfnV6mJeCUNwD1NOiidU.png` (`2287x1266`) is **bit-identical** to `Peacock Feather.png` in Shak's Drive at `G:\My Drive\Claude\Alkimi\` — verified by decoding both in the browser and differencing: **mean 0, max 0** across all 2,895,342 pixels.
+
+**So deleting the template articles would take a piece of Alkimi's own imagery with them.** Keep the asset; the *article* is template content, the *picture* is not. (The Mush Energy card was not checked and may or may not be the same situation — check before deleting that one too.)
+
+**How the match was spotted, which is the reusable part:** the distinct-colour count. The peacock PNG decodes to **899,070** distinct colours and the live Aesop asset had measured **899,070** in an unrelated earlier check. **A tone count is effectively a cheap fingerprint for "is this the same image"** — far quicker than a template search, and it survives format conversion well enough to be worth trying first. Confirm a hit with a real pixel difference, as here.
+
+**JPEG conversion of that PNG, for reference** (`-q:v 2 -pix_fmt yuvj444p`): `3.96 MB -> 0.60 MB`, **15.1%** of the original, at **PSNR 43.9 dB**, mean delta `1.176`, max `19`, retaining 535,825 of 899,070 distinct colours. **Its alpha channel was 100% opaque** — 2,895,342 of 2,895,342 pixels at `alpha 255` — so nothing was lost to the lack of transparency in JPEG. **Always measure alpha coverage before converting an RGBA PNG**: a dead alpha channel makes the conversion free, while real transparency forces a matte colour choice that is very hard to undo.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
