@@ -1111,6 +1111,35 @@ Result: end caps at `86.7%` against `86.6%` for Vena and `86.5%` for Flow 20, bo
 
 **Why none of the earlier analysis caught this.** The investigation measured the `.png` URL, the WebP derivative and the source, and reasoned about delivery — but never compared the *stored* asset against the *uploaded* file. The one check that exposed it is trivial: **read the IHDR colour type of the asset Framer serves with no query parameters, and compare it to what you uploaded.** Colour type `3` means indexed, and the `PLTE` chunk length divided by three is the palette size.
 
+### THE ENSO THUMBNAIL VIDEO, AND WHY A VIDEO CANNOT CARRY AN EXACT RGB VALUE (2026-10-09)
+
+The middle Newsroom card on Home is not an image — it is **`Thumbnail Video MOV`** on the News item *"The making of an award-winning website"*, the only one of the three live articles with no still `Thumbnail`. **That is why no image audit ever saw it.** Check `Thumbnail Video MOV [file]` on the News collection, not just the image fields.
+
+**THE LIVE FILE IS ALREADY SHAK'S CORRECTED EXPORT — confirmed by exact byte match.** The served asset is **3,704,485 bytes**, identical to `alkimi-orb-enso-universal-v5-light-f7f6f2.mov` in his Drive (created 2026-10-05). **A byte-size match against the source file is a cheap, decisive identity check** and should be the first move before measuring anything.
+
+**It still does not render as `#f7f6f2`, and that is inherent to video.** Measured through the browser's own decoder: **`249,247,243`**, uniform across four corners, five timestamps, 30 samples. The file declares **no colour space and no colour range** (`color_range=unknown`), so every decoder guesses the YUV->RGB conversion.
+
+**Tagging does not fix it.** `-c copy` with `-color_range pc/tv -colorspace bt709` produces a byte-faithful stream with explicit tags, and Chrome renders all three variants **identically** at `249,247,243`. Chrome ignores them for this h264 path. **Do not spend time on colour metadata here.**
+
+**A re-encode genuinely helps, and an earlier note in this file said the opposite.** That claim — "re-encoding costs a level before it does anything useful, so correcting is strictly worse" — came from measuring with **ffmpeg, which reads this video two levels low across every channel** (`247,245,241` where the browser shows `249,247,243`). Measured properly:
+
+| | browser renders | distance from `#f7f6f2` |
+|---|---|---|
+| original, live | `249,247,243` | **4 levels** (+2,+1,+1) |
+| plain re-encode at matched bitrate | **`247,246,241`** | **1 level** (blue only) |
+| `+2` on blue | `247,245,244` | 3 levels — overshoots |
+| any negative offset | `245,243,239` | all collapse to the same value |
+
+**Exact `247,246,242` is not reachable** — blue quantises between 241 and 244 with nothing in between. `alkimi-orb-enso-v6-f7f6f2.mov` (3,286 KB against the original's 3,617 KB, same 1000x1000 / 30fps / 500 frames) is the closest obtainable, and it needs **no colour offset at all** — the plain re-encode is what moves it.
+
+**THE MEASUREMENT RIG IS THE REUSABLE PART.** A video cannot be measured with ffmpeg in this project. The working method, with no upload and no publish:
+
+1. Serve the candidates from a throwaway local HTTP server (`file:` is blocked in the browser tool).
+2. Navigate a real browser to that page and read pixels via `<video>` -> `canvas` -> `getImageData`.
+3. Sample several timestamps and all four corners; a uniform result across 30 samples is what makes it trustworthy.
+
+**This is the fourth ffmpeg colour misreading recorded here, and the first on video.** The pattern is now unambiguous: **ffmpeg is a transformation tool, not a measuring instrument. For any colour question in this project, measure in a browser.**
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
