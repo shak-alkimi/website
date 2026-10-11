@@ -1781,6 +1781,8 @@ Shak asked whether a news article's hero could be an MP4 instead of an image. **
 | `Hero Video` | **file**, `allowedFileTypes: ["mp4","mov","webm"]` | `qfoKFNjzV` |
 | `Hero Video - Poster` | **image** | `Ux2PVfH50` |
 
+**SUPERSEDED 2026-10-11 — the file field was the WRONG CHOICE and has been deleted.** `Hero Video` [file] `qfoKFNjzV` is gone; the video binds **`Hero Video URL`** [string] `QzpOC5zEG`. Framer's `Source: Upload` / `File` control cannot be bound to a CMS field of any type, so a file field can never drive a `Video` layer — which is exactly why the Projects template uses a string. `Hero Video - Poster` [image] is unchanged and correct. The reasoning below ("it matches `Thumbnail Video MOV`") does not hold, because that field drives a **Fill**, not a `Video` component. See the binding-rules section further down.
+
 A **file** field was chosen over the Projects `[string]` URL because News already uses one for `Thumbnail Video MOV`, so it matches the existing workflow — drop an MP4 into the cell. `Collection.addFields` works in this scope and is additive; verified in a separate `exec`.
 
 **STILL NEEDED, AND IT CANNOT BE SCRIPTED: the `Video` layer itself.** It has to be created inside `/news/:slug` -> `Section Hero > Image Wrapper`, and **that page is published**, so `createFrameNode` / `addComponentInstance` will ignore the `parentId` and drop the node on the **Home** page instead. This is the documented draft-pages-only limit. In the editor: add a Video layer beside `Thumbnail`, point its source at `Hero Video`, its poster at `Hero Video - Poster`, copy the control values above, and make the two layers' visibility conditional so the image shows when no video is set.
@@ -1852,13 +1854,50 @@ Shak copied `Video Hero` out of the Projects hero component and pasted it into `
 
 **`srcUrl` came across as `""`.** A binding to a *different collection's* field cannot survive a paste, so the source, the poster and the visibility condition all have to be re-pointed by hand. **Copying a configured layer carries CONTROLS across but never BINDINGS** — worth knowing before assuming a paste is most of the work.
 
-**Still outstanding, all editor-only:**
+**DONE 2026-10-11 — the three bindings are in, on all three breakpoints. The field it binds to is NOT the one originally created; see below.**
 
-1. Source -> **`Hero Video`** (currently empty)
-2. Poster -> **`Hero Video - Poster`**
-3. `Visible` -> Condition -> **`Hero Video` · Is set** on the video, and **`Image Hero` · Is set** on `Thumbnail`
+| Property | Bound to |
+|---|---|
+| `Video Hero` -> Source (**URL** mode) -> `URL` | **`Hero Video URL`** [string] `QzpOC5zEG` |
+| `Video Hero` -> Poster -> `Image` | `Hero Video - Poster` [image] `Ux2PVfH50` |
+| `Video Hero` -> `Visible` | Condition: `Hero Video URL` **Is set** |
+| `Thumbnail` -> `Visible` | Condition: `Hero Video URL` **Isn't set** |
 
-**Note `Video Hero` currently reads `visible: false`.** If no Condition is attached, that is a plain false and **the layer will never render** — the API cannot distinguish the two, so this must be confirmed in the panel.
+`Thumbnail`'s `Fill` stays bound to `Image Hero`. Both layers keep `absolute / top: 0px / centerX: 50% / 100% x 100%`.
+
+**`Hero Video` [file] `qfoKFNjzV` WAS DELETED and replaced by `Hero Video URL` [string] `QzpOC5zEG`, because a file field CANNOT be bound to a video (see the binding rules below).** Nothing was lost — the field was empty on all 7 items. This is also why Ora's own Projects template uses `Hero Video URL` as a **string**: it is the only shape that works.
+
+**Verified end to end on the draft article `how-creator-nike-connects-with-their-fans`**: writing a URL into `Hero Video URL` made `Thumbnail` disappear from the canvas and the video layer take over; clearing it put the image back. Draft counts re-checked after every CMS write (Projects 3/10, News 3/7) and the test value was cleared afterwards. **Needs a publish.**
+
+### HOW CMS BINDING ACTUALLY WORKS IN THE FRAMER PANEL (established 2026-10-11 — this cost a long detour, do not re-derive it)
+
+**The circle-plus icon to the LEFT of a property label is the one and only binding affordance.** There is no icon inside the value widget, nothing appears on hover, and for a component control there is no other route. It opens a menu with a search box plus `Create variable` / **`Set variable >`** / `Add fetch`.
+
+**Under `Set variable` every collection field is listed, and the ARROW is the whole signal:**
+
+| row | meaning |
+|---|---|
+| field with **no arrow** | **type-compatible — clicking it BINDS the property to that field.** A tick marks the current binding |
+| field with an **arrow** | not bindable here; the submenu offers **predicates** (`Is set`, `Isn't set`, `Equals`, `Contains`, ...) which build a **Condition**, not a binding |
+
+So the same menu does two different jobs and they are told apart only by that arrow. Seeing `Is set / Isn't set` means *"this field cannot supply this property's value"*.
+
+**What binds to what, measured on the Video component:**
+
+- **`Source: URL` -> `URL` control -> `string` fields only.** `Title`, `Slug`, `Time Read`, `Date`, `Category`, `Preview Text - Featured`, `Author` and `Hero Video URL` all appear arrow-less; every image, file, number and reference field carries an arrow.
+- **`Poster` -> `Image` control -> `image` fields only** (`Thumbnail`, `Image Hero`, `Image 1`, `Image 2`, `Hero Video - Poster`).
+- **`Source: Upload` -> `File` control -> NOTHING.** Every field in the list carries an arrow, including the `file` fields `Hero Video` and `Thumbnail Video MOV`. **Framer's upload control is asset-only and cannot be CMS-bound**, which is the fact that forced the field-type change above.
+
+**A bound property renders as a BLUE pill** carrying the field name and an x; a condition renders as a **`Condition` pill** that opens a popover with `Variable` + the predicate. Blue field-name pill = value binding, `Condition` pill = visibility rule — do not confuse them.
+
+**A COMPONENT INSTANCE'S PROPERTY CONTROLS ARE NOT RENDERED AT ALL WHILE THE LAYER IS HIDDEN.** With `Visible: No` — or once a Condition is attached that evaluates false for the item being previewed — the right panel stops at `Scroll section` / `Code overrides` and the whole `Video` section simply is not there. It is not collapsed, scrolled off or virtualised; it does not exist in the DOM. **So the order of operations is forced: make the layer visible, bind its controls, and attach the visibility Condition LAST.** This is also why the working `Video Hero` in the Projects component cannot be used to inspect its own bindings — it is condition-hidden, so its controls are invisible too.
+
+**BINDINGS AND CONDITIONS CASCADE FROM THE PRIMARY (DESKTOP) BREAKPOINT.** Set on Desktop only, then verified on Tablet and Phone: both the `URL` / `Image` bindings and both `Visible` Conditions were already there. Do not repeat them per breakpoint — but do re-read all three, since a skipped breakpoint is not a preserved one.
+
+**Two smaller API facts from the same session:**
+
+- **`framer.getNode(id)` cannot resolve a layer inside a CMS detail-page template**, even an id read moments earlier — it returns `null`, exactly as for component internals. Traverse from the page node (`Ib1nxePpt` for `/news/:slug`) with `getChildren()` instead.
+- **A CMS string field is cleared with `value: ""`, not `value: null`** — `null` is rejected loudly by the input validator.
 
 ### Project detail template ("More projects" row)
 
