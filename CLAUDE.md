@@ -1361,6 +1361,25 @@ The full-width card under the Fixtures/Elements pair is `Home / Home - Projects 
 
 **The cheaper alternative, if the goal is only a different picture:** leave the wiring alone and either change `Thumbnail Image - Wide` on the Projects item it already points at, or set `sERka2TFV` to another Projects `Sorting Order`. One value, no editor work, no link problem.
 
+**MOVING THE WIDE CARD ONTO THE HOME COLLECTION — step 1 of 4 done, 2026-10-11. NOT YET PUBLISHED.**
+
+Shak asked for a Home-controlled slot rather than a different picture.
+
+**Step 1 (done): a third Home item exists at `Sorting Order 3`** — Title `Projects`, slug `projects`, `draft: false`, `Thumbnail Image - Wide` deliberately set to **the asset the card already shows** (`8yvUOxGq….png`, borrowed from Belmont Park) so the rewire lands with **no visible change**. Verified in two fresh sessions. **`repair/verify-draft-status.js` was updated from Home 2 to Home 3**, and all other collections re-checked unchanged (Projects 3/10, News 3/7) — the `addItems` draft trap did not bite, because `draft` was passed explicitly.
+
+**Adding the item is safe because the Home collection has NO detail-page template.** The page list is `/`, `/404`, `/about`, `/careers`, `/contact`, `/elements`, `/news`, `/news/:slug`, `/privacy`, `/products`, `/projects-grid`, `/projects-list`, `/projects/:slug`, `/terms` — there is no `/home/:slug`, so a new item publishes **no new URL**. Check this before adding an item to any collection.
+
+**Step 2 (EDITOR ONLY, outstanding): repoint the Collection List.** `Home / Home - Projects Row 2` -> variant `Home Project Single - Wide` (`Q__AVxo4P`) -> the **`Project Left`** layer is the Collection List rendering the card; change its source from **Projects** to **Home**. There is no API for a collection binding.
+
+**This is contained, and that was checked rather than assumed.** `Home - Projects Row 2` (`QOhH3GYAD`) has **exactly one instance on any page** — Home, wide variant. The row on `/projects/:slug` (three instances, the "Lighting options" row) is the *other* component, `Home - Projects Row` (`z64WCa5DN`), which is not being touched. **Do not confuse the two** — the standing rule says mirror changes across both row components, and this is the documented exception where you must not.
+
+**Steps 3 and 4 are deliberately HELD until step 2 lands**, because doing them early ships a wrong card:
+
+- **3. `sERka2TFV: 2 -> 3`** on the Home instance. Done now, while the list still points at Projects, it would select **Projects SO 3 = Tuft** and publish the wrong photograph.
+- **4. The button link.** The wide card's `Utilities / Primary Button` carries `NhREodF7M: "/projects/:slug"`. Once the card is a Home item, `:slug` resolves to `projects` / `polestar` / `arrival` and **no such page exists** — it must become `./projects-grid` or `./projects-list` (the real projects pages), or the button must be hidden. Note the hover gesture variant `uR6T4xhGK` carries its own copy of this control (`"View Case Study"`), so **both need setting**.
+
+**Sequencing rule worth keeping: when a rewire spans an API change and an editor change, order the steps so that no intermediate state is publishable-wrong.** Here step 1 is invisible (nothing points at Home SO 3 yet) and steps 3-4 are invisible-but-wrong until step 2 exists, so the only safe order is 1 -> 2 -> 3/4 -> publish once.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.

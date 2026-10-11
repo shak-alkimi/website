@@ -1,6 +1,6 @@
 // Read-only. Confirms the expected live/draft split. Run in a FRESH session,
 // and run it twice - a new session can still serve a stale document.
-const EXPECTED = { Projects: 3, News: 3, Home: 2, Fixtures: 11, Elements: 5 }
+const EXPECTED = { Projects: 3, News: 3, Home: 3, Fixtures: 11, Elements: 5 }
 const cols = await framer.getCollections()
 const out = []
 for (const c of cols) {
