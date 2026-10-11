@@ -1758,6 +1758,35 @@ This is the same family as the earlier `<img>`-count rule — **asset URLs and f
 
 **Checking for orphans is part of verifying a hide.** Hiding `Time Read` also removed the circled arrow nested inside it; confirming that no lone arrow was left behind needed a separate query, because a stranded sibling would not show up in any search for the text that was removed.
 
+### Video hero for news articles — fields added, the layer needs the editor (2026-10-11)
+
+Shak asked whether a news article's hero could be an MP4 instead of an image. **Yes, and the project already contains a working implementation to copy.**
+
+**The Projects pages do this with `Projects CMS Page / Hero Image - Video Projects Page` (`VxWZXGISB`).** Its `Image / Video Wrapper` holds **both** an `Image Hero` layer and a `Video Hero` layer, plus an `Overlay`. **Both read `visible: false` in the stored canvas** — their visibility is *conditionally bound* to which CMS field is populated, and the node API reports the stored value rather than the binding, so **do not read `visible: false` here as "switched off"**. It is driven by `Hero Video URL` [string] and `Hero Video -  Poster` [image].
+
+**Working `Video Hero` control values, worth copying verbatim:**
+
+```json
+{ "srcType": "URL", "playing": true, "loop": true, "muted": true, "volume": 25,
+  "objectFit": "cover", "controls": false, "posterEnabled": true,
+  "startTime": 0, "backgroundColor": "rgba(0, 0, 0, 0)" }
+```
+
+**The News hero is much simpler** — `Section Hero > Image Wrapper > Thumbnail`, a single image layer, with no video path at all.
+
+**DONE (scripted): two fields added to the News collection** on Shak's choice of "both" —
+
+| field | type | id |
+|---|---|---|
+| `Hero Video` | **file**, `allowedFileTypes: ["mp4","mov","webm"]` | `qfoKFNjzV` |
+| `Hero Video - Poster` | **image** | `Ux2PVfH50` |
+
+A **file** field was chosen over the Projects `[string]` URL because News already uses one for `Thumbnail Video MOV`, so it matches the existing workflow — drop an MP4 into the cell. `Collection.addFields` works in this scope and is additive; verified in a separate `exec`.
+
+**STILL NEEDED, AND IT CANNOT BE SCRIPTED: the `Video` layer itself.** It has to be created inside `/news/:slug` -> `Section Hero > Image Wrapper`, and **that page is published**, so `createFrameNode` / `addComponentInstance` will ignore the `parentId` and drop the node on the **Home** page instead. This is the documented draft-pages-only limit. In the editor: add a Video layer beside `Thumbnail`, point its source at `Hero Video`, its poster at `Hero Video - Poster`, copy the control values above, and make the two layers' visibility conditional so the image shows when no video is set.
+
+**Note the inherited oddity:** the News hero's image layer is named **`Thumbnail`**, which suggests it may bind the `Thumbnail` field rather than `Image Hero` — worth checking while in there, since Shak's question assumed `Image Hero` drives it.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
