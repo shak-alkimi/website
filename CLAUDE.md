@@ -1464,6 +1464,26 @@ Image Wrapper 1..4  <-  Image 1 .. Image 4
 
 **The standing per-row chore this illustrates:** `idiWQDru6` must track each item's actual image count, and **nothing keeps them in sync** — the count drifts the moment anyone edits the CMS, silently and in either direction. `repair/verify-draft-status.js` has a natural companion here; a check that compares each row's slot count against its item's populated image fields would have caught both of these without anyone noticing by eye.
 
+**THE "ERRANT" 4th IMAGE ON EVERY `/projects-list` ROW IS `8rw9b6TQ6N0SMs6AAffGoKALCI.jpg` — A STALE-BUILD ARTEFACT (2026-10-11).** Shak reported extra images and said there should only be three per project.
+
+**It is the SAME asset in slot 4 of all three rows**, which is the tell that it is not CMS data — read from the hydrated DOM, not the HTML source:
+
+| row | slots 1-3 (match the CMS) | slot 4 |
+|---|---|---|
+| resorts-world | `EBx8yxrD`, `VN0ySMgs`, `JvxnpKIQ` | **`8rw9b6TQ`** |
+| belmont-park | `hKitrTjn`, `YiHAIuLB`, `lSdwUzBo` | **`8rw9b6TQ`** |
+| tuft-barber | `pSGHfoXan`, `PxKLMSkN`, `sxoArsOU` | **`8rw9b6TQ`** |
+
+**It exists nowhere in the current project.** Not in any CMS image field of any collection; not on any canvas node — a deep probe of **every attribute of all 2,581 `FrameNode`s**, resolving `ImageAsset.url`, found zero references. It is **not** stock-template residue either: the stock Ora site serves it **0** times. And it is confined to one page — `grep` across all nine published pages returns **36 refs on `/projects-list` and 0 everywhere else**, including `/projects-grid`, which renders the same projects through a different component.
+
+**So the document cannot produce it, which means a fresh publish cannot emit it.** Framer builds a page from the document plus CMS; an asset absent from both can only be left over from an earlier build. **The fix is a publish**, not an edit.
+
+**The slot mapping is confirmed by what DOES match:** slots 1-3 on the two populated rows are exactly `Image Hero`, `Image 1`, `Image 2`. The current CMS `Image 3` values (`es1Imfj6` for Resorts World, `TWOrvMZF` for Belmont) appear **nowhere** on the live page — further proof the build predates the present CMS.
+
+**Two vintages are being served from one page, which is why this looked contradictory at first.** The SSR'd HTML gave Tuft `bgspLGF3 / ZciU02La / vNKIcS99 / 8rw9b6TQ`, while the hydrated DOM gave `pSGHfoXan / PxKLMSkN / sxoArsOU / 8rw9b6TQ` — Framer re-renders Collection Lists client-side from separately-published `.framercms` chunks, so **the HTML source and the rendered DOM can disagree**. **Read the hydrated DOM for what a visitor actually sees; the HTML source is only the SSR snapshot.** An earlier conclusion in this file drawn from `curl` alone was right about the row counts but was reading only half the picture.
+
+**On "should only be 3 per project":** the row template has **five** slots (`Image Hero` + `Image 1-4`) and only **one** control — `idiWQDru6`, gating the fifth. There is no way to express "three" with it. **The robust fix is to bind each `Image Wrapper`'s visibility to its own field being non-empty**, so every row renders exactly as many images as it has. That retires the whole class at once: no empty placeholder tiles, no per-row toggle to keep in sync, and no silent drift when the CMS is edited. It is editor work — visibility bindings are not reachable through the node API.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
