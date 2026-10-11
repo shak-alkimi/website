@@ -1787,6 +1787,19 @@ A **file** field was chosen over the Projects `[string]` URL because News alread
 
 **Note the inherited oddity:** the News hero's image layer is named **`Thumbnail`**, which suggests it may bind the `Thumbnail` field rather than `Image Hero` — worth checking while in there, since Shak's question assumed `Image Hero` drives it.
 
+**RESOLVED: the News hero binds `Image Hero`, not `Thumbnail`.** The previous note flagged this as uncertain because the layer is *named* `Thumbnail`. Read from the panel: its **`Fill` is bound to `Image Hero`**, set to `Fill` with a `Focal point`. Another stale Ora name — **add `Thumbnail` (the News hero layer) to the list of template names that lie**, alongside `News` for the "Lighting options" heading and `About us` for "Case Studies".
+
+**Exact location, confirmed in the editor:** `/news/:slug` -> `Desktop > Main > Section Hero > Image Wrapper > Thumbnail`. The wrapper carries the canvas badge **`News Image Hero`**, which is the name worth searching for. Siblings of `Section Hero` are `Section Article` and `Section News`.
+
+**To finish the video hero, in the editor:** add a `Video` layer as a **sibling of `Thumbnail` inside `Image Wrapper`**, bind its source to the new **`Hero Video`** file field and its poster to **`Hero Video - Poster`**, copy the control values from the Projects hero, and make the two layers' visibility conditional so the image shows when no video is set.
+
+**EDITOR-DRIVING NOTES FROM THIS PASS, all cheap to repeat:**
+
+- **A layer-level deep link does NOT work, even for a plain page layer.** `?node=LkP9Ievq3` (the `Thumbnail` node, not component-internal) silently fell back to `?node=<pageId>&item=<cmsItemId>`. **Only page and component ids resolve** — the earlier note said component-internal ids fail, and this widens it to *all* layer ids.
+- **The layer-tree search box did not hold its filter** — typing `Image Wrapper` into it listed only the three breakpoints, and the filter cleared on the next expand. **Walking the tree by name is more reliable than filtering it**, contrary to the standing note that filtering gives a flat stable list; that advice holds inside a *component*, not on a CMS page.
+- **One script can do the whole walk** if it `await`s between steps: click `Layers`, then for each of `Main`, `Section Hero`, `Image Wrapper` find the row by text and click the disclosure arrow at `row.x - 16`, sleeping ~700ms between, then select the leaf. This avoided five separate round trips and the usual re-render races.
+- **`Page.captureScreenshot` timed out again** on this page while JavaScript kept running — the documented canvas freeze. **Read the DOM to confirm state when a screenshot fails**; do not assume the action did not land.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
