@@ -1735,6 +1735,29 @@ Heroes are fine and need nothing: cover-scales of **0.89** (Resorts World), **1.
 
 **Scanning note:** a full `getText` walk over every page and component did not finish in two minutes and had to be killed. **Searching by layer NAME is far cheaper than reading text**, and works here because Framer names a text layer after its content — `2 min read`, `6 min read`, `December, 27th 2024`.
 
+**PUBLISHED AND VERIFIED 2026-10-11 — the read-time is gone from every surface, and the date survived.**
+
+| page | rendered read-times | notes |
+|---|---|---|
+| `/` (Home newsroom) | **0** | 4 visible arrows remain, all the **"All Articles"** section link counted at nested levels — **no orphaned card arrows** |
+| `/news` | **0** | |
+| `/news/cauda` | **0** | date **"May 2026"** still visible, **0** stray `\|` separators |
+
+**A GREP OF THE PUBLISHED HTML SAYS IT IS STILL THERE, AND THAT IS A FALSE POSITIVE.** `curl \| grep "min read"` returns **2-6 hits per page** after the change. Every one is the **serialised CMS payload** Framer ships at the end of the page — the `Time Read` field values, which remain populated by design. **Counting the string in the markup cannot distinguish data from rendering.**
+
+**The check that actually answers it** is to walk the DOM for *leaf* elements whose text matches, and keep only those with a non-zero box and no `display:none` / `visibility:hidden` / `opacity:0`:
+
+```js
+[...document.querySelectorAll('*')].filter(e => !e.children.length
+  && /min read/i.test(e.textContent || '')
+  && e.getBoundingClientRect().width > 0
+  && getComputedStyle(e).visibility !== 'hidden')
+```
+
+This is the same family as the earlier `<img>`-count rule — **asset URLs and field strings reach the page whether or not anything renders them** — and it applies to *any* removal of CMS-bound text here. **Verify a hide by what paints, never by what the markup contains.**
+
+**Checking for orphans is part of verifying a hide.** Hiding `Time Read` also removed the circled arrow nested inside it; confirming that no lone arrow was left behind needed a separate query, because a stranded sibling would not show up in any search for the text that was removed.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
