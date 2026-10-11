@@ -871,6 +871,21 @@ Shak asked for the `/products` photos to have their right edges align, be centre
 
 **Result: right edges at `72.5% .. 72.8%`** — 0.3 points of spread, down from 16.8, with backgrounds byte-matching the originals. Files at `C:\Users\shaki\alkimi-renders\fixtures-aligned\`.
 
+**!!! OVERTURNED 2026-10-11 — `uploadImage` ACCEPTS A `data:` URI, so image bytes CAN be pushed from an `exec` after all. Read this before trusting the paragraph below. !!!**
+
+The three routes tested below (`BytesData`, `File`, a public URL) all genuinely fail. **A fourth was never tried: a `data:` URI is a string, and Framer accepts it.** Probed with a 1x1 PNG, then used for real:
+
+```js
+const d = "data:image/jpeg;base64," + <base64>
+const asset = await framer.uploadImage({ image: d })   // -> live ImageAsset with a framerusercontent URL
+```
+
+A **483 KB JPEG (659,724 base64 chars)** marshalled across the relay without complaint, so the practical size ceiling is well above anything a poster or product render needs. Write the script to a file and run it with `exec -f`; do not try to pass it inline.
+
+**What this changes.** The whole fixtures-render pipeline was built around "Shak drops the files on a canvas, I read the URLs back" because of the note below. That round trip was never necessary. The returned object is a **live `ImageAsset`**, so it can be assigned straight to a node attribute in the same `exec`, or its `.url` written to a CMS image field — both contracts unchanged.
+
+**Two things it does not change.** Video is untested (there is no `uploadVideo`; `uploadImage` with a video `data:` URI was not tried). And **there is no asset-delete method anywhere in the API** — `grep` of the full docs shows `uploadImage`, `uploadImages`, `addImage`, `addImages`, `setImage`, `getImage` and nothing to remove one — so **every upload is permanent**. The 1x1 probe PNG (`ovC2dAhFoEl1T7ksFCn5thL1gw.png`) is now an unreferenced orphan in the project for good. Probe with something you would not mind keeping, or skip the probe.
+
 **UPLOADING THEM BACK CANNOT BE AUTOMATED FROM HERE — this is the hard limit.** `framer.uploadImage` takes `AssetInput = string | File | BytesData`, and all three routes fail from an `exec`:
 
 - **`BytesData`** — a `Uint8Array` built inside the `exec` is rejected with *"Asset input must be a URL string, File, or { bytes: Uint8Array, mimeType: string }"*. The shape is right; the typed array does not survive marshalling across the relay.
@@ -1868,6 +1883,21 @@ Shak copied `Video Hero` out of the Projects hero component and pasted it into `
 **`Hero Video` [file] `qfoKFNjzV` WAS DELETED and replaced by `Hero Video URL` [string] `QzpOC5zEG`, because a file field CANNOT be bound to a video (see the binding rules below).** Nothing was lost — the field was empty on all 7 items. This is also why Ora's own Projects template uses `Hero Video URL` as a **string**: it is the only shape that works.
 
 **Verified end to end on the draft article `how-creator-nike-connects-with-their-fans`**: writing a URL into `Hero Video URL` made `Thumbnail` disappear from the canvas and the video layer take over; clearing it put the image back. Draft counts re-checked after every CMS write (Projects 3/10, News 3/7) and the test value was cleared afterwards. **Needs a publish.**
+
+**FIRST REAL USE — "How Aesop has reshaped the industry" (`lumens`), 2026-10-11. The mechanism works; the gap it exposed is that a video hero with no poster shows NOTHING while it buffers.**
+
+Shak pasted his MP4's URL into `Hero Video URL` and published, then reported that the hero did not play. **It was published and correctly wired** — the served page carries exactly **1 `<video>`** with the right asset, **1 `Video Hero`** element and **0 `Thumbnail`**, so both conditions fire as designed. Measured in a real browser, Framer calls `.play()` itself (`paused: false`, `networkState: 2`), so the playback logic is sound too.
+
+**Two things made it look broken, and only the second is a real defect:**
+
+1. **The first `curl` of the article came back TRUNCATED — 28,683 bytes against the real 207,724** — the CDN was still propagating seconds after the publish. A re-fetch gave the full page. **A short response right after a publish is propagation, not a 404 and not a missing layer; re-fetch before diagnosing.** Same class as the handset-cache trap already recorded.
+2. **The served element is `preload="none"` with NO `poster`**, because `Hero Video - Poster` was empty — and `Image Hero` is empty on that article too, so there was no fallback either. Nothing is fetched until play is attempted, and then a **10.2 MB / 8.2 Mbit/s** file has to buffer. Until it does, the hero is a blank white box. **A video hero without a poster is a blank hero for as long as the network takes.**
+
+**Poster built from the video's own frame 0** (`-q:v 2 -pix_fmt yuvj444p`, `1920x1080`, 483 KB) — the same trick as the Home hero poster, and the reason it is safe here is that brightness is flat over the first two seconds (`YAVG` 80.9 / 81.0 / 82.2 / 81.8 at frames 0/30/60/120), so frame 0 is not a fade-from-black. **Check that before using frame 0 as a poster**; a fade would give a black still.
+
+**Uploaded by `data:` URI and written straight to the CMS** — see the `uploadImage` correction above; no canvas drop was needed. Stored value verified in a separate `exec`: same asset id (no re-encode into a new one this time), `resolution: "auto"`, and the hosted file serves as WebP at `1920x1080`. Draft counts re-checked clean (Projects 3/10, News 3/7). **Needs a publish.**
+
+**The 10.2 MB is worth revisiting** — 10.5s of 1080p60 against the Home hero's 3.7 MB. The poster hides the delay rather than removing it.
 
 ### HOW CMS BINDING ACTUALLY WORKS IN THE FRAMER PANEL (established 2026-10-11 — this cost a long detour, do not re-derive it)
 
