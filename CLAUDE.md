@@ -1647,6 +1647,18 @@ Both halves were undone together, which matters: `Section Details` -> `visible: 
 
 **Still hidden and NOT restored by this change: `Image Wrapper 16x9`** on all three breakpoints — the separate deletion request. Resorts World's fourth photograph remains suppressed. [repair/deleted-image-wrapper-16x9.json](repair/deleted-image-wrapper-16x9.json) holds its pre-change state if that one is also to be reversed.
 
+**`Section Quote` REMOVED (hidden), WITH ITS SPACING TRANSFERRED (2026-10-11).** Shak asked for the quote block at the foot of the project pages to go — on the live pages it was a tall band of empty white between the image duo and the "Lighting options" heading.
+
+**It was empty on every live project.** `Quote` and `Quote Author` hold nothing on Resorts World, Belmont Park or Tuft — note the first two read as *blank rather than null*, i.e. empty rich text (`<p></p>`), which still renders a block. **An empty `formattedText` field is not the same as an unset one, and only the latter makes Framer omit the layer.**
+
+**It carried 150px of vertical padding** — `30px 15px 120px 15px` — while **neither neighbour has any**: `Section Images` was `0px 15px 0px 15px` and `Next Projects Heading` is `0px 15px 50px 15px`, with no top padding. Hiding it alone would have slammed the photographs into the heading, the same collapse that followed hiding `Section Details`.
+
+**So both were done in one pass:** `Section Quote` -> `visible: false`, and `Section Images` padding -> **`0px 15px 120px 15px`** on all three breakpoints, taking over the `120px` the quote section used to place below itself. **That bottom value is the single knob if the gap reads wrong.**
+
+**This is now the third time a hidden section has taken a sibling's spacing with it** (`Section Details`, then its restore, now `Section Quote`). **Treat it as the default expectation in `Container Relative`, which is a `gap: 0` stack where every section supplies its own padding and `Section Images` supplies none.** Before hiding anything there, read the padding of the layer above and below, and move the value rather than deleting it.
+
+**Current state of `Section Images` padding is doing two jobs** — `0px` top because `Section Details` is visible again and pads below itself, `120px` bottom because `Section Quote` is hidden and no longer does. **If `Section Quote` is ever restored, that bottom `120px` must go back to `0px`**, exactly as the top padding did when `Section Details` came back.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
