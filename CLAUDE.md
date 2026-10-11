@@ -1432,6 +1432,38 @@ The wide card's `Project Left` now reads **Source `Home`**, **Filters `Sorting O
 
 **Side effect, harmless and worth knowing:** the primary variant's canvas now renders the `Projects` Home item in its left card rather than `Fixtures`, because the filter is shared across the component's variants. Row 2's two-up variants render nowhere on the site, so this is canvas-only.
 
+### `/projects-list` row images — the slot mapping, and Tuft is pulling from NOTHING (2026-10-11)
+
+**The five slots bind to `Image Hero` + `Image 1-4`.** `Thumbnail Image - Wide` is **not** used by the list row (it feeds the grid card and the Home wide card). Proven from a populated row rather than inferred from layer names:
+
+```
+Image Wrapper Hero  <-  Image Hero
+Image Wrapper 1..4  <-  Image 1 .. Image 4
+```
+
+**A matcher trap caught on the way: do not identify a field by "first field whose asset id matches".** `Resorts World` has the **same asset** in `Thumbnail Image - Wide` and `Image Hero` (`EBx8yxrD…jpg`), so a first-match scan reported the Hero slot as bound to `Thumbnail Image - Wide` on that row and to `Image Hero` on Belmont — an apparent contradiction that is purely an artifact. **When two fields can hold the same asset, print the raw ids per field and read them, rather than trusting a reverse lookup.**
+
+**Live state of the three projects (verified in two fresh sessions):**
+
+| SO | item | slug | `Image Hero` + `Image 1-4` | 5th slot (`idiWQDru6`) | result |
+|---|---|---|---|---|---|
+| 1 | Resorts World | `resorts-world` | **5 of 5 set** | `false` -> 4 slots | **`Image 4` is being HIDDEN** |
+| 2 | Belmont Park | `belmont-park` | 4 set (no `Image 4`) | `false` -> 4 slots | correct |
+| 3 | **Tuft** | `tuft-barber` | **0 of 5 set** | `true` -> 5 slots | **nothing to render** |
+
+**Tuft's list images are not coming from the CMS — they are baked into the LAST PUBLISHED BUILD.** The four assets the live page shows (`bgspLGF3…`, `ZciU02La…`, `vNKIcS99…`, `8rw9b6TQ…`) exist in **no CMS image field and on no canvas node** in the current document. They were cleared after the last publish. **On the next publish that row renders five empty boxes.**
+
+**This is the inverse of the usual stale-read problem and worth internalising:** the normal trap is a stale *session* contradicting the live site. Here the *published site* is the stale artefact and the document is current. **A rendered page is a snapshot of the last publish, never evidence of present CMS state** — which is why the check was run as "trace the rendered asset back into the CMS" and not "look at the page".
+
+**Cache was ruled out** before concluding: a cache-busted, `no-cache` re-fetch returned the identical four assets, and the page carries each id 18 times in its serialised CMS payload.
+
+**Two things now need a decision:**
+
+1. **Resorts World has gained an `Image 4`** since its 5th slot was switched off on 2026-10-09 — so one of its photographs is currently suppressed. Flip `idiWQDru6` back to `true` on that row.
+2. **Tuft needs five list images, or its row needs a different treatment.** Turning its 5th slot off does not help; with zero images it would still render four empty boxes.
+
+**The standing per-row chore this illustrates:** `idiWQDru6` must track each item's actual image count, and **nothing keeps them in sync** — the count drifts the moment anyone edits the CMS, silently and in either direction. `repair/verify-draft-status.js` has a natural companion here; a check that compares each row's slot count against its item's populated image fields would have caught both of these without anyone noticing by eye.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
