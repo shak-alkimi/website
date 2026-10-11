@@ -1234,7 +1234,7 @@ So each synthesised frame lands within **19% of the motion it is inventing** —
 
 **Correcting an over-broad claim made on 2026-10-08:** the PNG audit's summary said the only PNGs left were the four on `/careers`. That was wrong — these two were on the home page the whole time. The audit itself had collected them; the *summary* lost them, because the ranking was by dither density and a detailed photograph scores low (the same reading trap already recorded two paragraphs up). **Rank for triage, but enumerate for completeness** — the count of remaining PNGs must come from the full list, never from the top of a ranked one.
 
-**The green check needs the right spelling.** A sweep for `rgb(53, 121, 11)` returns **0** on Home while the colour is plainly there — Framer emits it as **`#35790B`** on this page. A colour absent in one notation is not a colour absent. Grep both forms before calling a brand colour missing.
+**The green check needs the right spelling.** A sweep for `rgb(53, 121, 11)` returns **0** on Home while the colour is plainly there — Framer emits it as a hex literal on this page. **The case is not stable between builds either** — it was `#35790B` on 2026-10-09 and is **`#35790b`** in the 2026-10-11 build, so an exact-case grep for the earlier form now returns 0 on a page that still carries it twice. **Grep case-insensitively, and try both notations**, before calling a brand colour missing.
 
 ### /projects-list — the empty 5th image box is a per-instance BOOLEAN, not CMS (fixed 2026-10-09)
 
@@ -1898,6 +1898,40 @@ Shak pasted his MP4's URL into `Hero Video URL` and published, then reported tha
 **Uploaded by `data:` URI and written straight to the CMS** — see the `uploadImage` correction above; no canvas drop was needed. Stored value verified in a separate `exec`: same asset id (no re-encode into a new one this time), `resolution: "auto"`, and the hosted file serves as WebP at `1920x1080`. Draft counts re-checked clean (Projects 3/10, News 3/7). **Needs a publish.**
 
 **The 10.2 MB is worth revisiting** — 10.5s of 1080p60 against the Home hero's 3.7 MB. The poster hides the delay rather than removing it.
+
+**SHIPPED AND VERIFIED LIVE 2026-10-11 (build `Oct 11, 2026, 10:29 PM UTC`) — the conditional hero is proven on real content, BOTH branches.** Shak replaced the video with a lighter encode and deleted the canvas strays.
+
+| | was | now |
+|---|---|---|
+| video | `shTGNP0S…mp4` 10.2 MB @ 8.2 Mbit/s | **`DxLxD5Vg…mp4` 4.6 MB @ 3.5 Mbit/s** |
+| poster | `Idupl…jpg` | **`OVngTPyS…jpg`**, rebuilt from the NEW encode |
+
+Same clip either way — `1920x1080`, 60fps, 628 frames, 10.47s — so it is a pure bitrate change, **55% lighter**. **Rebuild the poster from whichever encode actually ships**; re-encoding shifts the pixels and a still from the old file is subtly not the frame the visitor sees.
+
+**The live proof that the conditions work, which no canvas read can give you:**
+
+```
+/news/lumens   <video>=1  Video Hero=1  Thumbnail=0     <- video branch
+/news/cauda    <video>=0  Video Hero=0  Thumbnail=1     <- image branch
+/news/opus     <video>=0  Video Hero=0  Thumbnail=1     <- image branch
+```
+
+and the poster is now genuinely on the element, which was the whole point:
+
+```html
+<video src="…DxLxD5Vg….mp4" loop preload="none"
+       poster="…OVngTPyS….jpg?width=1920&height=1080" muted playsinline>
+```
+
+**Note the canvas still reports `Video Hero visible=false` and `Thumbnail visible=true` on all three breakpoints.** That is the stored boolean, not the Condition — exactly as the Projects hero reads. **Do not read it as "the video layer is switched off"**; the published page is the only place the branch is observable.
+
+**A PUBLISH CAN SERVE A TRUNCATED PAGE FOR A FEW MINUTES — do not diagnose through it.** Immediately after each of two publishes, `/news/lumens` and `/news/opus` returned **28,683-28,684 bytes** against a real **208,361**, with no `<video>`, no `Thumbnail` and no `Image Wrapper` — a response that reads exactly like a missing layer or a 404. Both times a later re-fetch returned the full page, and six consecutive fetches then agreed. **Re-fetch until two reads agree before concluding anything from a page you have just published**, the same discipline already required of `exec` reads. This is the HTTP twin of the handset-cache trap.
+
+**Canvas clean-up: Shak deleted all three dropped video nodes** (`mA_17fhYI` the orb, `qSrqGwJsz` the 10.2 MB original, `L8N8cQwPX` the replacement). Verified `0 uploaded-video nodes left on canvas`. **One of them sat at the CANVAS ROOT rather than on a page** — `getParent` returned `null` and `framer.getNode(id)` could not resolve it at all, so it had to be mutated through a live handle from `getNodesWithAttributeSet`. A page-descendant walk will never find such a node; scan by attribute instead.
+
+**The staleness trap bit three times in this one session, and the third was the worst.** After Shak dropped the replacement, **three scans across two sessions reported ZERO uploaded-video nodes project-wide** — not just missing the new one, but losing two nodes those same sessions had verified minutes earlier. A brand-new session found all three immediately. Had the read been trusted, Shak would have been told his drop never registered. **Before contradicting anything the user says they just did in the editor: new session, discard the first read, and require two agreeing reads — and prefer a second independent session when the answer is "it is not there".**
+
+**The superseded 10.2 MB asset is permanent.** Nothing references it, so it never ships, but there is no asset-delete in the API and deleting the layer does not remove the file.
 
 ### HOW CMS BINDING ACTUALLY WORKS IN THE FRAMER PANEL (established 2026-10-11 — this cost a long detour, do not re-derive it)
 
