@@ -1484,6 +1484,29 @@ Image Wrapper 1..4  <-  Image 1 .. Image 4
 
 **On "should only be 3 per project":** the row template has **five** slots (`Image Hero` + `Image 1-4`) and only **one** control — `idiWQDru6`, gating the fifth. There is no way to express "three" with it. **The robust fix is to bind each `Image Wrapper`'s visibility to its own field being non-empty**, so every row renders exactly as many images as it has. That retires the whole class at once: no empty placeholder tiles, no per-row toggle to keep in sync, and no silent drift when the CMS is edited. It is editor work — visibility bindings are not reachable through the node API.
 
+**HOW THE LIST ROW'S FIVE TILES ARE ACTUALLY GATED — read from the editor 2026-10-11, and it is simpler than the earlier note assumed.**
+
+`Projects / List View Row` (`BPcTbqUr_`) has **6 variants** — `Active · Primary`, `Non Active`, `Tablet Active`, `Tablet Non Active`, `Mobile Active`, `Mobile Non Active` — each holding `Stack > Image Wrapper Hero, 1, 2, 3, 4`. **30 wrapper layers in all.** The flat list comes from typing `Image Wrapper` into the layer search; the filtered tree does not reshuffle, unlike expanding nested rows.
+
+**Only ONE of the five is conditional:**
+
+| layer | `Visible` |
+|---|---|
+| `Image Wrapper Hero`, `1`, `2`, `3` | plain **`Yes / No`** toggle — **no binding, always on** |
+| `Image Wrapper 4` | **bound** to the component variable **`5th Image Visible`** (boolean, Default `Yes`) — this is `idiWQDru6` |
+
+**So every row renders at least FOUR tiles no matter what the CMS holds**, and the boolean only ever decides between four and five. **That is the whole explanation for the errant 4th image**: `Image Wrapper 3` always draws, so whatever `Image 3` resolves to is always on screen — including a stale value.
+
+**The component's variables are:** `Hover`, `Link`, `Title`, `Category 1`, `Category 2`, `Image Hero`, `Image 1`, `Image 2`, `Image 3`, `Image 4`, `5th Image Visible`.
+
+**The "bind visibility to the field being non-empty" idea proposed earlier is NOT directly available.** An image variable's editor offers only `Name`, `Description` and a `Default` upload — **there is no `Optional` flag**, which is the thing that would let an empty image drive visibility. `Optional` appears only on the boolean. So that fix would mean adding a boolean per slot and keeping each in step with the CMS by hand — which is the same chore, four times over.
+
+**For a fixed "three images per project" the correct change is much smaller: set `Image Wrapper 3` to `Visible: No`, and `5th Image Visible` to `No`.** Hero + `Image 1` + `Image 2` then render and nothing else can. It also makes the whole class of defect impossible — a stale or stray value in `Image 3` / `Image 4` has nowhere to draw.
+
+**Check all six variants afterwards.** Breakpoint *overrides* are known to cascade from the primary in this project, but these are component **variants**, and the `Active` / `Non Active` pair is a hover state rather than a breakpoint — so do not assume one edit covers all thirty layers. Verify by re-filtering the layer tree and reading each `Image Wrapper 3`.
+
+**Note the CMS keeps its data either way** — `Image 3` and `Image 4` stay populated on Resorts World and Belmont Park, just unrendered, so the decision is reversible.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
