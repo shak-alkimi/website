@@ -1539,6 +1539,36 @@ Mobile Non Active  Hero=vis  1=vis  2=vis  3=HIDDEN  4=HIDDEN
 
 **A caution for the walker:** finding these instances needs a traversal depth of **at least 7** — `Page > Breakpoint > Main > Section Projects > Container > Projects List > Projects > instance`. An earlier pass capped at `d < 6`, found nothing, and returned a confident empty result. **A depth-limited walk that finds nothing is not evidence of absence.**
 
+### The empty container on a project detail page — do NOT delete it (2026-10-11)
+
+Shak reported an empty striped block on the project pages, below the hero and the two side-by-side images, and asked for it to be deleted. **Deleting it would be the wrong fix and would cost real content.**
+
+**The detail template's image blocks, read from the live DOM of `/projects/belmont-park`:**
+
+| block | binds to | Belmont |
+|---|---|---|
+| `Image Hero` (1036x806) | `Image Hero` | `hKitrTjn` |
+| `Image Duo Wrapper` -> 2x `Image Wrapper 3x4` (496x660 each) | `Image 1`, `Image 2` | `YiHAIuLB`, `lSdwUzBo` |
+| **`Image Wrapper 16x9` (1006x566)** | `Image 4` | **empty — the reported block** |
+
+**FRAMER ALREADY OMITS THESE CONTAINERS WHEN THE FIELD IS EMPTY, and `tuft-barber` proves it.** Container counts across the three published pages:
+
+| page | `Image Hero` | `Image Wrapper 3x4` | `Image Wrapper 16x9` |
+|---|---|---|---|
+| resorts-world | 1 | 2 | **1, with an image** |
+| belmont-park | 1 | 2 | **1, empty** |
+| **tuft-barber** | **0** | **0** | **0** |
+
+Tuft has no image fields set at all and its containers are **absent from the markup entirely** — not present-and-blank. So the template is already conditional; an empty field normally produces no container.
+
+**Which means Belmont's empty block is almost certainly another stale-build artefact** — the same class as the `/projects-list` images. `Image 4` was cleared on Belmont after the last publish, so the published HTML still carries the container while the asset behind it is gone. **A publish should make it disappear by itself.**
+
+**Deleting `Image Wrapper 16x9` from the template would remove Resorts World's fourth image**, which is genuinely present (`DP8GLV2R…jpg`). One project's missing content is not a reason to delete a slot the other projects use.
+
+**So the order is: publish, then look again.** If the block survives a fresh publish, it is a real template fault and worth fixing then — but not before, and not by deletion.
+
+**Note the published page and the CMS disagree on Resorts World too:** the page serves `DP8GLV2R…jpg` in that slot while the CMS has `fLGXAp7C…jpg` in `Image 4`. More of the same staleness, and another reason to publish before diagnosing anything on these pages.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
