@@ -1677,6 +1677,45 @@ Both halves were undone together, which matters: `Section Details` -> `visible: 
 
 **The lesson is about which source wins.** When a CMS read and the rendered page disagree, the instinct used here was "the document is current, the page is stale". That is sometimes true — the `8rw9b6TQ` tile really was stale build output — but **it is not a rule, and it was applied as one.** Where a published page shows *more* data than the document, suspect the read before announcing missing content, and never warn a user that their content is absent on the strength of an API read alone.
 
+### Project image parity audit — format is perfect, geometry is not (2026-10-11)
+
+All nine distinct images across the three live projects, measured in the browser.
+
+**FORMAT AND QUALITY: FULL PARITY, nothing to do.** Every one is **JPEG**, every CMS field is **`resolution: auto`**, and every master is unquantised — **36,451 to 107,983 distinct tones**. No PNGs, no palette damage, no `lossless=1`. Encoding density is consistent at **117-254 KB/megapixel**.
+
+**All three projects now share the same shape** — `Thumbnail Image - Wide` and `Image Hero` holding the *same* asset, plus `Image 1` and `Image 2`. `Image 3` and `Image 4` are empty everywhere, which is consistent with the three-image list rows.
+
+**MASTER SIZE: tight within two projects, wild in the third.**
+
+| project | masters | megapixels |
+|---|---|---|
+| Resorts World | `2560x1706`, **`739x415`**, `2048x1152` | 4.37 / **0.31** / 2.36 |
+| Belmont Park | `1860x1059`, `1860x1060`, `1860x1045` | 1.97 / 1.97 / 1.94 |
+| Tuft | `3000x2250` x3 | 6.75 x3 |
+
+**`DP8GLV2RXznTN4Ho158UxpeJa4.jpg` (Resorts World `Image 1`) is a 14x outlier against its own hero** and the only genuinely deficient master on the site.
+
+**ASPECT RATIO: three different conventions.** Resorts World hero **1.50 (3:2)** with its pair at **1.78 (16:9)**; Belmont all **~1.76 (16:9)**; Tuft all **1.333 (4:3)**.
+
+**THE REAL DEFECT, AND IT AFFECTS EVERY PROJECT: `Image Wrapper 3x4` is PORTRAIT and every asset is LANDSCAPE.** The box needs **`743x991` device px** at `dpr 1.5`. Under `object-fit: cover` a landscape image must scale until it fills the *height*, so measured cover-scales are:
+
+| project | duo image 1 | duo image 2 |
+|---|---|---|
+| Resorts World | **2.39x** (`DP8GLV2R`, master only 415 tall) | **1.72x** |
+| Belmont Park | **1.70x** | **1.72x** |
+| Tuft | **1.29x** | **1.29x** |
+
+Tuft fares best only because 4:3 is closer to portrait than 16:9. **Every duo image on the site is being upscaled**, and roughly 55-60% of each image's width is cropped away.
+
+**AND IT IS MOSTLY A DELIVERY FAULT, NOT A MASTER FAULT — this is the part worth knowing.** Tuft's masters are `3000x2250`, yet the browser pulled the **`1024`-wide** candidate and then upscaled it 1.29x. The `2048` candidate exists and would have given a cover-scale of **0.65**. The cause: **`sizes` is computed from the box's WIDTH only** (496 CSS px -> 744 device px -> pick >= 744 -> 1024), so it has no idea the image will be cropped vertically and needs far more pixels. **A landscape image in a portrait `cover` box is systematically under-served by `srcset`, however large the master is.**
+
+**So there are two separate problems and they need different fixes:**
+
+1. **Supply portrait crops (3:4) for the duo, or make the box landscape.** This removes the upscaling *and* the heavy cropping at a stroke, and it is the only fix that works through `srcset` rather than against it.
+2. **Replace `DP8GLV2R`** — at `739x415` no delivery choice can help it. New artwork only.
+
+Heroes are fine and need nothing: cover-scales of **0.89** (Resorts World), **1.14** (Belmont), **0.79** (Tuft) into a `1554x1209` box.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
