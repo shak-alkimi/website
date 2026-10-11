@@ -1608,6 +1608,33 @@ It was not. Re-running the **write** from a third fresh session reported **`alre
 
 Where a published page can be consulted, that remains the best evidence of all; but for an unpublished change there is no page to read, which is exactly when this trap bites.
 
+**THE SPACER THAT VANISHED WITH `Section Details`, AND HOW IT WAS RESTORED (2026-10-11).** Hiding the section collapsed the gap between the sticky hero and the image duo — the hero ran straight into the photographs.
+
+**All the vertical separation lived in `Section Details`' own padding.** `Container Relative` is a vertical stack with **`gap: 0px`** and no padding, and `Section Images` carried **`padding: 0px 15px 0px 15px`** — no top or bottom at all. It was sandwiched, taking its spacing entirely from the sections either side:
+
+| | `Section Details` padding (t r b l) | `Section Quote` |
+|---|---|---|
+| Desktop / Tablet | `50px 15px 90px 15px` | `30px 15px 120px 15px` |
+| Phone | `30px 15px 60px 15px` | `30px 15px 120px 15px` |
+
+**Fix: give `Section Images` the top padding that used to sit above it** — `90px` on Desktop and Tablet, `60px` on Phone, matching the bottom padding `Section Details` contributed, and staying inside the design's existing 30/50/60/90/120 vocabulary. Final: `90px 15px 0px 15px` / `90px…` / `60px 15px 0px 15px`. **One value to tune if the gap reads wrong.**
+
+**This generalises: a layer whose neighbours supply all its spacing becomes a spacing bug the moment one of them is hidden.** Before hiding any section in a zero-gap stack, read its padding and check whether a sibling depends on it.
+
+**!!! A WRITE'S REPORT OF THE PRIOR VALUE CAN ITSELF BE STALE — this narrows the rule recorded immediately above !!!**
+
+The previous note proposed re-issuing a write and trusting what it says about the prior state. **That is not reliable either.** Three separate fresh sessions each reported `Desktop: 0px 15px 0px 15px -> 90px…`, as though the value kept reverting. It had not: a **separate `exec` on the same session**, run straight after the write, read `90px` on all three breakpoints, and two further fresh sessions confirmed it.
+
+**What was actually happening: a fresh session opens on a stale snapshot, and the write's prior-value report is computed from that snapshot** — so it can describe a state that is already out of date, while the write itself lands correctly against the live document.
+
+**The reliable pattern, which survives all of today's failures:**
+
+1. do the write,
+2. **read back in a SEPARATE `exec` on the SAME session** — this consistently told the truth, both here and for `Section Details`,
+3. and treat the first read of any brand-new session as suspect; discard it and read again.
+
+Writes are idempotent here, so a repeat costs nothing — but **do not read the repeat's "prior value" as evidence of anything.**
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
