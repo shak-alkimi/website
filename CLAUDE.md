@@ -1635,6 +1635,18 @@ The previous note proposed re-issuing a write and trusting what it says about th
 
 Writes are idempotent here, so a repeat costs nothing — but **do not read the repeat's "prior value" as evidence of anything.**
 
+**`Section Details` RESTORED, and the spacing patch reverted with it (2026-10-11).** Shak asked for the About / Client / Category / Year block back, showing the stock Ora rendering of it (Polestar, fully populated) as the reference.
+
+Both halves were undone together, which matters: `Section Details` -> `visible: true` **and** `Section Images` padding back to **`0px 15px 0px 15px`** on all three breakpoints. **Leaving the 90/60px top padding in place would have double-counted the gap**, since `Section Details` supplies `90px` / `60px` of bottom padding itself. **Whenever a hidden section is restored, revert whatever was added to compensate for hiding it** — the compensation and the cause are a pair.
+
+**Verified by the pattern that has proven reliable here:** write, then read back in a **separate `exec` on the same session** — `visible=true` and `padding=0px 15px 0px 15px` on Desktop, Tablet and Phone.
+
+**Padding and visibility both cascade from Desktop**, visible in the write log: setting Desktop reported Tablet and Phone as "already" correct for `Section Details`, while `Section Images` still needed Phone written explicitly because it had carried a distinct `60px`. **Write every breakpoint anyway and read all three back** — the cascade is real but not uniform.
+
+**The section will render with labels and no values** until content is added: `About`, `Client`, `Category 1`, `Category 2` and `Year` are **empty on all three live projects**. That is the state Shak photographed earlier, with the stray comma between the two empty category fields. The stock template screenshot he supplied is Ora's own Polestar copy, not Alkimi content.
+
+**Still hidden and NOT restored by this change: `Image Wrapper 16x9`** on all three breakpoints — the separate deletion request. Resorts World's fourth photograph remains suppressed. [repair/deleted-image-wrapper-16x9.json](repair/deleted-image-wrapper-16x9.json) holds its pre-change state if that one is also to be reversed.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
