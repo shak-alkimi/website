@@ -1390,6 +1390,18 @@ Shak asked for a Home-controlled slot rather than a different picture.
 
 **Running state: steps 1 and 4 done, step 2 (editor) outstanding, step 3 held.** Step 4 is publishable-safe on its own — it only changes where the wide button goes, from the Belmont Park case study to the projects list.
 
+**THE COLLECTION LIST SOURCE IS EDITABLE ONLY ON THE PRIMARY VARIANT — and it applies to the WHOLE component (found 2026-10-11).** Selecting `Project Left` inside `Home Project Single - Wide` shows **Content -> Source: `Projects` GREYED OUT**, with the note *"Can be selected in the primary breakpoint."* The same layer selected under **`Home Projects - Initial State · Primary`** shows the identical dropdown **enabled**.
+
+**So a Collection List has ONE source for the entire component, not one per variant.** Changing it on the primary switches every variant of `Home - Projects Row 2` at once. That is safe here only because **the component's single page instance renders the wide variant** and its two-up variants render nowhere — verified by instance count, not assumed. **Do not generalise this to `Home - Projects Row`**, which has four page instances.
+
+**How to reach it, since component-internal ids are not addressable:** the editor deep link `https://framer.com/projects/Alkimi-Shak--Cf6zWteoRnYaaVh8Afqa-b8JbM?node=<id>` **works for a component id** (`QOhH3GYAD` opens `Home - Projects Row 2`) but **silently falls back to the Home page for a component-internal id** — `?node=Q__AVxo4PTHAHLpogX` rewrote itself to `?node=augiA20Il`. Same limitation as `framer.getNode`. So deep-link to the **component**, then use the Layers panel.
+
+**The layer tree is readable from the main document and gives untruncated names**, which is how to tell three similarly-named variants apart — the panel displays `Home Project Single ...` three times, while the DOM returns `Home Project Single - Wide`, `Home Project Single Wide - Mobile` and **`Home Project Single - Wide · Hover`**. The editor labels the gesture variant with a `· Hover` suffix that the API does not expose (the API returns two children both named `Home Project Single - Wide`, which is the already-recorded "key by id, never by name" trap seen from the other side).
+
+A plain `computer left_click` on the panel did **not** register, while dispatching `pointerdown/mousedown/pointerup/mouseup/click` on the element did — consistent with the standing guidance to drive this panel through the DOM.
+
+**What the panel shows on that layer:** `Source: Projects`, `State: Default | Empty`, `Filters: Sorting Order`, `Sorting: Reverse`. **After switching the source to `Home`, re-check the `Sorting Order` filter** — it is the binding `sERka2TFV` feeds, and it is the thing most likely to reset when the collection underneath it changes.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
