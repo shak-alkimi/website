@@ -1590,6 +1590,24 @@ So `remove()` joins the silent-failure family (`ImageAsset` literals, gradient l
 
 **A capture trap worth avoiding:** the first attempt to record the pre-state piped the `exec` output through `tail -60`, which **silently truncated the JSON to the last node only** — the restore record would have covered Phone and lost Desktop and Tablet. **Write an `exec` dump straight to a file and count the entries before trusting it as a backup.**
 
+**`Section Details` REMOVED FROM THE PROJECT PAGES (hidden, 2026-10-11) — and this is the case that BREAKS the "two fresh sessions agree" rule.**
+
+Shak asked for the About / Client / Category / Year block to go. It is **`Section Details`** (`IWwCV5Xkt`) under `Main > Container Relative`, holding `Left Content > Text Wrapper` (About) and `Right Content > Details` (Client, Category, Year). Hidden on all three breakpoints — `IWwCV5Xkt`, `E0qmMgmpWIWwCV5Xkt`, `ZgcpmiHckIWwCV5Xkt`.
+
+**Nothing was lost, unlike the 16x9 block.** All five fields are **empty on all three live projects** — `About`, `Client`, `Category 1`, `Category 2`, `Year`. The stray comma visible in the rendered page was the category separator with nothing on either side. So this removal has no content cost at all.
+
+**!!! TWO AGREEING FRESH SESSIONS WERE BOTH STALE — the verification standard used throughout this project is not sufficient !!!**
+
+The write reported success. **Two brand-new sessions, created after it, BOTH reported `visible=true`.** By the rule recorded in this file ("re-read until two reads agree") that is a confirmed failure, and it was nearly written up as one.
+
+It was not. Re-running the **write** from a third fresh session reported **`already hidden` for all three** — meaning the original write had applied all along — and two further fresh sessions then read `visible=false`.
+
+**So the file's existing note is too weak.** It says a single fresh session can be stale and recommends reading until two agree. In fact **two independent fresh sessions can agree on the same stale value**, which makes agreement alone worthless as proof.
+
+**The stronger check is to RE-ISSUE THE WRITE and read its own report of the prior state.** A write that answers `already hidden` / `already false` is evidence from the document it is about to modify, not from a possibly-stale snapshot — and it is idempotent, so it costs nothing. **Prefer "re-run the write and see if it says it was already done" over "read it twice".**
+
+Where a published page can be consulted, that remains the best evidence of all; but for an unpublished change there is no page to read, which is exactly when this trap bites.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
