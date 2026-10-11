@@ -1402,6 +1402,22 @@ A plain `computer left_click` on the panel did **not** register, while dispatchi
 
 **What the panel shows on that layer:** `Source: Projects`, `State: Default | Empty`, `Filters: Sorting Order`, `Sorting: Reverse`. **After switching the source to `Home`, re-check the `Sorting Order` filter** — it is the binding `sERka2TFV` feeds, and it is the thing most likely to reset when the collection underneath it changes.
 
+**DONE AND PUBLISHED 2026-10-11 — the wide card is Home-controlled. But it is held in place by SORT ORDER, not by a filter, and that is fragile.**
+
+Shak repointed the Collection List and published. **The live wide card now renders `Home` SO 3 (`Projects`)** — and he also swapped its picture, so the published asset is `YiHAIuLBpK6Sk7Z7wCuwHGkm61w.jpg` rather than the placeholder it was seeded with. Verified by tracing the rendered asset through the CMS.
+
+**Everything else on the page is clean.** The two `./projects-list` hrefs are the wide card's own buttons (desktop `Button Blue to White`, mobile `Button Blue - No Hover`); the three `./projects-grid` hrefs are **footer sitemap links and pre-existing**. Full Home regression sweep passes — 11x `aspect-ratio:1.17458`, 0 stale `1.180xx`, both Elements breakpoint ratios, 2 hero overlays, `#f7f6f2` with no `#f6f4f0`, brand green, 60fps orb on 3 breakpoints, `lossless=1` 0, badge 0.
+
+**THE PREDICTED RISK MATERIALISED: the filter did not survive the source change.** The panel on `Project Left` now reads **`Filters: Inactive`**, with `Sorting: Reverse` still on — and the page instance has **lost its `sERka2TFV` control entirely** (it now reads `{"variant":"Q__AVxo4P","L2MOOUbt9":2}`).
+
+**So nothing is pinning the card to SO 3.** With no active filter, `Reverse` sorting and a limit of 1, the list simply takes the **highest `Sorting Order` in the Home collection** — which is 3 today. That the right item renders is a coincidence of ordering, not a binding.
+
+**The consequence to know: add a fourth Home item and the wide card silently switches to it.** It will not error and nothing will look broken; the home page will just start showing different artwork. The limit of 1 is confirmed from the published HTML — three Home items exist and the card renders **once per breakpoint**, not three times.
+
+**To make it robust:** reactivate `Filters` on `Project Left` (primary variant) and pin it to `Sorting Order` = the wide selector. If reactivating rebinds it to a variable, the instance control reappears and can then be set explicitly through the API, the way `sERka2TFV` was before. **Until that is done, treat the Home collection's `Sorting Order 3` as load-bearing and do not add a higher-numbered item.**
+
+**The general lesson, now evidenced twice in one task:** changing a Collection List's source **silently drops the filter that depended on it**, and the page-level control that fed that filter **disappears from the instance** rather than erroring. Neither failure announces itself, and the page can keep rendering the right thing for the wrong reason — so after any source change, re-read the panel for `Filters: Inactive` and re-read the instance's controls, not just the rendered output.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
