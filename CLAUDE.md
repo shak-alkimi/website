@@ -1800,6 +1800,25 @@ A **file** field was chosen over the Projects `[string]` URL because News alread
 - **One script can do the whole walk** if it `await`s between steps: click `Layers`, then for each of `Main`, `Section Hero`, `Image Wrapper` find the row by text and click the disclosure arrow at `row.x - 16`, sleeping ~700ms between, then select the leaf. This avoided five separate round trips and the usual re-render races.
 - **`Page.captureScreenshot` timed out again** on this page while JavaScript kept running — the documented canvas freeze. **Read the DOM to confirm state when a screenshot fails**; do not assume the action did not land.
 
+**A CMS BINDING IS NEITHER READABLE NOR WRITABLE — so "build the layer by script on a draft page" CANNOT finish a CMS-bound layer (established 2026-10-11).**
+
+Offered to flip `/news/:slug` to `draft: true` so the Video hero layer could be created by script, since `parentId` is honoured on draft pages. **Checked before taking the risk, and the plan does not work.**
+
+`Thumbnail` on the News hero visibly renders `Image Hero` — the panel shows `Fill -> Image Hero`. Yet a dump of **every** attribute on that node shows **no `backgroundImage` at all**, and a search across all its serialised attributes for both the field name and its id (`fzKguB9Z3`) returns **nothing**:
+
+```
+id, __class, name, visible, locked, rotation, opacity, position, top,
+centerX, width, height, overflow, gridItemFill*, isVariant, isBreakpoint…
+```
+
+**The binding is not stored in any attribute the API exposes.** That matches the conditional-visibility bindings on the projects list row and the Projects hero, and it generalises: **the Agent API can create and style a node, but cannot connect it to CMS data.** A scripted layer could only carry a *literal* value — one hard-coded video URL on every article, which is worse than not building it.
+
+**So the draft-flip was withdrawn before being used.** The risk was real — while `/news/:slug` is a draft, any publish removes every news article from the site — and it would have bought a layer that cannot do its job. **Verify that a risky route can actually reach the goal before taking the risk, not after.**
+
+**The correct route is the editor, and the cheapest version is to copy the working layer rather than build one:** open `Projects CMS Page / Hero Image - Video Projects Page`, copy its `Video Hero` out of `Image / Video Wrapper`, and paste it beside `Thumbnail` in the News `Section Hero > Image Wrapper`. That carries the tuned controls across; only the source, poster and visibility bindings then need repointing at the News fields, and those are exactly the parts that must be done by hand anyway.
+
+**Match `Thumbnail`'s geometry when pasting:** `position: absolute`, `top: 0px`, `centerX: 50%`, `width: 100%`, `height: 100%`, `overflow: hidden`.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
