@@ -1837,6 +1837,29 @@ That is the whole trick. `Image Hero` beside it is dimmed in the layer tree for 
 
 **Other values worth copying from `Video Hero`:** `Position: Relative`, `Size 95% x 95% Rel`, `Z index 1`, `Opacity 1`. **Note it is 95%, not 100%** — the News `Thumbnail` it will sit beside is `100% x 100%`, `position: absolute`, `top: 0px`, `centerX: 50%`, so the pasted layer needs adjusting rather than leaving as-is.
 
+**VIDEO HERO PASTED INTO THE NEWS TEMPLATE — geometry fixed by script, bindings still outstanding (2026-10-11).**
+
+Shak copied `Video Hero` out of the Projects hero component and pasted it into `/news/:slug` -> `Section Hero > Image Wrapper`. **The paste propagated to all three breakpoints by itself** (`LufckjoUy` + the `zFsVhGRay` / `P7DaU3y8E` breakpoint copies) — no need to repeat it per breakpoint.
+
+**The control values survived the paste intact**, which is the whole reason for copying rather than building:
+
+```json
+{ "srcType": "URL", "playing": true, "loop": true, "muted": true, "volume": 25,
+  "objectFit": "cover", "controls": false, "posterEnabled": true, "startTime": 0 }
+```
+
+**Geometry did NOT survive usefully and was corrected by script:** it arrived `95% x 95%` with `top: null`, against `Thumbnail`'s `absolute / top: 0px / centerX: 50% / 100% x 100%`. Set to match on all three breakpoints and verified. **This matters more than it looks** — `Image Wrapper` is a **horizontal Stack**, so anything not absolutely positioned becomes a flow child and sits *beside* the image rather than over it.
+
+**`srcUrl` came across as `""`.** A binding to a *different collection's* field cannot survive a paste, so the source, the poster and the visibility condition all have to be re-pointed by hand. **Copying a configured layer carries CONTROLS across but never BINDINGS** — worth knowing before assuming a paste is most of the work.
+
+**Still outstanding, all editor-only:**
+
+1. Source -> **`Hero Video`** (currently empty)
+2. Poster -> **`Hero Video - Poster`**
+3. `Visible` -> Condition -> **`Hero Video` · Is set** on the video, and **`Image Hero` · Is set** on `Thumbnail`
+
+**Note `Video Hero` currently reads `visible: false`.** If no Condition is attached, that is a plain false and **the layer will never render** — the API cannot distinguish the two, so this must be confirmed in the panel.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
