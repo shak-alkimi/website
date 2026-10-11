@@ -1569,6 +1569,27 @@ Tuft has no image fields set at all and its containers are **absent from the mar
 
 **Note the published page and the CMS disagree on Resorts World too:** the page serves `DP8GLV2R…jpg` in that slot while the CMS has `fLGXAp7C…jpg` in `Image 4`. More of the same staleness, and another reason to publish before diagnosing anything on these pages.
 
+**THE 16x9 BLOCK IS HIDDEN, NOT DELETED — `remove()` SILENTLY FAILED (2026-10-11).** Shak reaffirmed the request after being shown the cost, so it was carried out.
+
+**`Image Wrapper 16x9` exists three times** on `/projects/:slug`, one per breakpoint — `yL2ZxuOn2` (Desktop), `E0qmMgmpWyL2ZxuOn2` (Tablet), `ZgcpmiHckyL2ZxuOn2` (Phone), all at `Main > Container Relative > Section Images`.
+
+**Deletion is not possible through the API here, and it fails DISHONESTLY:**
+
+- `framer.removeNodes([ids])` — no effect. `framer.getNode(id)` returns **null** for all three, so the ids are not addressable.
+- `node.remove()` on **live handles obtained by traversal** returned **`ok` for all three** — and **two fresh sessions both showed all three still present.**
+
+So `remove()` joins the silent-failure family (`ImageAsset` literals, gradient literals, the `variant` control). The tell is the same as the orphan variant `hLYcAEbg2`: **`removeNodes` does not reach inside a `ComponentNode`**, and `getParent` returning `null` for these nodes was the early clue that they are component-internal despite the page-looking path.
+
+**`setAttributes({ visible: false })` worked first time on all three** and verified in two fresh sessions — consistent with the standing rule that **mutating** an existing component-internal node works where **creating or deleting** one does not.
+
+**Net effect is identical on the published page** (a hidden layer emits no markup) and it is **reversible**, which a deletion would not have been. **If a true deletion is ever wanted it must be done by hand in the editor.**
+
+**The pre-deletion state is recorded at [repair/deleted-image-wrapper-16x9.json](repair/deleted-image-wrapper-16x9.json)** — all three nodes with full attributes (`position: absolute`, `top: 798px`, `centerX: 50%`, `width: 1fr`, `height: 674.5px`, `aspectRatio: 1.778`, `borderRadius: 10px`, `overflow: hidden`, horizontal centred stack, `gap: 10px`, one child named `Image`), so the block can be rebuilt if the decision is revisited.
+
+**Known cost, accepted by Shak after it was raised:** Resorts World has a real photograph in this slot (`DP8GLV2R…jpg` on the published page) and will now lose it on all three breakpoints. Belmont Park and Tuft had nothing there.
+
+**A capture trap worth avoiding:** the first attempt to record the pre-state piped the `exec` output through `tail -60`, which **silently truncated the JSON to the last node only** — the restore record would have covered Phone and lost Desktop and Tablet. **Write an `exec` dump straight to a file and count the entries before trusting it as a backup.**
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
