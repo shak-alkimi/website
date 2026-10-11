@@ -1716,6 +1716,25 @@ Tuft fares best only because 4:3 is closer to portrait than 16:9. **Every duo im
 
 Heroes are fine and need nothing: cover-scales of **0.89** (Resorts World), **1.14** (Belmont), **0.79** (Tuft) into a `1554x1209` box.
 
+### Removing the "X min read" — it lives in TWO places, and one of them hides the date too (2026-10-11)
+
+**It is NOT one layer and it is NOT the CMS field.** There are two independent renderings:
+
+| where | layer | scope |
+|---|---|---|
+| article **cards** (Home newsroom, `/news` listing, related articles) | `News / News Article` -> `Container > Details > Stack > `**`Time Read`** | **6 variants** |
+| the article **hero** on `/news/:slug` | `Section Hero > Heading > Add On > Time Wrapper > Time read` | **3 breakpoints** |
+
+**On the card, the circled arrow is INSIDE `Time Read`** — the wrapper holds `Arrow Wrapper` plus the `2 min read` text — so hiding the wrapper removes the arrow and the text together, which is how the two read visually. Hiding one variant **cascaded to the other five**.
+
+**On the hero it is the opposite: hiding the wrapper would have destroyed the date.** `Time read` contains **three** children — `6 min read`, a `|` separator, and `December, 27th 2024`. Only the first two were hidden; the date is preserved on all three breakpoints. **Always enumerate a wrapper's children before hiding it by name** — "Time read" sounds like it holds the read time and nothing else.
+
+**CLEARING THE CMS FIELD WOULD NOT HAVE WORKED, and the proof was already on the site.** News carries a **`Time Read` [string]** field, and the obvious fix is to blank it. But the live article *"A fresh depth of color"* already has `Time Read = ""` **and its card still renders "2 min read"** — the layer's design-time text. **An empty string falls back to the placeholder rather than rendering nothing**, so emptying the field would have left a wrong, fixed "2 min read" on every card. The CMS values are untouched and still hold `4 min read` / `5 min read` etc., so this is reversible.
+
+**A related reading trap:** the published `/news` shows **"2 min read" on all three cards** while the CMS holds `""`, `"4 min read"` and `"5 min read"`. That is the same placeholder fallback, not three identical articles — **a repeated value across rows is the signature of a design-time default, exactly as the repeated `8rw9b6TQ` tile was.**
+
+**Scanning note:** a full `getText` walk over every page and component did not finish in two minutes and had to be killed. **Searching by layer NAME is far cheaper than reading text**, and works here because Framer names a text layer after its content — `2 min read`, `6 min read`, `December, 27th 2024`.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
