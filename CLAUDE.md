@@ -1334,6 +1334,33 @@ The `/projects-list` fifth-slot fix shipped in the same publish: `resorts-world`
 
 **JPEG conversion of that PNG, for reference** (`-q:v 2 -pix_fmt yuvj444p`): `3.96 MB -> 0.60 MB`, **15.1%** of the original, at **PSNR 43.9 dB**, mean delta `1.176`, max `19`, retaining 535,825 of 899,070 distinct colours. **Its alpha channel was 100% opaque** — 2,895,342 of 2,895,342 pixels at `alpha 255` — so nothing was lost to the lack of transparency in JPEG. **Always measure alpha coverage before converting an RGBA PNG**: a dead alpha channel makes the conversion free, while real transparency forces a matte colour choice that is very hard to undo.
 
+### The Home wide card is wired to PROJECTS, not Home (traced 2026-10-11)
+
+The full-width card under the Fixtures/Elements pair is `Home / Home - Projects Row 2` (`QOhH3GYAD`), variant `Home Project Single - Wide` (`Q__AVxo4P`). Its page instance carries `{"variant":"Q__AVxo4P","VKA4llfY9":1,"L2MOOUbt9":2,"sERka2TFV":2}`.
+
+**`sERka2TFV` is the wide selector and it resolves against the PROJECTS collection** — this is the documented one-component-two-collections trap, confirmed by tracing the rendered asset rather than by reading the binding:
+
+| card | control | collection | item | asset |
+|---|---|---|---|---|
+| two-up left | `VKA4llfY9: 1` | **Home** | Fixtures (SO 1) | `G9BZgzpc….jpg` |
+| two-up right | `L2MOOUbt9: 2` | **Home** | Elements (SO 2) | `X4rVDH7X….jpg` |
+| **wide** | **`sERka2TFV: 2`** | **Projects** | **Belmont Park (SO 2)** | `8yvUOxGq….png` |
+
+**CORRECTING THE PNG AUDIT: `8yvUOxGqyLzb66t3xaX6xcUhkBY.png` was recorded as "Home — hero poster". It is not.** It is **Belmont Park's `Thumbnail Image - Wide`**, rendering in the Home wide card. The hero poster was separately rebuilt as a JPEG on 2026-10-08 and is a different asset. Two Home notes are affected: the audit row calling this the poster, and the 2026-10-09 claim that the only PNGs left on Home were the two article thumbnails — there are **three**. (Harmless now that the quantisation finding is overturned, but the label was wrong.)
+
+**The method that settled it, and it is the reusable part:** collection bindings do **not** surface through the node API — a recursive probe of every attribute matching `/collect|filter|sort|data|source|cms/i` across the whole variant returns nothing, and `getCollection(id)` is the only collection-side method in the docs. So **trace the rendered asset id back through every CMS image field instead**. One pass over all collections comparing `fieldData[f].value.id` against the ids in the published HTML names the owning item unambiguously — far quicker than reasoning about which control points where.
+
+**To move the wide card onto the Home collection, four things are needed and one of them cannot be scripted:**
+
+1. **A third Home item at `Sorting Order 3`** — Home holds only `Fixtures` (SO 1, slug `polestar`) and `Elements` (SO 2, slug `arrival`), and both are already spoken for by the two-up row. Scriptable, but **pass `draft` explicitly** (see the `addItems` trap).
+2. **Re-point the Collection List** inside `Q__AVxo4P` -> `Project Left` from Projects to Home. **EDITOR ONLY** — there is no API for a collection binding.
+3. **`sERka2TFV: 2 -> 3`** on the Home page instance. Scriptable; it is not the `variant` control, so it writes fine.
+4. **Fix the button link.** The wide card's `Utilities / Primary Button` carries `NhREodF7M: "/projects/:slug"`, which only resolves for a Projects item. Home slugs are `polestar` / `arrival` and **have no pages**, so the button would link to a 404. Point it at `./products` / `./elements` or hide it.
+
+**No new CMS fields are required** — `Home` and `Projects` carry **identical schemas** (25 fields each, both including `Thumbnail Image - Wide`), which is what makes this cheap.
+
+**The cheaper alternative, if the goal is only a different picture:** leave the wiring alone and either change `Thumbnail Image - Wide` on the Projects item it already points at, or set `sERka2TFV` to another Projects `Sorting Order`. One value, no editor work, no link problem.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
