@@ -1380,6 +1380,16 @@ Shak asked for a Home-controlled slot rather than a different picture.
 
 **Sequencing rule worth keeping: when a rewire spans an API change and an editor change, order the steps so that no intermediate state is publishable-wrong.** Here step 1 is invisible (nothing points at Home SO 3 yet) and steps 3-4 are invisible-but-wrong until step 2 exists, so the only safe order is 1 -> 2 -> 3/4 -> publish once.
 
+**Step 4 (done, 2026-10-11): the wide card's button now points at `/projects-list`.** Shak's choice of destination. Written to the `Project Left` button (`…beNpOjgIR`) on **all three** variants that render the wide card — `Q__AVxo4P` (desktop base), `uR6T4xhGK` (hover gesture) and `tDcw55E8Q` (mobile). Verified in two fresh sessions: labels (`"Projects"`) and `variant` preserved, and **exactly 17 other buttons on the component still read `/projects/:slug`**, which is the expected count and the check that proves a partial `controls` write did not clobber its siblings.
+
+**The component carries 20 buttons across 10 variants** — two per variant (`Project Left` + `Home Project Right`). Only the three wide ones were touched; the `Home Project Right` button does not render in a wide variant, and the two-up variants of Row 2 never render at all.
+
+**The link fix was necessary, confirmed rather than assumed.** The published Home page emits `./projects/belmont-park` twice — the wide button, which resolves today **only because the card is still a Projects item**. After step 2 it would have become `/projects/projects`. Checked live: `/projects/polestar`, `/projects/arrival` and `/projects/projects` all return **404**; `/projects-list` returns **200**.
+
+**No pre-existing 404 on Home.** The two-up cards are Home items whose slugs have no pages, so their `View Case Study` buttons would be broken links — but **Framer emits no `href` at all for an unresolvable CMS link**, and the published page carries no `/projects/polestar` or `/projects/arrival`. Worth knowing: an unresolvable CMS link fails silently by being omitted, not by shipping a dead URL, so this class of fault will never show up in a link check of the published HTML. Read the control, not the page.
+
+**Running state: steps 1 and 4 done, step 2 (editor) outstanding, step 3 held.** Step 4 is publishable-safe on its own — it only changes where the wide button goes, from the Belmont Park case study to the projects list.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
