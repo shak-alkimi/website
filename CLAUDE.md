@@ -1418,6 +1418,20 @@ Shak repointed the Collection List and published. **The live wide card now rende
 
 **The general lesson, now evidenced twice in one task:** changing a Collection List's source **silently drops the filter that depended on it**, and the page-level control that fed that filter **disappears from the instance** rather than erroring. Neither failure announces itself, and the page can keep rendering the right thing for the wrong reason — so after any source change, re-read the panel for `Filters: Inactive` and re-read the instance's controls, not just the rendered output.
 
+**TIDIED 2026-10-11 — the filter is reactivated and pinned. NEEDS A PUBLISH (editor shows "1 change").**
+
+The wide card's `Project Left` now reads **Source `Home`**, **Filters `Sorting Order` -> `Equals` -> `3`**, with `Sorting: Reverse` and `Limit to: 1` left in place (both now inert, since exactly one item matches). The card is no longer held in position by sort order — it is bound.
+
+**Why the filter had gone inactive, seen directly:** opening it showed **`Field: Select…`** — empty. The filter object survived the source change, but its *field* did not, because the field it named belonged to Projects. Framer leaves the orphaned filter in place and marks the whole thing `Inactive` rather than deleting it or warning. **So "Filters: Inactive" means "the filter exists but its field is dangling", and the repair is to re-pick the field, not to rebuild the filter.**
+
+**The filter panel is native `<select>` elements**, so the recorded method applies: `Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value').set.call(sel, v)` plus `input` + `change`. Two selects in the popover — field (29 options, the Home schema) and comparison (`Is set`, `Isn't set`, `Equals`, `Doesn't equal`, `Greater than`, `Less than`, `Less than or equal`, `Greater than or equal`). **`Equals` reveals a `Value` number input that defaults to `0`** — which matches nothing, so the card would have gone blank had it been left there. Set it in the same pass.
+
+**Note what `Is set` would have done:** it is the default on picking a field, and it matches **every** item that has a value. Combined with `Reverse` + `Limit 1` that reproduces the exact fragility being fixed — right answer, no binding. **`Is set` is not a filter; treat it as a placeholder.**
+
+**The value is a literal `3`, not a variable.** The original design fed this from the instance control `sERka2TFV`, which vanished with the source change and was not restored. That is acceptable **only because this component has exactly one page instance** — a literal would be wrong on `Home - Projects Row`, which has four and needs per-instance selection. **If Row 2 is ever reused on another page, convert this back to a variable first.**
+
+**Side effect, harmless and worth knowing:** the primary variant's canvas now renders the `Projects` Home item in its left card rather than `Fixtures`, because the filter is shared across the component's variants. Row 2's two-up variants render nowhere on the site, so this is canvas-only.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
