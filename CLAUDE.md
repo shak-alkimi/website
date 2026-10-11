@@ -1659,6 +1659,24 @@ Both halves were undone together, which matters: `Section Details` -> `visible: 
 
 **Current state of `Section Images` padding is doing two jobs** — `0px` top because `Section Details` is visible again and pads below itself, `120px` bottom because `Section Quote` is hidden and no longer does. **If `Section Quote` is ever restored, that bottom `120px` must go back to `0px`**, exactly as the top padding did when `Section Details` came back.
 
+**ALL FIVE CHANGES PUBLISHED AND VERIFIED LIVE 2026-10-11.**
+
+| change | verified on the served page |
+|---|---|
+| `/projects-list` cut to three images | **3 wrappers / 3 images on every row** |
+| the stale `8rw9b6TQ` tile | **0 references** — the publish cleared it, as predicted |
+| Home wide card on the Home collection | `YiHAIuLB…jpg` present (12 srcset refs) |
+| `Image Wrapper 16x9` hidden | **0** on all three project pages |
+| `Section Details` restored / `Section Quote` hidden | **Details 1, Quote 0** on all three |
+
+`Section Images`' replacement spacing ships as **`padding:0 15px 120px`** — Framer normalises `0px` to `0` and drops the redundant fourth value, so **grepping the published CSS for the exact string that was written finds nothing**. Match on the number, not the literal. Full Home regression sweep passes on all ten checks.
+
+**CORRECTION — "Tuft has no list images" was WRONG, and it was asserted twice.** Tuft now reads `Image Hero = pSGHfoXan…`, `Image 1 = sxoArsOU…`, `Image 2 = PxKLMSkN…`, and its row renders three images correctly. An earlier read reported all five slots empty with only `Thumbnail Image - Wide` set, and on that basis Shak was warned twice that his row would publish blank.
+
+**The hydrated DOM had already contradicted that at the time** — it showed exactly `pSGHfoXan / sxoArsOU / PxKLMSkN` for `tuft-barber` — and that contradiction was explained away as a stale build rather than treated as evidence against the CMS read. **It is not possible to tell now whether Shak populated the fields after the warning or the read was stale all along**, but the second possibility can no longer be dismissed, because today established that **two agreeing fresh sessions can both serve stale data**.
+
+**The lesson is about which source wins.** When a CMS read and the rendered page disagree, the instinct used here was "the document is current, the page is stale". That is sometimes true — the `8rw9b6TQ` tile really was stale build output — but **it is not a rule, and it was applied as one.** Where a published page shows *more* data than the document, suspect the read before announcing missing content, and never warn a user that their content is absent on the strength of an API read alone.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
