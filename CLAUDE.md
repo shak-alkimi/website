@@ -1531,6 +1531,8 @@ Mobile Non Active  Hero=vis  1=vis  2=vis  3=HIDDEN  4=HIDDEN
 
 **Three of the six variants already had `Image Wrapper 3` hidden** (`Non Active`, `Mobile Active`, `Mobile Non Active`) — which corrects the earlier reading that all five wrappers were unconditionally visible. `Non Active` is the **resting** state, so the fourth tile a visitor saw was `Image Wrapper 4`, not 3. The conclusion was right, the slot attribution was not. **A panel reading taken on one variant does not describe the others; read all of them.**
 
+**Confirmed in two independent fresh sessions**, which both returned the table above byte for byte. A third attempt in between died with *“Connection to the Framer server was lost”* — **a dropped relay is not a disagreeing read**, and must not be counted as one of the two agreeing confirmations in either direction. Re-run it.
+
 **The CMS is untouched** — `Image 3` and `Image 4` remain populated on Resorts World and Belmont Park, simply unrendered, so this is reversible without data loss.
 
 **This also permanently closes the stale-image defect**: with slots 4 and 5 unable to draw, a stray or stale value in those fields has nowhere to appear.
