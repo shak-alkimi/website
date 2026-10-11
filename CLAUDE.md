@@ -1819,6 +1819,24 @@ centerX, width, height, overflow, gridItemFill*, isVariant, isBreakpoint…
 
 **Match `Thumbnail`'s geometry when pasting:** `position: absolute`, `top: 0px`, `centerX: 50%`, `width: 100%`, `height: 100%`, `overflow: hidden`.
 
+**THE CONDITIONAL-VISIBILITY MECHANISM, FOUND AT LAST: `Visible` -> `Condition` -> `<Variable>` + `Is set` (2026-10-11).**
+
+Read directly off the working `Video Hero` in `Projects CMS Page / Hero Image - Video Projects Page`:
+
+```
+Styles -> Visible -> [Condition]        (purple chip, not a Yes/No toggle)
+   Variable : Hero Video URL
+   Operator : Is set
+```
+
+That is the whole trick. `Image Hero` beside it is dimmed in the layer tree for the same reason, with the complementary condition. **This is why both layers read `visible: false` through the API** — the stored boolean is irrelevant; the Condition decides.
+
+**CORRECTION — an earlier note in this file is WRONG.** When the `/projects-list` row was cut to three images, this was recorded: *"binding visibility to a field being non-empty is NOT directly available… an image variable's editor offers only Name, Description and Default — there is no Optional flag."* **The `Optional` flag was the wrong thing to look for.** `Visible -> Condition -> Is set` does exactly the job, and it was sitting in the Projects hero the whole time. The list row could have been made self-adjusting — each `Image Wrapper` visible only when its own `Image N` is set — instead of hard-hiding wrapper 3 and switching the boolean off.
+
+**The outcome there is still correct**, because Shak asked for exactly three images on every row and a hard hide guarantees that where a condition would not. **But the reasoning given for it was wrong, and the option should have been offered.** If the list row ever needs to be variable-length again, this is the mechanism.
+
+**Other values worth copying from `Video Hero`:** `Position: Relative`, `Size 95% x 95% Rel`, `Z index 1`, `Opacity 1`. **Note it is 95%, not 100%** — the News `Thumbnail` it will sit beside is `100% x 100%`, `position: absolute`, `top: 0px`, `centerX: 50%`, so the pasted layer needs adjusting rather than leaving as-is.
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
