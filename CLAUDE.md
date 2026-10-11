@@ -1507,6 +1507,36 @@ Image Wrapper 1..4  <-  Image 1 .. Image 4
 
 **Note the CMS keeps its data either way** — `Image 3` and `Image 4` stay populated on Resorts World and Belmont Park, just unrendered, so the decision is reversible.
 
+**APPLIED 2026-10-11 — the list row now shows exactly THREE images per project. NEEDS A PUBLISH.** Both changes were made through the Agent API rather than the editor, which `Image Wrapper 3` allows because **mutating an existing component-internal node works** (only creating and deleting inside a component fails).
+
+| change | scope | result |
+|---|---|---|
+| `Image Wrapper 3` -> `visible: false` | all **6** variants | 3 were already hidden; 3 were set (`Active`, `Tablet Active`, `Tablet Non Active`) |
+| `idiWQDru6` (`5th Image Visible`) -> `false` | all **30** row instances (10 rows x 3 breakpoints) | 6 were `true` and got flipped; the rest already `false` |
+
+**Audit of all 30 wrapper layers:**
+
+```
+Active             Hero=vis  1=vis  2=vis  3=HIDDEN  4=vis
+Non Active         Hero=vis  1=vis  2=vis  3=HIDDEN  4=vis
+Tablet Active      Hero=vis  1=vis  2=vis  3=HIDDEN  4=vis
+Tablet Non Active  Hero=vis  1=vis  2=vis  3=HIDDEN  4=vis
+Mobile Active      Hero=vis  1=vis  2=vis  3=HIDDEN  4=HIDDEN
+Mobile Non Active  Hero=vis  1=vis  2=vis  3=HIDDEN  4=HIDDEN
+```
+
+`Image Wrapper 3` hidden **6/6**; the only other hidden wrappers are `Image Wrapper 4` on the two **Mobile** variants, which was pre-existing. **Row instances: 30, with the fifth image still on: 0.**
+
+**So every breakpoint lands on three tiles, by two different routes** — desktop and tablet keep `Image Wrapper 4` *visible* but gated off by the boolean, while mobile hides it outright. Worth knowing, because **turning the boolean back on would restore a fourth tile on desktop and tablet but NOT on mobile**.
+
+**Three of the six variants already had `Image Wrapper 3` hidden** (`Non Active`, `Mobile Active`, `Mobile Non Active`) — which corrects the earlier reading that all five wrappers were unconditionally visible. `Non Active` is the **resting** state, so the fourth tile a visitor saw was `Image Wrapper 4`, not 3. The conclusion was right, the slot attribution was not. **A panel reading taken on one variant does not describe the others; read all of them.**
+
+**The CMS is untouched** — `Image 3` and `Image 4` remain populated on Resorts World and Belmont Park, simply unrendered, so this is reversible without data loss.
+
+**This also permanently closes the stale-image defect**: with slots 4 and 5 unable to draw, a stray or stale value in those fields has nowhere to appear.
+
+**A caution for the walker:** finding these instances needs a traversal depth of **at least 7** — `Page > Breakpoint > Main > Section Projects > Container > Projects List > Projects > instance`. An earlier pass capped at `d < 6`, found nothing, and returned a confident empty result. **A depth-limited walk that finds nothing is not evidence of absence.**
+
 ### Project detail template ("More projects" row)
 
 `/projects` → `Projects` in the Pages panel is the CMS **detail-page template** (one generated page per item at `/projects/{slug}`), not a separate page. `/news` → `News` is the same for articles.
