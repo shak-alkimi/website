@@ -2276,6 +2276,13 @@ Card is `391` CSS px; photo layers are `140%` (Connector, LED) and `185%` (Drive
 
 **RIMA 5 AT 50% IS CORRECT, AND AN EARLIER RECOMMENDATION HERE WAS WRONG.** The CMS ratio is `0.20 / 0.39 = 0.513`; the drawing is `0.500`; the **photo subject is `0.756`**. 75% was recommended on the grounds that it matched the photo — the real dimensions show the drawing is right and **the photo is the outlier**, overstating Rima 5 by about 50%.
 
-**Dimension string characters were normalised 2026-10-12:** the separator was a **letter `x` (U+0078)** on the three-dimension Elements entries and is now the multiplication sign (U+00D7); the inch mark was a **straight quote (U+0022)** on all five Elements plus `Vena Round Mini` and is now the prime **U+2033**, matching the other ten Fixtures. All 16 products now agree on characters.
+**Dimension string characters were normalised 2026-10-12.** Two separate things were wrong and both are fixed across all 16 products on both pages:
+
+| | before | **now** |
+|---|---|---|
+| separator | mixed — `×` (U+00D7) then a **letter `x`** (U+0078) on the three-dimension Elements entries | **`×` U+00D7** throughout |
+| inch mark | mixed — straight quote on 5 Elements + `Vena Round Mini`, prime on the other 10 Fixtures | **straight quote `"` U+0022** throughout |
+
+**The inch mark is the STRAIGHT QUOTE by Shak's choice, not the prime — do not "correct" it to `″`.** It was briefly normalised the other way (to U+2033, the typographically conventional character for inches) and then switched back on his instruction the same day. Both are internally consistent; this is a settled preference, so a future typography pass should leave it alone.
 
 **The width-only format on the Rima pair is SETTLED — leave it (Shak, 2026-10-12). Do not "fix" it to match the other three.** `Rima 5` reads `0.20w` and `Rima 10` reads `0.39w`, where `Liga T`, `Liga W` and `Driver 5-1` state length x width x height. That is a deliberate difference, not an oversight: the Rimas are tape light supplied on a reel and cut to length, so width is the only fixed dimension and a stated length would be meaningless. A future audit should not re-flag this as an inconsistency.
