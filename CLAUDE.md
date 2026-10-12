@@ -2654,3 +2654,34 @@ Shak: *"move prisma link 1 and 2 left and make them larger like their dimensions
 **Ink coverage held at the reference `1.56%` through the resize**, re-solved rather than carried over, because the frame change alters the card scale and therefore the rendered weight. **Both gains stayed under the `x1.85` threshold**, and `Link 2`'s actually fell (`x1.740 -> x1.502`) since the smaller frame raises its card scale.
 
 **The tuning knob is `SCALE` (`84.8 %/inch`).** Raising it enlarges both and increases the bleed; lowering it pulls them back inside the frame. `RIGHT` (`0.95`) sets how much margin sits to the right of the end cap.
+
+**Prisma Links re-framed to Flow Straight's right-side treatment, and enlarged again (2026-10-12).**
+
+Shak: *"the right most fixture link should be the center of the card - right side should reference how the flow straight handles its, make link 1 and 2 larger as well."*
+
+**Measured the reference rather than guessing at "centre":** `Flow Straight` puts its right end at **`62.9%`** with a **`37.1%`** right margin; `Flow Spine` at `60.6%` / `39.4%`. The Links had been at `95%` / `5%` — hard against the edge. Adopted `62.9%` exactly, which places the **rightmost link straddling the card centre**, matching Shak's description.
+
+Scale `84.8 -> 110 %/inch`. Final: both right ends at `62.9%`, margin `37.1%`, coverage `1.56%`.
+
+| | frame | cut off left | gain |
+|---|---|---|---|
+| `Prisma Link 1` | `949 -> 731` | **`48.9%`** | `x0.962` |
+| `Prisma Link 2` | `822 -> 634` | **`58.5%`** | `x1.020` |
+
+**A VERTICAL BUG WAS INTRODUCED AND CAUGHT BEFORE SHAK SAW IT — worth recording because it is a natural consequence of cropping an isometric drawing.** The first attempt centred vertically on the **whole product**, then cut away its left portion. These bars **descend left-to-right**, so removing the left (higher) half leaves only the lower part, and the visible content sat at `56.1%` / `58.8%` — visibly low against `Flow Straight`'s `47.1%`.
+
+**Fix: compute the vertical centre from only the columns that survive the crop**, not from the full bbox:
+
+```js
+let vT=1e9,vB=-1;
+for (let y=g.aY; y<=g.bY; y++)
+  for (let p=Math.max(g.aX,left); p<=Math.min(g.bX,left+F-1); p++)
+    if (d0[(y*W+p)*4] < 200) { if(y<vT)vT=y; if(y>vB)vB=y; break }
+const top = Math.round((vT+vB)/2 - F/2);
+```
+
+Result `49.93%` / `50.00%`. **Whenever a crop removes part of a diagonal subject, the vertical centring must be recomputed on what remains — the full-extent centre is no longer the visible centre.**
+
+**Note the gains fell to about `x1.0`**, i.e. the sources now need essentially no adjustment: the much smaller frame raises card scale so far that the lines render at the right coverage unaided. **The side effect is wider, lighter strokes** — darkest `132` / `163` against `Flow Straight`'s `81`. Coverage is matched, so total darkness is right, but at this magnification the character is softer. **If that reads wrong, the lever is the weight reference, not the size** — and the durable answer remains a re-export with a heavier stroke.
+
+**Cost accepted: roughly half of each drawing is now off-frame** (`48.9%` / `58.5%`). Defensible only because these are repeating chains, as recorded above.
