@@ -2489,3 +2489,27 @@ Applied the standard pipeline to the replaced drawing: **lossless crop `2000 -> 
 **The consequence is not academic: `x2.02` sits ABOVE the `x1.85` threshold at which Shak has rejected four drawings**, so the work was offered on a premise that turned out false. Shipped at reference weight anyway because continuity was the brief and the previous `Flow 20` also rendered at `0.384` — landing anywhere else would itself have been a visible change — **but the crop-only build (weight `0.188`) is kept at `scratchpad/crop/flow20_cropOnly.png` and is one upload away if the gain reads wrong.**
 
 **Note the new artwork is intrinsically lighter than what it replaced:** the old drawing measured `0.502` and had to be darkened `x0.77`; the new one needs `x2.02` of brightening for the same result. **If the gain looks soft, the real fix is a re-export with a heavier stroke, not a larger gain.**
+
+### The three replaced drawings share a ROOT CAUSE: the exports' stroke width is not scaling with the drawing (2026-10-12)
+
+`Flow 20`, `Prisma Link 1` and `Prisma Link 2` were all replaced by Shak and all needed large upward ink gains. Measuring **stroke mass at SOURCE resolution** — no scale extrapolation, after that trap was hit on Flow 20 — shows why:
+
+| drawing | product px | stroke px | **stroke as % of product** | vs reference |
+|---|---|---|---|---|
+| `Prisma Multiplier` (reference, untouched) | 630 | 0.890 | **0.1413%** | — |
+| old `Prisma Link 1` | 473 | 0.576 | 0.1219% | |
+| **new `Prisma Link 1`** | **901** | 0.459 | **0.0509%** | **2.8x thinner** |
+| old `Prisma Link 2` | 527 | 0.565 | 0.1072% | |
+| **new `Prisma Link 2`** | **962** | 0.557 | **0.0579%** | **2.4x thinner** |
+| old `Flow 20` | 547 | 0.690 | 0.1262% | |
+| **new `Flow 20`** | 494 | 0.384 | **0.0778%** | **1.8x thinner** |
+
+**Read the Prisma rows carefully: the product nearly DOUBLED in source pixels (473 -> 901, 527 -> 962) while the stroke stayed about the same absolute width.** That is the signature of an export whose line weight is a fixed absolute value rather than one that scales with the drawing. Draw the part twice as large at the same pen width and its lines are half as heavy relative to the part — which is exactly what the ink gains then have to undo.
+
+**So the large gains are a SYMPTOM, not the problem.** `Prisma Link 1` needed **`x2.757`**, above the `x1.85` at which Shak has rejected four drawings; `Prisma Link 2` needed `x1.461` and `Flow 20` `x2.023`.
+
+**THE FIX IS AN EXPORT SETTING, and it is specific:** re-export with the stroke scaled so it lands at **~0.14% of the product's longest dimension**, matching `Prisma Multiplier`. Concretely that means a **`x2.8`** heavier stroke on `Prisma Link 1`, **`x2.4`** on `Prisma Link 2` and **`x1.8`** on `Flow 20`. Do that and **no ink gain is needed at all** — the drawings arrive at reference weight by construction, and the whole reject-and-revert cycle disappears.
+
+**All three are shipped at reference weight meanwhile**, verified on the hosted assets (fill within `0.11` of target, centre within `0.06` of `50/50`, weight `0.384`, no alpha, clean corners, ink pixel count unchanged). Both Prisma drawings are **different artwork**, not re-exports — shape distance `11.92` and `12.13`.
+
+**Add this to the intake check for any replaced drawing:** measure stroke as a percentage of product size at source resolution and compare against `0.1413%`. It predicts the required gain before any processing, and a figure far below it means the file should go back for re-export rather than be rescued with a gain.
