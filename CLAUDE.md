@@ -2875,3 +2875,38 @@ Result: `Vena` `21.85%` against `Vena Corner` `24.26%` — correctly 10% smaller
 | **isometric extrusions** | end-cap height | width is arbitrary **run length**, not a product dimension |
 
 **Applying either metric to the other group is wrong**: geometric mean on an extrusion would scale it by how much run happens to be drawn, and height on a section ignores its aspect. **This is the third time a convention built for one drawing kind mis-applied to the other** — after the right-edge anchor and the end-cap vertical centre.
+
+### Extrusions rebuilt on a TRUE UNIFORM SCALE — the aspect skew is now gone from both groups (2026-10-12)
+
+Shak asked whether all eleven had been checked with the corrected method. **They had been VERIFIED with it, but only the sections had been REBUILT** — the extrusions still carried the same structural flaw, targets derived from `sqrt(w x h)` while the rendered measure was end-cap **height alone**.
+
+**Quantified before acting**, since the honest answer depended on magnitude. Matching height when the target came from `sqrt(w x h)` skews effective size by `sqrt(aspect)`:
+
+| group | aspect range | worst skew |
+|---|---|---|
+| sections (before the fix) | `0.89` to `1.72` | **39%** |
+| **extrusions** | `0.78` to `1.16` | **22%** |
+
+Real but a third the size of the pair Shak's eye caught, which is why it had gone unnoticed.
+
+**THE FIX IS NOT THE SECTION FIX — an extrusion cannot be measured the same way**, because its box width is **run length**, not product. The correct treatment is to set each drawing's **SCALE**, not its measured size: with `s` proportional to `size^(gamma-1)`, every linear dimension renders proportionally and the face width comes along for free. The end-cap height is then only the *verification* of that scale:
+
+```
+rendered height  =  s x h  ∝  h / (w x h)^0.25       (gamma 0.5)
+```
+
+**Effective size — real size multiplied by the scale actually used — is now monotonic in both groups**, which is the property that was missing:
+
+```
+sec: 17.56 < 19.09 < 19.57 < 21.85 < 24.26 < 25.01
+ext: 16.16 < 16.73 < 17.04 < 18.01 < 21.00
+```
+
+**A COUNTERINTUITIVE RESULT THAT IS CORRECT — do not "fix" it.** `Flow Spine` now renders a **shorter end-cap than `Flow 20`** (`15.50%` against `16.16%`) despite being the larger product. They share a real height of `0.79"`; `Flow Spine` is wider, so under compression it is drawn at a slightly smaller scale, and its extra size shows in the end-cap **width** instead. Rendered height is deliberately no longer monotonic — effective size is.
+
+**THE COST, AND IT IS THE LARGEST UPSCALE YET: `Prisma Link 2` is now at `1.52x`** (from `1.25x`). The relative sizes are fixed by the metric but the absolute anchor is free, and the two ends pull against each other:
+
+- anchor on `Flow Straight` (**chosen**) — holds the Flows where Shak placed them; `Prisma Link 2` upscales `1.52x`
+- anchor on `Prisma Link 2` at 1:1 — no upscaling anywhere, but the Flows shrink and slide back to `~50%` right end, undoing the previous pass
+
+**`1.52x` sits between the `1.25x` accepted and the `1.85x` rejected**, so it is the one thing on this page worth a careful look. A higher-resolution `Prisma Link 2` export removes the choice entirely.
