@@ -2513,3 +2513,33 @@ Applied the standard pipeline to the replaced drawing: **lossless crop `2000 -> 
 **All three are shipped at reference weight meanwhile**, verified on the hosted assets (fill within `0.11` of target, centre within `0.06` of `50/50`, weight `0.384`, no alpha, clean corners, ink pixel count unchanged). Both Prisma drawings are **different artwork**, not re-exports — shape distance `11.92` and `12.13`.
 
 **Add this to the intake check for any replaced drawing:** measure stroke as a percentage of product size at source resolution and compare against `0.1413%`. It predicts the required gain before any processing, and a figure far below it means the file should go back for re-export rather than be rescued with a gain.
+
+### Flow 20 and the Prisma Links enlarged; Flow Spine / Flow Straight centred (2026-10-12)
+
+Shak: *"prisma link 1 and 2 need to be larger and flow 20 needs to match flow spine and slow straight size."*
+
+**First, a check that stopped a bad assumption.** `Flow Spine` and `Flow Straight` measure `60.65%` / `62.85%` fill while sitting off-centre at `~30/47`, which elsewhere in this project is the signature of a **trailing cable** stretching the bounding box — in which case matching their *overall* extent would have made Flow 20 far too big. Rendering them settled it: these are **isometric extrusions with no cable**, and the off-centre position is simply that they never went through the centring pass. The density-based body/tail split returned nonsense here (`Flow Straight` "body 15.85%, tail 75%") because it was built for photographs. **Look at the drawing before trusting a body/tail metric on line art.**
+
+**Target: `61.75%`, the midpoint of the two references**, giving a factor of `1.5050` applied to all three so they keep their relative proportions.
+
+| | fill | frame | gain | |
+|---|---|---|---|---|
+| `Flow 20` | `41.03% -> 61.75%` | `1204 -> 800` | **`x2.023 -> x1.474`** | |
+| `Prisma Link 1` | `48.97% -> 73.75%` | `1844 -> 1223` | **`x2.757 -> x1.900`** | |
+| `Prisma Link 2` | `54.28% -> 81.75%` | `1774 -> 1178` | **`x1.461 -> x1.124`** | |
+
+**ENLARGING THEM ALSO CUT THE INK GAINS, which is the frame/scale coupling finally working in our favour.** A bigger fill means a smaller frame, a higher card scale and therefore heavier lines for free. `Prisma Link 1` fell from `x2.757` to `x1.900` — from well above Shak's rejection threshold to essentially on it. **Worth remembering: if a drawing needs an uncomfortably large gain, check whether it should simply be larger.**
+
+**Rebuilt from Shak's ORIGINAL uploads, not from the already-gained assets**, so the gains do not stack. Always go back to the source for a re-process.
+
+**Strict proportionality was not available and that was said before choosing:** `Flow 20` is `0.79"` and `Prisma Link 2` is `1.38"`, so scaling PL2 proportionally from a `61.75%` Flow 20 lands at **106%** — off the frame. The `1.5050` factor preserves the *compressed* (`gamma 0.5`) relationship instead.
+
+**`Flow Spine` and `Flow Straight` were centred only** — same frame (`2000`), same fill, no gain. Verified `30.32/46.77 -> 49.98/49.98` and `31.43/47.13 -> 49.98/49.98`, with fill identical to two decimals before and after, which proves nothing was clipped by the shift.
+
+**THEIR MEASURED WEIGHT CHANGED (`0.384 -> 0.427`, `0.392 -> 0.486`) AND THAT IS SUB-PIXEL PHASE, NOT A REAL CHANGE — do not "correct" it.** The re-centring is an **integer translation**, so source pixels are copied exactly and total ink is unchanged; what moved is where these very shallow isometric lines land on the `2000 -> 587` downscale grid. A line that previously straddled two output rows may now sit on one, which raises per-crossing mass without adding any ink. **Re-gaining to force `0.384` would remove real ink to chase a sampling artifact.**
+
+**The measurement-path hypothesis was tested first and REJECTED** — `drawImage` from an `ImageBitmap` versus from a `canvas` gives identical results on these two (`0.384`/`0.384`, `0.392`/`0.392`), so the difference had to be real. (It does differ by ~5% on `Prisma Multiplier`, so the two paths are not always equivalent — test, do not assume.)
+
+**Consequence for the metric: ink weight is phase-sensitive for near-horizontal strokes.** Treat differences under ~25% on isometric line art as possible phase, and compare total ink or inspect the render before acting.
+
+**Still off-centre and unprocessed: `Rima 5` (`21.68/50.08`) and `Rima 10` (`43.35/50.1`)** — the last two of the original five outliers. They are now the only obviously misplaced drawings in the set.
