@@ -2394,3 +2394,15 @@ Real spread across the eleven: **4.77x**. Reference `Prisma Multiplier` = `0.404
 **This also retires the "only a vector re-export can fix the lines" conclusion recorded above.** That was correct about *geometry* — raster scaling cannot separate stroke width from product size — but wrong that the appearance could not be equalised. **Matching integrated ink achieves the same perceptual result without touching geometry**, and it is reversible, since the gain is a per-image tone curve over assets that are still cropped losslessly.
 
 **What is now the most visible inconsistency, and it is the 5 excluded outliers.** With weights matched, size is all that is left: `Rima 10` fills **86.7%** of its frame against a maximum of `54.2%` in the normalised set, and `Flow Spine` / `Flow Straight` / `Rima 5` are still off-centre (`30.3/46.8`, `31.4/47.1`, `21.7/50.1`) because they never went through the centring pass. Worth raising before launch.
+
+**LIGA T AND LIGA W REVERTED — they are deliberately lighter than the other 14 (Shak, 2026-10-12).** They were the two lightest drawings and needed the largest brightening to reach the reference (`x3.17` and `x1.98`); Shak judged the result wrong and asked for those two only to go back.
+
+**Reverted by rebinding, not by re-uploading.** Framer assets are permanent and there is no delete, so the pre-normalisation files were still hosted and could simply be pointed at again — an exact revert with no new asset and no re-encode. **Whenever an earlier state needs restoring in this project, check for the old asset before generating a replacement.**
+
+| | ink weight | vs the other 14 |
+|---|---|---|
+| `Liga T` | `0.118` | **−69%** |
+| `Liga W` | `0.169` | **−56%** |
+| everything else | `0.384 - 0.404` | — |
+
+**So `/elements` now renders three drawings at reference weight (`Rima 5`, `Rima 10`, `Driver 5-1`) and two markedly lighter.** That is intended, not drift — do not "fix" it back to uniform in a later pass without asking. The normalised versions remain hosted (`75eTVJYn…` for Liga T, `cKm3lYPq…` for Liga W) if the decision is ever reversed.
