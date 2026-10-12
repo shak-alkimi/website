@@ -2574,3 +2574,28 @@ Shak: *"leave flow 20 centered, but make it smaller to match height of flow stra
 **Note the measured height reads `26.70%` against a `26.55%` target.** The gain darkens faint edge pixels until they cross the `<200` bbox threshold, very slightly enlarging the measured box. It is `0.6%` relative and not worth chasing, **but it does mean a bbox measured after a gain is marginally larger than the same bbox measured before one** — compare like with like.
 
 **Final arrangement of the three, deliberately mixed:** `Flow 20` centred at `50/50`; `Flow Spine` and `Flow Straight` left-flush, bleeding off the frame edge. Heights `26.70` / `26.25` / `26.55`.
+
+**`Flow 20` CORRECTED AGAIN — matching bbox HEIGHT was still wrong; the right measure is PROFILE THICKNESS (2026-10-12).**
+
+Shak: *"it still reads visually slightly larger than flow straight and spine - bring down to their size."* He was right, and the previous fix had only moved the error from one axis to another.
+
+**Why bbox height still oversized it: these are ISOMETRIC drawings, so a long bar's bounding box includes its diagonal RISE as well as its profile depth.** `Flow Straight` climbs left-to-right, so its `26.55%` box is profile *plus* rise. `Flow 20` is short and barely rises, so its box is almost all profile. Matching the boxes therefore made Flow 20's actual section `1.35x` too big.
+
+**The measure that works: median per-column vertical ink extent** — walk each column of the bbox, take the top-to-bottom ink span, and take the median across columns. On a constant-section extrusion every slice returns the true projected profile, which is why `Flow Straight` reads `median 15.85% / p90 15.85%` — **identical, the signature of a uniform section.** `Flow Spine` likewise (`15.3 / 15.95`).
+
+| | bbox height | **profile thickness** |
+|---|---|---|
+| `Flow Straight` | `26.55%` | **`15.85%`** |
+| `Flow Spine` | `26.25%` | **`15.30%`** |
+| `Flow 20` (bbox-matched) | `26.70%` | **`21.09%`** — `1.35x` too big |
+| **`Flow 20` (now)** | `19.72%` | **`15.58%`** — `1.00x` |
+
+**Frame `1266 -> 1714`, centred `50/50`, verified on the hosted asset at `15.58%` against a `15.57%` target.**
+
+**THE COST, AND IT IS THE RECURRING TENSION: smaller means a bigger frame, a lower card scale and lighter lines, so the gain rose `x1.684 -> x2.244`** — back above Shak's `x1.85` rejection threshold. **This is the same coupling as always, just running the other way**: enlarging the Prisma Links *cut* their gains, shrinking Flow 20 *raises* its. Size and line weight cannot be set independently while the pipeline is raster.
+
+**Which makes the export fix the real answer for this drawing.** `Flow 20`'s stroke is `0.0778%` of product size against the reference's `0.1413%` — about `1.8x` too thin. **Re-export it with a proportionally heavier stroke and the gain disappears entirely**, at any size. Until then every size change on this drawing trades against its line weight.
+
+**Three measures have now been tried on this one drawing, each wrong for a different reason — worth keeping as a worked example:** overall fill (wrong axis: compares a short part's total size to a long run's), bbox height (wrong because isometric rise inflates it), and profile thickness (correct: it is the invariant a product family actually shares).
+
+**A tooling note that cost two wasted runs:** `http-server -s` serves from cache, so an edited page keeps executing the OLD script after a re-navigate. **Append a cache-busting query (`?v=2`) whenever a local page is edited and re-run.** The failure is silent — the page simply stops at the line that errored in the stale copy.
