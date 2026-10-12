@@ -2783,3 +2783,29 @@ Both **monotonic with real size**, verified `11/11` on the hosted assets, all on
 **Verification now reports `9/11` and that is the CHECK being out of date, not the assets.** It tests `right end = 62.9%` and `card scale <= 1.0`; `Flow Spine` and `Prisma Link 2` deliberately fail those. **Do not "fix" either — both are decisions.**
 
 **The clean fix for `Flow Spine` is artwork: a longer drawn run.** With more extrusion drawn it would reach `62.9%` while left-flush, at its correct hierarchy size, with no upscaling anywhere — the only option that gives up nothing.
+
+**CROSS-SECTIONS ARE NOW CENTRED; THE RIGHT-END ANCHOR APPLIES ONLY TO EXTRUSIONS (Shak, 2026-10-12).**
+
+Shak asked why the six sections were not centred. **They were right-anchored at `62.9%` — a convention that only makes sense for a run bleeding off the left.** For a cross-section the bbox *is* the object, so anchoring its right edge pushes it left, and **the wider the section the further off**:
+
+| | h-centre was | now |
+|---|---|---|
+| `Vena` (widest, `53.9%` of frame) | **`35.96%`** — 14 points off | `50.00%` |
+| `Prisma Multiplier` | `44.16%` | `49.97%` |
+| `Vena Round Mini` | `44.80%` | `50.00%` |
+| `Vena Corner` | `44.99%` | `49.97%` |
+| `Vena Mini` | `45.40%` | `50.00%` |
+| `Vena Corner Mini` | `47.44%` | `50.00%` |
+
+**The vertical was slightly off on three as well** (`47.91%` to `49.6%`), because it was anchored on the **end-cap window** — the rightmost 20% of the bbox. On an extrusion that window is the end face; **on a section it is an arbitrary right-hand slice of the object**, so it drifts from the true centre. Sections are now centred on the **full bbox**, both axes.
+
+Fixed by pure translation at unchanged frame size — size, profile and gain all preserved, nothing clipped.
+
+**So the set now carries TWO POSITIONING CONVENTIONS, deliberately, matching the two scale anchors:**
+
+| kind | size anchor | position |
+|---|---|---|
+| **cross-sections** (6) | `Prisma Multiplier` at `37%` | **centred on both axes** |
+| **isometric extrusions** (5) | `Prisma Link 2` at 1:1 (now `1.25x`) | **right end at `62.9%`**, running off the left |
+
+**The lesson is the general one from this whole pass: a convention derived for one kind of drawing silently mis-applies to another.** The end-cap window, the right-edge anchor and the profile metric were all designed around long extrusions, and each needed re-deriving for sections. **Verification must be convention-aware too** — the check now tests centring for sections and the right anchor for extrusions, and reports **11/11**.
