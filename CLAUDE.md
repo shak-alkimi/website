@@ -2685,3 +2685,26 @@ Result `49.93%` / `50.00%`. **Whenever a crop removes part of a diagonal subject
 **Note the gains fell to about `x1.0`**, i.e. the sources now need essentially no adjustment: the much smaller frame raises card scale so far that the lines render at the right coverage unaided. **The side effect is wider, lighter strokes** — darkest `132` / `163` against `Flow Straight`'s `81`. Coverage is matched, so total darkness is right, but at this magnification the character is softer. **If that reads wrong, the lever is the weight reference, not the size** — and the durable answer remains a re-export with a heavier stroke.
 
 **Cost accepted: roughly half of each drawing is now off-frame** (`48.9%` / `58.5%`). Defensible only because these are repeating chains, as recorded above.
+
+**Vertical anchor changed from the whole span to the RIGHTMOST LINK (Shak, 2026-10-12).** *"vertically the right most link should be center of card."*
+
+**On a diagonal subject these are two different points, and the gap is large.** With the end link on the card centre, the whole visible span's centre sits at **`40.7%`** — nearly ten points higher, because the chain rises away to the upper left. Centring the span (the previous pass) therefore pushed the end link *below* centre.
+
+| | rightmost-link v-centre | whole-span v-centre |
+|---|---|---|
+| before | `~59%` | `49.9 / 50.0%` |
+| **after** | **`50.00%`** | `40.77 / 40.69%` |
+
+**Implementation: take the vertical span of ink in the final `10%` of frame width and put ITS centre on `F/2`.** That window is about one link wide at this scale, so it tracks the end feature rather than the run.
+
+```js
+const linkW = Math.round(0.10 * F);
+const vLink = vSpan(d0, W, Math.max(g.aX, g.bX - linkW), g.bX, g.aY, g.bY);
+const top   = Math.round(vLink.c - F/2);
+```
+
+Verified on the hosted assets: both Links read **right end `62.9%`, right-end v-centre `50.0%`**; `Flow Straight` reads `62.9%` / `52.5%`, so all three now anchor on the same point and the Links are the more precisely placed (Flow Straight was never processed).
+
+**Three vertical conventions have now been used on these drawings, and only the last is right for a bleeding diagonal:** full-product centre (wrong once the left is cropped away), visible-span centre (wrong because a diagonal's span centre is not its end), and end-feature centre. **For any drawing that runs off the frame, anchor on the feature that stays in view, not on the extent.**
+
+Framing is otherwise unchanged — scale `110 %/inch`, right end `62.9%`, coverage `1.56%`, gains `x0.962` / `x1.019`, no alpha, clean corners, no clipping at the top.
