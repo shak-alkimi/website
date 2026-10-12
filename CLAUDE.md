@@ -2826,3 +2826,26 @@ Sections now **`17.56 - 25.00%`** against extrusions **`15.39 - 18.72%`** — ov
 **`SEC_ANCHOR` is the single knob for this** — it sets the largest section (`Prisma Multiplier`) and every other section follows by `real^0.5`. **The useful bracket, established by trying all three:** `11.74-16.70%` (one shared anchor) read **adrift in empty cards**; `25.98-37.01%` read **too heavy**; `17.56-25.00%` sits between them. Anyone revisiting this should move `SEC_ANCHOR` and nothing else.
 
 **Note the frames grew substantially** — `Vena Corner` is now `2910` and `Prisma Multiplier` `2268`, against sources of `2000`, so they are mostly white padding. That is the correct consequence of shrinking a drawing whose source cannot be made larger, and it costs nothing at delivery because Framer serves a downscaled candidate anyway.
+
+### /elements product photos centred (2026-10-12)
+
+All five `Product Photo` renders sat **low in frame**: horizontally they were already fine (`49.77 - 50.08%`), but vertically they ran **`52.52%` to `56.23%`** — up to `6.23` points below centre, consistently in the same direction. Re-centred by translating each subject's bounding box to `50/50` at unchanged frame size, then verified on the hosted assets at **`0.12` points worst case**.
+
+| | v-centre was | shift |
+|---|---|---|
+| `Rima 5` | `56.23%` | `-1, 125 px` |
+| `Liga W` | `54.30%` | `-4, 86` |
+| `Driver 5-1` | `54.00%` | `-4, 80` |
+| `Liga T` | `53.17%` | `2, 64` |
+| `Rima 10` | `52.52%` | `1, 51` |
+
+**A PADDING BUG SHIPPED AND WAS CAUGHT ONLY BY THE HOSTED CHECK — worth recording, because the local measurement said it was perfect.** The first attempt replicated the exposed edge strips by reading from the **destination** canvas (`drawImage(out, …)` onto `out`). That self-copy **silently does nothing**, and the canvas had not been filled first, so the strip stayed **transparent**. Locally it measured `49.98 / 49.98`; served, `Liga T` read **`61.50% / 48.38%`** because the transparent strip differs from the backdrop and swallows the bounding box.
+
+**The diagnosis that isolated it in one pass:** sweep the detection tolerance (`8/12/20/30/45`) and print the box at each. The subject pixel count barely moved (`206,987` against `204,914`) while the box ran to `x = 1999, y = 0..1935` at every tolerance — **a defect that does not shrink as the threshold rises is a hard edge artifact, not a soft-content misread**. The `1935` is exactly `1999 - 64`, the one strip the shift had covered, which named the cause outright.
+
+**Two rules that follow:**
+
+1. **Never source edge replication from the canvas being written.** Always read from the untouched source, and handle the corner block separately when both axes move.
+2. **Always fill the canvas with the backdrop colour before drawing.** An uncovered region then degrades to a flat fill rather than to transparency, which is recoverable rather than catastrophic.
+
+**And the method rule, now proven twice today: a geometry check on the generated file is not a substitute for the same check on the hosted asset.** The local measurement was taken on a canvas whose transparent pixels read as `0,0,0,0` only after encoding; the JPEG round-trip is what made the defect measurable.
