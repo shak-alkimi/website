@@ -2936,3 +2936,29 @@ Every one of the 11 technical drawings now sits with its **bounding box centred 
 **The transform was a PURE VERTICAL TRANSLATION** — unchanged frame, no rescale, no re-gain, horizontal untouched. That keeps the whole size hierarchy and ink-weight normalisation intact by construction rather than by re-solving them. **Note it can still shift measured ink weight slightly through sub-pixel phase; that is an artifact of the measurement, not a regression, and must not be "corrected".**
 
 The six cross-sections were already bbox-centred and were not touched.
+
+### The three Flows now share Flow Spine's right end at 57.3% — and the extrusion group has split in two (2026-10-12)
+
+`Flow 20` and `Flow Straight` were moved left to meet `Flow Spine`, which could not reach the old `62.9%` anchor because its drawn run is too short. Verified on the hosted assets:
+
+| | right end | left | |
+|---|---|---|---|
+| `Flow Spine` | **57.33%** | 0% flush | the reference, untouched |
+| `Flow 20` | **57.31%** | 29.00% | moved `-98 px` |
+| `Flow Straight` | **57.31%** | 0% flush | moved `-120 px` |
+| `Prisma Link 1` | `62.87%` | 0% flush | **unchanged** |
+| `Prisma Link 2` | `62.86%` | 0% flush | **unchanged** |
+
+Three Flows within **0.02 pts**. Sections are untouched and still centred to `0.03 pts`.
+
+**CONSEQUENCE, AND IT WAS SHAK'S EXPLICIT SCOPE: the single extrusion anchor is gone.** The five long fixtures previously all ended at `62.9%`; they now form two groups `5.56 pts` apart — Flows at `57.3%`, Prisma Links at `62.9%`. That supersedes the earlier "treat all five the same in terms of right side center position". **Do not re-unify them without asking**; moving the Prisma Links left would mean cutting more of their chain, and moving the Flows right is what was impossible in the first place.
+
+**`Flow Straight` lost 7.88% of its ink off the left**, which is the direct cost of reaching a nearer anchor while staying flush. Acceptable because it is a uniform channel — the run simply reads shorter and the informative right end cap is untouched. **`Flow 20` lost nothing** (it floats, left margin `34.61% -> 29.00%`).
+
+**THE RIGHT-END CAP WAS PROVEN INTACT BY PIXEL COMPARISON, NOT BY A SPAN METRIC.** The first check measured the vertical span of the last 10% of the bbox and reported `END CAP CUT` on `Flow Straight`. **That was a false positive of exactly the recorded kind** — the bbox narrowed when the left was cut, so the 10% window covered different content, and on a rising diagonal a narrower window captures less rise. The reliable check is to compare the actual pixels of the right-hand strip against the source, allowing for the translation: **159,600 samples, 0 differ.**
+
+**Cutting a diagonal's left end MOVES ITS VERTICAL CENTRE, so the vertical had to be re-solved in the same pass.** `Flow Straight`'s bbox centre drifted `49.97% -> 50.58%` from the horizontal move alone, because the columns that left the frame sat at one vertical extreme. A second translation of `dy = 12 px` put it back to `49.97%`. **This is the third time this has bitten** (the Prisma Links' crop, then their end-feature anchor, now this) — **any horizontal crop of an isometric drawing requires the vertical to be recomputed on what survives.**
+
+**A SIGN ERROR IN MY OWN VERIFIER nearly produced a false failure.** `drawImage(src, -dx, -dy)` means `output(X,Y) = source(X+dx, Y+dy)`, so a source row maps to output row `sy - dy`; the check had `y - dy` on the source side instead. `Flow 20` passed anyway because its `dy` was `0`, which is exactly the kind of coincidence that hides an indexing bug. **When a comparison passes on one item and fails on another, check whether the passing one exercised the code at all.**
+
+Both moves are pure translations at unchanged frame size — no rescale, no re-gain, no resampling — so size, line weight and the vertical balance pass all survive by construction.
