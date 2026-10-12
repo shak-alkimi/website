@@ -2708,3 +2708,27 @@ Verified on the hosted assets: both Links read **right end `62.9%`, right-end v-
 **Three vertical conventions have now been used on these drawings, and only the last is right for a bleeding diagonal:** full-product centre (wrong once the left is cropped away), visible-span centre (wrong because a diagonal's span centre is not its end), and end-feature centre. **For any drawing that runs off the frame, anchor on the feature that stays in view, not on the extent.**
 
 Framing is otherwise unchanged — scale `110 %/inch`, right end `62.9%`, coverage `1.56%`, gains `x0.962` / `x1.019`, no alpha, clean corners, no clipping at the top.
+
+### THE FIVE LONG FIXTURES NOW SHARE ONE ANCHOR POINT (2026-10-12)
+
+Shak: *"treat flow 20, flow spine, flow straight, prisma link 1, prisma link 2 all the same in terms of right side center position vertically and horizontally."*
+
+**The anchor is the RIGHT END of the product, placed at `62.9%` horizontally and `50%` vertically** — `62.9%` being `Flow Straight`'s own long-standing value, so three of the five were already on it.
+
+| | frame | before (right end / v-centre) | shift | after |
+|---|---|---|---|---|
+| `Flow 20` | 1714 | `64.4%` / `50.6%` | `+26, +11 px` | `62.89%` / `50.00%` |
+| `Flow Spine` | 2000 | `60.6%` / `52.4%` | `-45, +49 px` | `62.90%` / `49.98%` |
+| `Flow Straight` | 2000 | `62.9%` / `52.5%` | `-1, +51 px` | `62.90%` / `49.98%` |
+| `Prisma Link 1` | 731 | `62.9%` / `50.0%` | **`0, 0`** | unchanged |
+| `Prisma Link 2` | 634 | `62.9%` / `50.0%` | **`0, 0`** | unchanged |
+
+**Verified 5/5 on the hosted assets.** Two needed no upload at all — **computing the shift before uploading saved two permanent assets**, which matters given there is no delete.
+
+**All five were repositioned by PURE TRANSLATION at unchanged frame size** — no rescale, no re-gain, no resampling. Coverage held (`Flow 20` `1.99%`, `Flow Spine` `1.76%`, `Flow Straight` `0.87%`), and a clipping check compared the ink bbox extent before and after on both axes to prove nothing was pushed out of frame.
+
+**`Flow Spine` is no longer left-flush** — moving its right end `60.6% -> 62.9%` necessarily opens a `2.3%` gap on its left, since its width is fixed. That is the direct consequence of anchoring on the right, and it supersedes the earlier left-flush decision for these two.
+
+**A note on the vertical anchor: it is the right END's centre, not the drawing's.** `Flow Straight` previously read `52.5%` by that measure while its overall bbox was centred — on a descending diagonal those differ by a couple of points, which is exactly the distinction established for the Prisma Links. **Anchoring a family on a shared feature only works if every member measures that feature the same way.**
+
+**A silly bug worth recording because it wasted two runs:** `dumpall.js` already appends a trailing comma to each emitted line, and the shell pipeline added a second one with `sed 's/$/,/'`. The resulting `,,` creates **undefined array slots** in JS, and the page died on `Cannot read properties of undefined (reading 'url')` after processing exactly one item — which looks like a slow script, not a syntax problem. **Read the console on a stalled local page before assuming it is still working.**
