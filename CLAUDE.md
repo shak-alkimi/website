@@ -2599,3 +2599,34 @@ Shak: *"it still reads visually slightly larger than flow straight and spine - b
 **Three measures have now been tried on this one drawing, each wrong for a different reason — worth keeping as a worked example:** overall fill (wrong axis: compares a short part's total size to a long run's), bbox height (wrong because isometric rise inflates it), and profile thickness (correct: it is the invariant a product family actually shares).
 
 **A tooling note that cost two wasted runs:** `http-server -s` serves from cache, so an edited page keeps executing the OLD script after a re-navigate. **Append a cache-busting query (`?v=2`) whenever a local page is edited and re-run.** The failure is silent — the page simply stops at the line that errored in the stale copy.
+
+### Prisma Link 1 read much darker than Link 2 — PER-STROKE ink is the wrong measure for perceived darkness (2026-10-12)
+
+Both measured **`0.384` per-stroke ink mass**, the metric the whole normalisation was built on, and they still looked completely different. Shak was right; the metric was blind to it.
+
+**Why per-stroke ink misses this: it describes ONE crossing, not the whole drawing.** Measured on the hosted assets at card size:
+
+| | per-stroke | **ink coverage** | darkest px | mean ink |
+|---|---|---|---|---|
+| `Prisma Link 1` | `0.455` | **`2.13%`** | **`21`** | 195 |
+| `Prisma Link 2` | `0.369` | **`1.01%`** | **`156`** | 224 |
+| `Prisma Multiplier` (ref) | `0.404` | `1.56%` | `85` | 195 |
+
+**`2.11x` the ink per unit of product area, and a darkest pixel of `21` against `156`** — near-black against mid-grey. Per-stroke differed by only `1.23x`, which is why it read as matched.
+
+**Root cause: their SOURCES differ in ink colour, and the gains then amplified the gap.** Shak's `Prisma Link 1` export has darkest `127`, `Prisma Link 2` has `165` — PL2's lines are a lighter grey to begin with. Solving each independently to the same per-stroke target gave PL1 `x1.900` and PL2 `x1.124`, so the already-darker drawing got the larger gain and clipped to near-black. **When two drawings need very different gains to hit the same target, check whether the target is measuring what you think.**
+
+**The measure that tracks perceived darkness is INK COVERAGE — total ink mass per unit of product bounding-box area.** It is what the eye integrates across a drawing. Re-solved both against the reference's `1.56%`:
+
+| | gain | coverage | darkest |
+|---|---|---|---|
+| `Prisma Link 1` | `x1.900 -> **x1.394**` | **`1.57%`** | `84` |
+| `Prisma Link 2` | `x1.124 -> **x1.740**` | **`1.57%`** | `101` |
+
+Both now land on the reference (`1.56%`, darkest `85`), **both gains fall under Shak's `x1.85` threshold**, and sizes are untouched (`73.75%` / `81.75%`, centres preserved).
+
+**COVERAGE IS NOT A UNIVERSAL TARGET — do not apply it across the whole set.** It conflates line *density*, which is a property of the drawing's content. Across all 16 it spans `0.82%` to `5.09%` (`6.21x`), with `Liga T`/`Liga W` highest at `4.86`/`5.09%` purely because they are busy drawings. **It is valid here only because PL1 and PL2 are the same product family with the same link structure at different lengths** — comparable content, so comparable coverage is meaningful.
+
+**A MEASUREMENT BUG WAS FOUND AND FIXED IN THE PROCESS.** The binary search measured its candidates by `drawImage(canvas, …)` while verification measured the hosted asset by `drawImage(ImageBitmap, …)`. **Those two use different downscale filters**, and the discrepancy is not uniform — both Prisma Links solved to `0.384` during processing but measured `0.455` and `0.369` once hosted. **The solver now measures through `createImageBitmap(canvas)` so it uses the identical path as the final verification.** This was flagged earlier as a ~5% curiosity on one drawing; here it reached 18% and contributed directly to the mismatch. **Any solver must measure through the same path as its verification, or it is optimising a different quantity than the one being checked** — the same class of error as the planner/verifier disagreement that cost two render passes on the fixtures photos.
+
+**So three metrics are now in play and each answers a different question:** per-stroke ink mass (how heavy is a single line), ink coverage (how dark does the whole drawing read), profile thickness (how big is the product). They are not interchangeable, and a match on one says nothing about the others.
