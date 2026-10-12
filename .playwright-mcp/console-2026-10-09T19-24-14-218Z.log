@@ -1,8 +1,0 @@
-[     260ms] [ERROR] Failed to load resource: net::ERR_CACHE_OPERATION_NOT_SUPPORTED @ https://framerusercontent.com/assets/4cCuy9y2vsiqhoNspOmSAC7mrjY.mp4:0
-[    1067ms] [ERROR] Permissions policy violation: accelerometer is not allowed in this document. @ https://app.framerstatic.com/chunk-G4N42CTN.mjs:17
-[    1068ms] [WARNING] The devicemotion events are blocked by permissions policy. See https://github.com/w3c/webappsec-permissions-policy/blob/master/features.md#sensor-features @ https://app.framerstatic.com/chunk-G4N42CTN.mjs:17
-[    1068ms] [ERROR] Permissions policy violation: accelerometer is not allowed in this document. @ https://app.framerstatic.com/chunk-G4N42CTN.mjs:17
-[    1068ms] [WARNING] The deviceorientation events are blocked by permissions policy. See https://github.com/w3c/webappsec-permissions-policy/blob/master/features.md#sensor-features @ https://app.framerstatic.com/chunk-G4N42CTN.mjs:17
-[    1068ms] [ERROR] Permissions policy violation: accelerometer is not allowed in this document. @ https://app.framerstatic.com/chunk-G4N42CTN.mjs:17
-[    1068ms] [WARNING] The deviceorientationabsolute events are blocked by permissions policy. See https://github.com/w3c/webappsec-permissions-policy/blob/master/features.md#sensor-features @ https://app.framerstatic.com/chunk-G4N42CTN.mjs:17
-[   15823ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://framerusercontent.com/images/8yvUOxGqyLzb66oKDqRqTrjLQ.jpg?scale-down-to=1024:0
