@@ -2980,3 +2980,47 @@ Both moves are pure translations at unchanged frame size — no rescale, no re-g
 **Note `Flow 20`'s right end is now `64.13%`, past even the Prisma anchor.** That is meaningless — it is a consequence of centring, not a position anyone chose, and it must **not** be read as a third anchor.
 
 **The one-line check that catches a mis-assigned drawing:** a drawing whose left edge is neither `0%` (bleeding) nor roughly equal to its right margin (centred) is following the wrong convention. `Flow 20` read `29.00%` / `42.69%` before this change.
+
+### /products photos aligned to their drawing's bottom edge (2026-10-12, NEEDS A PUBLISH)
+
+Shak asked for each fixture rendering to be moved so its **bottom corner meets the bottom of the technical drawing in the card beside it**. All 11 now share a bottom line with their own drawing, **worst error 0.08 pts**, verified on the hosted assets.
+
+**The two layers are directly comparable, which is what makes this possible** — and it was checked, not assumed:
+
+| layer | geometry |
+|---|---|
+| `Product Photo` | `100% x 100%`, `centerY 50%`, insets cleared |
+| `Technical Drawing` | `width/height null`, **insets all `0px`** |
+
+A node pinned on all four edges fills the card exactly, so **both assets map frame -> card 1:1 and a percentage means the same thing on each.** If either ever stops being 1:1 this whole alignment silently breaks.
+
+**THE HARD PART WAS DEFINING "BOTTOM OF THE PRODUCT" — a plain bbox is WRONG, because these renders have ground shadows.** Measured bottoms by tolerance:
+
+| | tol 8 | tol 60 | spread |
+|---|---|---|---|
+| most products | — | — | ~1.4 pts |
+| **`Flow Spine`** | `76.40%` | `67.62%` | **8.78 pts** |
+| **`Flow Straight`** | `76.40%` | `67.92%` | **8.48 pts** |
+
+The two assembled-fixture renders sit on a surface and cast a real shadow; a bbox puts the line **well below the product**. A "solid run" measure was tried and still caught the shadow (the shadow is broad, so a long horizontal run exists inside it).
+
+**What works is a HARD-EDGE test: the bottom-most row where >= 20 pixels jump by more than 25 levels across 4 rows.** A product's lower boundary is a sharp transition; a shadow is a smooth gradient, so it is never detected. Cross-checked against an independent `tol60 / run20` measure: the two **agree within 0.12 pts on 9 of 11** and within 1.14 pts on the two shadowed ones.
+
+**Generalise it: to separate a product from its shadow, test for a sharp edge, not for a difference from the background.** Thresholding on colour distance cannot distinguish "dark because it is the object" from "dark because it is the object's shadow"; a gradient test can.
+
+**Shifts and the consequence to know:**
+
+| | shift | | | shift |
+|---|---|---|---|---|
+| `Vena` | up 105 px | | `Flow Spine` | up 73 px |
+| `Vena Mini` | up 99 px | | `Flow Straight` | up 66 px |
+| `Vena Corner` | up 87 px | | `Prisma Link 1` | up 34 px |
+| `Flow 20` | up 83 px | | `Prisma Multiplier` | **down 3 px** |
+| `Vena Round Mini` | up 61 px | | `Prisma Link 2` | **down 68 px** |
+| `Vena Corner Mini` | up 35 px | | | |
+
+**Two move DOWN, which the brief did not anticipate.** `Prisma Link 2`'s drawing is the largest in the hierarchy, so its bottom sits at `70.91%` — lower than its photo was. Alignment, not "up", is the operative instruction.
+
+**THE PHOTOS NO LONGER SIT AT A CONSISTENT HEIGHT DOWN THE PAGE, and that is inherent, not a defect.** Their bottoms now span **`57.56%` to `70.91%`** (13.4 pts) because the drawings' bottoms span that range — a direct consequence of the size hierarchy, which draws a small product small and centred (high bottom) and a large one large (low bottom). **Per-row alignment and column-wide consistency are mutually exclusive here**; this change chooses per-row.
+
+All 11 are pure vertical translations at unchanged frame, so **horizontal is untouched** (right edges identical to 0.01 pts) and the earlier right-edge alignment survives. The exposed strip is filled by replicating the source's own edge row **read from the source canvas, with the destination pre-filled** — the two halves of the padding bug that shipped a transparent strip in October.
