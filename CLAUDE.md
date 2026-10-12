@@ -2543,3 +2543,11 @@ Shak: *"prisma link 1 and 2 need to be larger and flow 20 needs to match flow sp
 **Consequence for the metric: ink weight is phase-sensitive for near-horizontal strokes.** Treat differences under ~25% on isometric line art as possible phase, and compare total ink or inspect the render before acting.
 
 **Still off-centre and unprocessed: `Rima 5` (`21.68/50.08`) and `Rima 10` (`43.35/50.1`)** — the last two of the original five outliers. They are now the only obviously misplaced drawings in the set.
+
+**CENTRING REVERTED ON `Flow Spine` AND `Flow Straight` — they are left-flush by choice (Shak, 2026-10-12).** Rebound to the pre-centring assets (`vVLNTljCeVJc8WidOWgwIM3oLU8`, `K9DbhL1E5Km9wvCIEYRNbPOn0A`), an exact revert with no upload. Both sit with their bounding box **flush at `x = 0.00%`** of the frame, bleeding off the left edge.
+
+**This also retires the phase anomaly recorded above.** Back on their original pixel positions, their measured weights return to **`0.384`** and **`0.392`**, confirming from the other direction that the `0.427` / `0.486` readings after centring were sampling phase and never a change in ink.
+
+**Note the set now mixes two positional conventions deliberately:** `Flow 20` was sized to match these two (`61.75%`) but is **centred**, while they are **left-flush**. That is Shak's call and should not be "tidied". It also echoes the `/products` **photo** convention, where the fixtures bleed off the left and align on their right-hand end caps — so a long extrusion running off the left edge is consistent with how the photographs beside it are framed.
+
+**Standing lesson, now demonstrated four times today: before regenerating anything, check whether the earlier asset is still hosted.** Framer assets are permanent and there is no delete, so every prior state in this pipeline is one rebind away — `Liga T`, `Liga W`, `Driver 5-1`, `Vena` and now both Flows were all restored this way, at zero cost and with byte-exact fidelity.
