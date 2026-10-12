@@ -2322,3 +2322,38 @@ All 11 land on **1159–1160 px/in, centred 50/50, no alpha**, frames `667` to `
 **The rebind matched on the stored asset URL, never on a hand-written table** — and the self-check is that the skip list came back as exactly those five names without being told them.
 
 **`fieldData[id].value` FOR A CMS IMAGE NOW READS BACK AS AN OBJECT, NOT A STRING.** This file previously recorded it as a string, and that is no longer true: a `.includes()` against it matched zero of sixteen items and the pass silently did nothing. Read `value.url`, and accept either (`typeof raw === "string" ? raw : raw.url`). **The write contract is unchanged — pass a URL string.** So the field is now asymmetric: object out, string in.
+
+**SIZE RANGE COMPRESSED, SECOND PASS SAME DAY — strict proportionality was correct and still looked wrong (2026-10-12).**
+
+Shak flagged `Prisma Link 1` and `Prisma Link 2`: *"the lines for these two do not match the others - also too large within the boundary."* Both complaints were right, and they share one cause.
+
+**THE COUPLING I MISSED: the frame size does TWO jobs.** It sets how large the product reads **and** the downscale factor into the `587` device-px card. Shrinking Prisma Link 2's frame to `667` took its scale from `0.29x` to `0.88x` — so a 1px source line went from being crushed to a third of a pixel (which the browser paints as a faint grey smudge) to very nearly 1:1 (a crisp dark hairline). **Same ink, completely different appearance.** Measured as contrast of the darkest stroke against white, rendered at card size:
+
+| | before the crop | after | change |
+|---|---|---|---|
+| **Prisma Link 2** | 38.0% | **72.5%** | **+34.5** |
+| **Prisma Link 1** | 34.5% | **69.0%** | **+34.5** |
+| Vena | 43.5% | 48.2% | +4.7 |
+| Vena Corner | 42.0% | 41.6% | −0.4 |
+
+**Those two were the FAINTEST of the eleven and became nearly the darkest** — they crossed the whole range while their neighbours barely moved. **Scaling a raster cannot separate product size from line weight**; making an object bigger necessarily thickens its strokes.
+
+**A global spread figure HID this, and that is the measurement lesson.** The overall strength ratio went `1.97x -> 1.78x`, i.e. slightly *better*, which reads as "no regression". The regression was entirely in **which items sat where** inside that range. **An aggregate that is flat can still conceal two items swapping ends of the distribution — always diff per item, not just the spread.**
+
+**THE SOURCE ARTWORK ITSELF IS INCONSISTENT, and this caps what any pipeline can achieve.** Rendered at an identical `2000px` frame, before anything was cropped, the eleven spanned **34.5% to 67.8%** — a 2x stroke-weight spread already baked in. **So the lines can never be made truly uniform by scaling arithmetic. Only re-exporting from the vector source at a fixed stroke width fixes that**, and it is the right answer whenever those files are to hand.
+
+**What was applied instead (Shak's choice): compress the size range.** Fill is now `A x L^0.5` rather than `A x L` — square-root rather than linear in the real longest dimension, anchored on the set's geometric mean so the middle of the range does not move:
+
+| | before | after |
+|---|---|---|
+| fill | `22.2% - 79.0%` (3.56x) | **`28.8% - 54.2%` (1.88x)** |
+| frame | `667 - 1982` | **`968 - 1982`** |
+| line strength | `41.6% - 74.1%` (1.78x) | **`49.8% - 74.5%` (1.50x)** |
+
+**Ordering is preserved and was verified, not assumed** — fill is still monotonic in real size across all eleven, so a bigger product still reads bigger. `Prisma Link 2` goes `79% -> 54.2%` and `Prisma Link 1` `64.6% -> 48.9%`, moving both from the top of the line-weight distribution into the middle of it.
+
+**Still lossless.** Compression expands some frames and shrinks others, but **pad and crop are both lossless**, so there is still no resampling anywhere in this pipeline. `gamma` is the single tuning knob — `1.0` is strict proportionality, `0` is all-same-size, `0.5` is what shipped.
+
+**`Vena` came back with its OWN asset id on upload** (`TfJC90O7…`), because its frame was unchanged at `1982` and the file was therefore byte-identical. **Framer's upload deduplicates**, which makes a returned-identical id a free confirmation that nothing changed for that item — worth watching for rather than treating as a failed upload.
+
+Verified on the hosted assets in the browser: **11/11** square, no alpha, centred `50/50`, fill monotonic with real size. **Needs a publish.**
