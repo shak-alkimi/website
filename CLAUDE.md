@@ -2210,3 +2210,70 @@ As of 2026-10-01, carried over between sessions:
 - Both cards' hover `Video` layers are **`Visible: No`** (2026-10-02). Their `Source -> URL` was bound to a CMS field `Thumbnail Video URL - Wide` that does not exist on the **Home** collection, which Framer showed as a purple `Missing` pill on `Visible`. Hiding them also removed the last `aspect-ratio: 1.18045` outlier from the published CSS, since a hidden layer emits no rule. **Re-enabling hover video is a three-step job, not a toggle — and doing it as a toggle reintroduces the original card-height bug.** In order: (1) add `Thumbnail Video URL - Wide` to the Home collection and rebind the `Video` `Source -> URL`; (2) **fix the sizing first** — a canvas audit on 2026-10-05 found `Home - Projects Row` → `Home Projects - Right Open` → right `Video` sitting at **`100%/100%` with no aspect ratio at all** (residue from the aspect-lock conversion), and `Home - Projects Row` → `Home Projects Left Open` → left `Video` still carrying the stale **`1.18`** ratio instead of `1.17458`; a layer with a wrong or missing ratio inside the card is exactly what caused the original ~4px height mismatch; (3) only then set `Visible: Yes`, and re-measure both cards in all three states. While they stay hidden none of this reaches the published CSS, which is why it is safe to leave — but it is dormant, not fixed.
 - **The two row components disagree on base-variant left `Overlay` width — Row 1 `100%`, Row 2 `120%`. Checked 2026-10-05 and deliberately left alone; do not "fix" it.** The `Overlay` is a vertical gradient shading the lower card, so its width cannot change appearance as long as it covers the card, and the card masks overflow either way. Overlays were confirmed to track their image in every measured state. Recorded here only so a future audit does not re-flag it as a defect.
 - Seven Draft projects occupy `Sorting Order` 4–10, two of them duplicates (`Glossier Copy`, `Hyundai Motor Group Copy`) created 2026-10-01 purely to fill grid slots 9/10 in the canvas. They are invisible on the published site. If any go Live, the static "(3)" count label needs updating by hand.
+
+### Technical-drawing ("toon") cards on /products and /elements — PUBLISHED 2026-10-12
+
+The drawing card is now a **drawn frame**, deliberately unlike the filled product-render card beside it.
+
+| | Photo Placeholder | Drawing Placeholder |
+|---|---|---|
+| fill | `#f7f6f2` | **none** |
+| border | none | **`1px solid #DDDCDA`** |
+| radius | `10px` | `10px` |
+| count | 18 (3 lists x 3 breakpoints x 2 pages) | 18 |
+
+**Framer draws this border on an `::after` PSEUDO-ELEMENT, so `getComputedStyle(el).borderTopWidth` returns `0px` and reads exactly like a missing border.** The element carries `data-border="true"` and the rule sets `--border-top-width` / `--border-color` / `--border-style` custom properties. Read the pseudo-element, the custom properties, or the emitted CSS rule — never the element's own border shorthand. This nearly produced a false "the border did not ship".
+
+**THE DRAWINGS ARE NOW FLATTENED ONTO WHITE, NOT TRANSPARENT — and the reason is the lightbox.** Clicking a card image opens an in-page lightbox that dims the page dark; a transparent drawing then renders near-black ink on a near-black backdrop and disappears. The photos are unaffected because they carry their own `#f7f6f2` background.
+
+**The lightbox is invisible to every static check.** It is injected at runtime, so it is absent from the SSR HTML; there is no link, no `data-framer-component-type="Link"`, no cursor and no interaction attribute on any of these layers, and **`.framer-lightbox-container` appears in the base stylesheet of EVERY page including `/404`**, so its presence proves nothing. On that evidence it was wrongly reported that the site had no zoom at all — Shak's screenshot settled it. **Treat "no click target in the markup" as inconclusive for Framer lightboxes.**
+
+**Flattening was free visually because the card's backdrop is already white.** Verified by walking the real ancestor chain in the rendered DOM: every ancestor above `Drawing Placeholder` is transparent up to `Products Sections`, which is `rgb(255,255,255)`, and `body` is white too. A `#f7f6f2` seen in a text-based ancestor scan was the *neighbouring photo card*, a sibling — **class names harvested from a byte window around an element are not an ancestor chain; traverse `parentElement` instead.**
+
+**The flatten pipeline, worth reusing for any bulk asset transform:**
+
+1. **Source from `?lossless=1` decoded IN THE BROWSER.** The CDN's plain `.png` is a ~6 KB `pal8` derivative; flattening that bakes quantisation in. No ffmpeg anywhere in the path, so no decode shift on the ink; the white is generated at exactly 255.
+2. **Do the work in a LOCALLY-SERVED PAGE, not via `javascript_tool` on the live site.** Two separate walls otherwise: the live page is `https` so a POST to `http://127.0.0.1` is blocked as mixed content, and sixteen 2000px images in one call exceeds the 45-second CDP limit.
+3. **Return bytes through a local HTTP receiver**, not through the conversation — each flattened PNG is ~130 KB of base64.
+4. **Upload with `framer.uploadImage({ image: "data:image/png;base64,..." })`** and rebind the CMS in one `addItems` per collection, `draft` carried through explicitly.
+5. **Verify on the HOSTED asset by pixels.** `ffprobe` reports **`argb` for every lossless WebP whether or not alpha is used**, so pixel format is NOT a transparency test — it returned a clean-looking 16/16 that meant nothing. Only reading actual pixels settles it: all-white corners, `minAlpha === 255`, ink still present.
+
+Result: 16/16 opaque, all `2000x2000`, white corners, ink intact; cards render identically, lightbox fixed.
+
+### The `Dimensions` text style, and why the colour could not be set directly
+
+The dimensions text (`Dimensions Imperial`, 18 layers inside `Drawing Placeholder`) had **no colour to change**: `inlineTextStyle` was `null`, the rendered paragraph carried no `data-styles-preset`, and no `--framer-text-color` existed anywhere in its ancestor chain — it was falling back to the default.
+
+**`setAttributes({ inlineTextStyle: { color: "#..." } })` FAILS SILENTLY.** `inlineTextStyle` is typed `TextStyle | null` and wants a **live `TextStyle` instance**, not a literal — the same class-instance rule as `ImageAsset` and `LinearGradient`. The write returns, stores nothing, and a fresh read still shows `null`.
+
+**The working route: `framer.createTextStyle(...)` then assign the live instance.** Created `Dimensions` (`y4gWFyxz3`), mirroring the metrics the text already rendered with — `14px`, `-0.02em`, `24px` — and it resolved to **Inter 400**, the same typeface the layers already had, so nothing shifted. Assigned to all 18. Unlike an API-created component *variant* (which instances refuse to offer), an API-created **text style assigns fine**.
+
+The payoff is that the colour is now one attribute for all 18 layers. Current value **`#6F6F6F`**, arrived at as: match the drawing ink (`#3F3F3F`), then "25% less dark" = reduce the distance from white by a quarter (`255-63=192`, `192*0.75=144`, `255-144=111`).
+
+**The drawing ink is darker than it looks, and alpha is why.** Darkest pixels measure `34-37` grey, but **max alpha is only ~222**, so on white the strongest stroke resolves to about `63`. Matching solid text to the *nominal* ink value over-weights it. Also note **"Darkened 25/50/75" is the ink COLOUR, not line weight** — alpha and ink-pixel count are pixel-identical across the three sets; mean ink RGB is `117` / `78` / `39`.
+
+### Row dividers removed, and the /elements layer asymmetry
+
+The `rgba(0, 0, 0, 0.1)` hairline under each product row lived on **`Profile Row` (9) and `Elements Row` (9)** as `border: 0 0 1px 0`. All 18 cleared 2026-10-12. Two other border families on these pages were deliberately left: the toon card frame, and `Page Title Wrapper` (6, `1px` black under the page heading).
+
+**`Technical Drawing` reads `visible: false` on all 18 layers, but it means TWO DIFFERENT THINGS and the API cannot tell them apart.** `/products` publishes 11 drawings from that stored value because those nine layers carry a **Condition**; `/elements` published zero because its nine were a plain hide. Same attribute, same build, opposite behaviour — **only the published page distinguishes them.** The `/elements` nine were set `visible: true` on 2026-10-12, so that page is now a plain show: an Elements item added without a drawing will render an empty bordered frame, where `/products` would drop it. Making them match is editor-only.
+
+### /elements scale analysis — nothing is to a common scale (measured 2026-10-12)
+
+Card is `391` CSS px; photo layers are `140%` (Connector, LED) and `185%` (Driver); drawings are `100%`.
+
+| | real | drawing renders | px per inch |
+|---|---|---|---|
+| Rima 5 | `0.20w` | 7.8 px tall | **39** |
+| Rima 10 | `0.39w` | 16 px tall | **41** |
+| Liga T | `0.57l` | 92 px tall | **162** |
+| Liga W | `0.52l` | 84 px tall | **162** |
+| Driver 5-1 | `8.07l` | 238 px wide | **30** |
+
+**The ordering is inverted in places.** Liga T is 46% physically larger than Rima 10, yet Rima 10's strip spans 87% of its card against Liga T's 18%. Scanning the page, Rima 10 reads as much the bigger product.
+
+**A single page-wide scale is not achievable.** The Driver is `8.07` inches — 14x Liga T and 40x Rima 5 — so at a true common scale Rima 5 would be a few pixels. Per-category scale is the only coherent policy and is effectively what exists; the risk is that five identical-looking rows invite cross-category comparison.
+
+**RIMA 5 AT 50% IS CORRECT, AND AN EARLIER RECOMMENDATION HERE WAS WRONG.** The CMS ratio is `0.20 / 0.39 = 0.513`; the drawing is `0.500`; the **photo subject is `0.756`**. 75% was recommended on the grounds that it matched the photo — the real dimensions show the drawing is right and **the photo is the outlier**, overstating Rima 5 by about 50%.
+
+**Dimension string characters were normalised 2026-10-12:** the separator was a **letter `x` (U+0078)** on the three-dimension Elements entries and is now the multiplication sign (U+00D7); the inch mark was a **straight quote (U+0022)** on all five Elements plus `Vena Round Mini` and is now the prime **U+2033**, matching the other ten Fixtures. All 16 products now agree. Still inconsistent and left for a decision: Rima 5 and Rima 10 state width only, the other three state length x width x height.
