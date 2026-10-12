@@ -2551,3 +2551,26 @@ Shak: *"prisma link 1 and 2 need to be larger and flow 20 needs to match flow sp
 **Note the set now mixes two positional conventions deliberately:** `Flow 20` was sized to match these two (`61.75%`) but is **centred**, while they are **left-flush**. That is Shak's call and should not be "tidied". It also echoes the `/products` **photo** convention, where the fixtures bleed off the left and align on their right-hand end caps — so a long extrusion running off the left edge is consistent with how the photographs beside it are framed.
 
 **Standing lesson, now demonstrated four times today: before regenerating anything, check whether the earlier asset is still hosted.** Framer assets are permanent and there is no delete, so every prior state in this pipeline is one rebind away — `Liga T`, `Liga W`, `Driver 5-1`, `Vena` and now both Flows were all restored this way, at zero cost and with byte-exact fidelity.
+
+**`Flow 20` RESIZED TO MATCH FLOW STRAIGHT'S HEIGHT — and HEIGHT is a different measure from the fill used everywhere else (2026-10-12).**
+
+Shak: *"leave flow 20 centered, but make it smaller to match height of flow straight visually."*
+
+**The sizing policy keys on the LONGEST dimension, which is the wrong axis for this comparison.** `Flow Straight` and `Flow Spine` are long diagonal extrusions whose longest dimension is their *length*; their **height** is less than half of it. So matching `Flow 20` on overall fill made it `1.59x` too tall:
+
+| | width | **height** |
+|---|---|---|
+| `Flow Straight` | `62.85%` | **`26.55%`** |
+| `Flow Spine` | `60.65%` | **`26.25%`** |
+| `Flow 20` (was) | `61.75%` | **`42.25%`** |
+| **`Flow 20` (now)** | `39.02%` | **`26.70%`** |
+
+**For a family of extrusions, profile height is what makes them read as the same product line — length is the thing that legitimately differs.** Matching on the longest dimension forces a short part and a long part to the same overall size, which is exactly backwards.
+
+**Frame `800 -> 1266`, centred `50/50`, gain `x1.684`** — under Shak's `x1.85` rejection threshold, unlike the `x2.023` the first Flow 20 attempt needed. Rebuilt from Shak's original upload so nothing stacks. Verified on the hosted asset: height `26.70%`, centre `50.00/50.00`, weight `0.384`, no alpha, clean corners, ink pixel count unchanged.
+
+**A useful corroboration: the height match lands at `39.02%` overall fill, against the `41.03%` the proportional (`gamma 0.5`) policy independently produced.** Two unrelated methods agreeing within two points is good evidence both are reasonable — and it means the earlier `61.75%` enlargement was the outlier, not the policy.
+
+**Note the measured height reads `26.70%` against a `26.55%` target.** The gain darkens faint edge pixels until they cross the `<200` bbox threshold, very slightly enlarging the measured box. It is `0.6%` relative and not worth chasing, **but it does mean a bbox measured after a gain is marginally larger than the same bbox measured before one** — compare like with like.
+
+**Final arrangement of the three, deliberately mixed:** `Flow 20` centred at `50/50`; `Flow Spine` and `Flow Straight` left-flush, bleeding off the frame edge. Heights `26.70` / `26.25` / `26.55`.
