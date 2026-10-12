@@ -2809,3 +2809,20 @@ Fixed by pure translation at unchanged frame size — size, profile and gain all
 | **isometric extrusions** (5) | `Prisma Link 2` at 1:1 (now `1.25x`) | **right end at `62.9%`**, running off the left |
 
 **The lesson is the general one from this whole pass: a convention derived for one kind of drawing silently mis-applies to another.** The end-cap window, the right-edge anchor and the profile metric were all designed around long extrusions, and each needed re-deriving for sections. **Verification must be convention-aware too** — the check now tests centring for sections and the right anchor for extrusions, and reports **11/11**.
+
+**SECTION ANCHOR REDUCED `37% -> 25%` (Shak, 2026-10-12).** The six sections read too large beside the extrusions — `25.98-37.01%` against `15.39-18.72%`, roughly double. Rebuilt from source at the lower anchor:
+
+| | was | now |
+|---|---|---|
+| `Vena Mini` | `25.98%` | **`17.56%`** |
+| `Vena Corner Mini` | `28.16%` | `19.03%` |
+| `Vena Round Mini` | `28.97%` | `19.57%` |
+| `Vena` | `32.33%` | `21.85%` |
+| `Vena Corner` | `35.91%` | `24.26%` |
+| `Prisma Multiplier` | `37.01%` | **`25.00%`** |
+
+Sections now **`17.56 - 25.00%`** against extrusions **`15.39 - 18.72%`** — overlapping ranges rather than one group at twice the other. Both still monotonic with real size, all centred `50/50`, no upscaling, gains all within `x1.85`. Verified **11/11**.
+
+**`SEC_ANCHOR` is the single knob for this** — it sets the largest section (`Prisma Multiplier`) and every other section follows by `real^0.5`. **The useful bracket, established by trying all three:** `11.74-16.70%` (one shared anchor) read **adrift in empty cards**; `25.98-37.01%` read **too heavy**; `17.56-25.00%` sits between them. Anyone revisiting this should move `SEC_ANCHOR` and nothing else.
+
+**Note the frames grew substantially** — `Vena Corner` is now `2910` and `Prisma Multiplier` `2268`, against sources of `2000`, so they are mostly white padding. That is the correct consequence of shrinking a drawing whose source cannot be made larger, and it costs nothing at delivery because Framer serves a downscaled candidate anyway.
