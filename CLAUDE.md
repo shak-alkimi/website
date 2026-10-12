@@ -2630,3 +2630,27 @@ Both now land on the reference (`1.56%`, darkest `85`), **both gains fall under 
 **A MEASUREMENT BUG WAS FOUND AND FIXED IN THE PROCESS.** The binary search measured its candidates by `drawImage(canvas, …)` while verification measured the hosted asset by `drawImage(ImageBitmap, …)`. **Those two use different downscale filters**, and the discrepancy is not uniform — both Prisma Links solved to `0.384` during processing but measured `0.455` and `0.369` once hosted. **The solver now measures through `createImageBitmap(canvas)` so it uses the identical path as the final verification.** This was flagged earlier as a ~5% curiosity on one drawing; here it reached 18% and contributed directly to the mismatch. **Any solver must measure through the same path as its verification, or it is optimising a different quantity than the one being checked** — the same class of error as the planner/verifier disagreement that cost two render passes on the fixtures photos.
 
 **So three metrics are now in play and each answers a different question:** per-stroke ink mass (how heavy is a single line), ink coverage (how dark does the whole drawing read), profile thickness (how big is the product). They are not interchangeable, and a match on one says nothing about the others.
+
+### Prisma Links enlarged and bled off the left (2026-10-12)
+
+Shak: *"move prisma link 1 and 2 left and make them larger like their dimensions. it is ok if they are cut off on left side like flow spine and straight."*
+
+**Two corrections to the brief's premise, both worth stating because they change the implementation:**
+
+1. **`Flow Spine` and `Flow Straight` are NOT actually cut off** — their content ends exactly at `x = 0`, flush with the edge. They read as cut off because the drawing was composed running to the frame boundary. So "cut off like them" is satisfied by flush, and anything beyond that is new behaviour.
+2. **Left-flush alone would have cut the WRONG END.** Anchoring the left edge at `0` and scaling up pushes the overflow out of the *right* side. To lose the **left**, the drawing must be **right-anchored** — which is the same logic as the `/products` photographs, where end caps align right and the run bleeds left.
+
+**The Prisma family was already inconsistent with itself**, which is what "like their dimensions" had to resolve: `Prisma Multiplier` implied `54.8 %/inch`, `Link 1` `65.8`, `Link 2` `59.2`. Putting the two Links on one scale means `Link 2` grows more than `Link 1`, since it is `1.38"` against `1.12"`.
+
+**Applied: `84.8 %/inch`, right edge anchored at `95%` of frame, vertically centred.** That scale is chosen so `Link 1` lands exactly flush at the left — matching the Flow pair — and `Link 2`, being proportionally longer, runs past it.
+
+| | frame | visible span | cut off left | gain | coverage |
+|---|---|---|---|---|---|
+| `Prisma Link 1` | `1223 -> 949` | `0% .. 95.05%` | **`0%`** (flush) | `x1.394 -> x1.401` | `1.56%` |
+| `Prisma Link 2` | `1178 -> 822` | `0% .. 95.13%` | **`18.8%`** | `x1.740 -> x1.502` | `1.56%` |
+
+**Losing 18.8% of `Link 2` is acceptable only because it is a repeating chain** — the link pattern continues identically off-frame, so nothing unique is lost. **Do not apply this treatment to a product with distinct ends**; the end cap is usually the most informative part, which is exactly why the photographs align on it.
+
+**Ink coverage held at the reference `1.56%` through the resize**, re-solved rather than carried over, because the frame change alters the card scale and therefore the rendered weight. **Both gains stayed under the `x1.85` threshold**, and `Link 2`'s actually fell (`x1.740 -> x1.502`) since the smaller frame raises its card scale.
+
+**The tuning knob is `SCALE` (`84.8 %/inch`).** Raising it enlarges both and increases the bleed; lowering it pulls them back inside the frame. `RIGHT` (`0.95`) sets how much margin sits to the right of the end cap.
