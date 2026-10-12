@@ -2357,3 +2357,40 @@ Shak flagged `Prisma Link 1` and `Prisma Link 2`: *"the lines for these two do n
 **`Vena` came back with its OWN asset id on upload** (`TfJC90O7…`), because its frame was unchanged at `1982` and the file was therefore byte-identical. **Framer's upload deduplicates**, which makes a returned-identical id a free confirmation that nothing changed for that item — worth watching for rather than treating as a failed upload.
 
 Verified on the hosted assets in the browser: **11/11** square, no alpha, centred `50/50`, fill monotonic with real size. **Needs a publish.**
+
+### Line weights normalised across all 16 drawings — and the metric that finally matched the eye (2026-10-12)
+
+Shak: *"i want all the line weights across the drawings to read the same - prisma link 1 and 2 are too dark, use prisma multiplier as reference for optimal."*
+
+**THE FIRST METRIC WAS WORTHLESS AND SAID THE OPPOSITE.** Line strength had been measured as **contrast of the darkest pixel against white**. By that number `Prisma Link 1` sat at **63.9%** — *identical* to `Prisma Multiplier` — while Shak could plainly see it was heavier. The failure is structural: peak darkness describes **one pixel**, and what the eye reads as line weight is **how much ink sits across the stroke**, i.e. width and darkness together.
+
+**The metric that works: INK MASS PER STROKE CROSSING, measured on the card-rendered image.** Walk each scanline, take maximal runs of ink, and for each run sum `(255 - v)/255`. That integral is the effective stroke weight in device pixels; take the **median** across all crossings. Cap run length (`<= 24 px`) so long horizontal strokes are excluded and only true crossings are counted.
+
+**The two metrics disagree violently, which is the point:**
+
+| | peak darkness | ink weight |
+|---|---|---|
+| `Liga T` | **72.5%** — the darkest | **0.125** — the lightest, −69% |
+| `Vena Corner Mini` | 62.7% | 0.596 — the heaviest, +48% |
+| `Prisma Link 1` | 63.9% — equal to the reference | 0.533 — **+32%** |
+
+`Liga T` is thin and near-black; `Vena Corner Mini` is wide and mid-grey. Peak darkness ranks them backwards. **For any line-art question in this project, measure integrated ink per crossing, never peak darkness or a pixel count.**
+
+Real spread across the eleven: **4.77x**. Reference `Prisma Multiplier` = `0.404`.
+
+**The lever is an INK GAIN, not gamma: `v' = 255 - (255 - v) * k`.** Ink mass scales very nearly linearly in `k` until pixels clip to black, which makes a binary search converge in ~22 steps, and it maps `255 -> 255` so the white background is untouched by construction. Gamma was rejected because it distorts the stroke profile non-uniformly and gives no direct handle on mass.
+
+**Applied to all 16** (the 5 size-outliers included — line weight is a drawing convention, independent of the size policy that excluded them). Gains ran **x0.66 to x16.03**; `Prisma Multiplier` and `Rima 5` were already at reference and were left untouched rather than re-uploaded.
+
+| | before | after |
+|---|---|---|
+| ink weight | `0.118 - 1.173` | **`0.384 - 0.404`** |
+| spread | **4.77x** | **1.05x** |
+
+**`Driver 5-1` needed x16.03, and that number is a hazard worth checking rather than shipping.** At 16x amplification any background pixel at 254 becomes 239 — a visible grey haze. **Checked before uploading, by comparing the count of non-white pixels before and after: identical on all 16 (growth x1.00), corners still exactly 255, no alpha.** The gain only deepens existing ink and creates nothing, because the earlier flatten pass generated white at exactly `255`. **Always run that count when amplifying contrast on a flattened asset** — a dirty background is invisible at 1x and obvious at 16x.
+
+**The residual 1.05x is measurement granularity, not a visible difference.** The median lands on different crossings between runs, so the same file measures `0.384` on one pass and `0.404` on another — about 5%. Treat anything inside ~5% as matched.
+
+**This also retires the "only a vector re-export can fix the lines" conclusion recorded above.** That was correct about *geometry* — raster scaling cannot separate stroke width from product size — but wrong that the appearance could not be equalised. **Matching integrated ink achieves the same perceptual result without touching geometry**, and it is reversible, since the gain is a per-image tone curve over assets that are still cropped losslessly.
+
+**What is now the most visible inconsistency, and it is the 5 excluded outliers.** With weights matched, size is all that is left: `Rima 10` fills **86.7%** of its frame against a maximum of `54.2%` in the normalised set, and `Flow Spine` / `Flow Straight` / `Rima 5` are still off-centre (`30.3/46.8`, `31.4/47.1`, `21.7/50.1`) because they never went through the centring pass. Worth raising before launch.
