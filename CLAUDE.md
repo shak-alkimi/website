@@ -2406,3 +2406,16 @@ Real spread across the eleven: **4.77x**. Reference `Prisma Multiplier` = `0.404
 | everything else | `0.384 - 0.404` | — |
 
 **So `/elements` now renders three drawings at reference weight (`Rima 5`, `Rima 10`, `Driver 5-1`) and two markedly lighter.** That is intended, not drift — do not "fix" it back to uniform in a later pass without asking. The normalised versions remain hosted (`75eTVJYn…` for Liga T, `cKm3lYPq…` for Liga W) if the decision is ever reversed.
+
+**`Driver 5-1` REVERTED TOO (Shak, 2026-10-12) — and the three rejections share a clear pattern.** Same method as the Liga pair: rebound to the still-hosted pre-normalisation asset (`Q2egG6T23…`), no re-upload. `/elements` now reads `Rima 5` and `Rima 10` at the reference weight, with `Liga T`, `Liga W` and `Driver 5-1` deliberately lighter.
+
+**EVERY DRAWING REJECTED SO FAR WAS BRIGHTENED, AND NONE THAT WAS DARKENED HAS BEEN.** Split by the direction of the ink gain:
+
+| | gains | outcome |
+|---|---|---|
+| **brightened** (`k > 1`) | `x1.06` to `x16.03`, 8 drawings | **3 of 8 rejected — the 1st, 2nd and 4th largest gains** |
+| **darkened** (`k < 1`) | `x0.66` to `x0.80`, 6 drawings | **0 rejected** |
+
+**The asymmetry makes physical sense:** darkening a light stroke deepens ink that is already there, while brightening a thin one has to recruit the antialiased skirt, so the line gets *softer and fatter* rather than simply heavier. At `x16` (`Driver 5-1`) that is extreme. **So treat a large upward gain as a warning sign, not merely a large number** — the safe direction is downward.
+
+**STILL NORMALISED AND LIKELY TO READ THE SAME WAY, both on `/products`:** `Vena` at **`x2.54`** and `Flow Straight` at **`x1.85`**. `Vena`'s gain is *larger* than `Liga W`'s (`x1.98`), which was rejected. Raised with Shak rather than reverted unilaterally, since the threshold is his eye. `Vena Corner` (`x1.55`), `Flow Spine` (`x1.15`) and `Vena Mini` (`x1.06`) are milder and may be fine.
