@@ -2443,3 +2443,16 @@ The first two are **byte-identical in geometry**, confirming the crop passes wer
 **Mitigations, cheapest first:** revert the gain on `Vena` (consistent with the three already reverted, and it directly lowers the contrast that exposes the steps); or re-render that drawing with a deeper arc or a heavier stroke, since a thicker line hides a one-pixel jog. **Raising the source resolution is NOT a mitigation** and should not be attempted.
 
 **The general rule: before treating a jagged curve as an artwork defect, compute its rise over run and convert it to device pixels at the rendered size.** Below about five pixels of total descent, faceting is arithmetic, not a fault in the file.
+
+**`Vena` REVERTED (Shak, 2026-10-12) — four of the eight brightened drawings are now back on their originals.** Rebound to `TfJC90O7…`, the still-hosted pre-gain asset. **Matched on the EXACT title, which matters here:** `Vena` is a prefix of `Vena Corner`, `Vena Mini`, `Vena Corner Mini` and `Vena Round Mini`, so a `startsWith` or `includes` match would have silently reverted five items instead of one. Verified: the other four Vena products untouched.
+
+**Running state of the line-weight normalisation:**
+
+| | drawings | gains |
+|---|---|---|
+| **reverted** | `Driver 5-1`, `Liga T`, `Vena`, `Liga W` | `x16.03`, `x3.17`, `x2.54`, `x1.98` — **the four largest upward gains** |
+| **still brightened** | `Flow Straight`, `Vena Corner`, `Flow Spine`, `Vena Mini` | `x1.85`, `x1.55`, `x1.15`, `x1.06` |
+| **darkened, none rejected** | `Vena Corner Mini`, `Vena Round Mini`, `Flow 20`, `Prisma Link 1`, `Prisma Link 2`, `Rima 10` | `x0.66` - `x0.80` |
+| **untouched** | `Prisma Multiplier` (reference), `Rima 5` | `x1.00` |
+
+**The rejections are now strictly ordered by gain: the top four are out, the next four are in.** That is a clean threshold somewhere between `x1.85` and `x1.98`, which is a useful prior if this is ever re-run — **do not apply an upward gain beyond roughly `x1.8` without showing it to Shak first.** Awaiting his decision on the remaining four.
