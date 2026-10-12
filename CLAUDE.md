@@ -2456,3 +2456,24 @@ The first two are **byte-identical in geometry**, confirming the crop passes wer
 | **untouched** | `Prisma Multiplier` (reference), `Rima 5` | `x1.00` |
 
 **The rejections are now strictly ordered by gain: the top four are out, the next four are in.** That is a clean threshold somewhere between `x1.85` and `x1.98`, which is a useful prior if this is ever re-run — **do not apply an upward gain beyond roughly `x1.8` without showing it to Shak first.** Awaiting his decision on the remaining four.
+
+### Flow 20 technical drawing replaced — continuity review (2026-10-12)
+
+Shak replaced the `Flow 20` drawing (`HgTPW0JRFkvNVBqAkUZB9X19KyA.png`) and asked for a continuity check against the set.
+
+**It is DIFFERENT ARTWORK, not a re-export** — shape-signature distance **10.52** against the previous drawing, where a re-export scores under ~2 and genuinely different artwork over ~6. The product's proportions changed from **547 x 545** (square) to **494 x 336** (1.47 : 1), so it is a different view, not the same one redrawn. **The shape matcher earned its keep again** — it flagged a content change that no dimensional check would have called out.
+
+**What is already correct:** square frame, no alpha, all four corners exactly `255`. The basics of the flatten convention hold.
+
+**Four things are out of continuity, all because it has not been through the geometry pipeline:**
+
+| | new drawing | the set's convention |
+|---|---|---|
+| frame | **`2000`** | `968` - `1982`, sized by the scale policy |
+| fill | **`24.7%`** | **`41.04%`** for Flow 20 — it renders ~40% too small |
+| centre | **`48.35 / 51.45`** | `50 / 50` |
+| ink weight | **`0.169`** | `0.384` reference |
+
+**The size and the weight are the SAME defect, and fixing one largely fixes the other** — this is the frame/scale coupling recorded above. Cropping `2000 -> 1204` to reach the target fill raises the card scale `0.293 -> 0.488`, which lifts ink weight **`0.169 -> ~0.281`** for free. The residual gain needed is then only **`x1.37`** — comfortably under the `x1.85` threshold where Shak has been rejecting brightened drawings. **So this one can be brought fully into line without a large upward gain**, unlike the four that were reverted.
+
+**Sequence if it is to be corrected:** lossless crop to `1204` about the ink bbox (which also centres it), then an ink gain of about `x1.37`, then upload, rebind and verify on the hosted asset — the same pipeline as the rest. **Raised with Shak rather than applied**, since the artwork change wants confirming and the weight call has been his throughout.
