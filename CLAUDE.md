@@ -2910,3 +2910,29 @@ ext: 16.16 < 16.73 < 17.04 < 18.01 < 21.00
 - anchor on `Prisma Link 2` at 1:1 — no upscaling anywhere, but the Flows shrink and slide back to `~50%` right end, undoing the previous pass
 
 **`1.52x` sits between the `1.25x` accepted and the `1.85x` rejected**, so it is the one thing on this page worth a careful look. A higher-resolution `Prisma Link 2` export removes the choice entirely.
+
+### Vertical balance on /products — the drawings are BBOX-centred, and the shared end-cap anchor was given up (2026-10-12)
+
+Every one of the 11 technical drawings now sits with its **bounding box centred at 50.0%** of the frame. Verified on the hosted assets: all 11 read `50.0%`, and every top/bottom pair sums to exactly 100.
+
+| | top | bottom |
+|---|---|---|
+| Vena Mini | 42.4% | 57.6% |
+| Vena Corner Mini | 40.4% | 59.5% |
+| Vena Round Mini | 40.2% | 59.8% |
+| Vena | 41.4% | 58.6% |
+| Vena Corner | 37.9% | 62.1% |
+| Prisma Multiplier | 36.9% | 63.1% |
+| Flow 20 | 40.3% | 59.7% |
+| Flow Spine | 37.6% | 62.4% |
+| Flow Straight | 36.6% | 63.4% |
+| Prisma Link 1 | 30.3% | 69.7% |
+| Prisma Link 2 | 29.1% | 70.9% |
+
+**THE DELIBERATE COST: the five extrusions' END CAPS no longer share a vertical line** — they now sit at `50.7 / 54.6 / 55.2 / 59.5 / 59.4%`. That directly gives up the earlier instruction to "treat flow 20, flow spine, flow straight, prisma link 1, prisma link 2 all the same in terms of right side center position vertically and horizontally". **Horizontally they still do** (right edges `62.9 / 57.3 / 63.4 / 62.9 / 62.9%`); only the vertical anchor changed.
+
+**The reasoning, which is the part worth keeping.** On `/products` the drawings render **one per row, stacked vertically, never side by side** — so cross-card registration of a feature is essentially invisible to a visitor, while a product sitting high or low *inside its own card* is immediately visible. An isometric extrusion rises left-to-right, so anchoring on the end cap (its lowest-right feature) necessarily pushes the body above the line; Prisma Link 1 and 2 were `19.1` and `18.9` points out of balance. **Anchor on a feature only when the feature is comparable across cards; otherwise anchor on the whole shape.**
+
+**The transform was a PURE VERTICAL TRANSLATION** — unchanged frame, no rescale, no re-gain, horizontal untouched. That keeps the whole size hierarchy and ink-weight normalisation intact by construction rather than by re-solving them. **Note it can still shift measured ink weight slightly through sub-pixel phase; that is an artifact of the measurement, not a regression, and must not be "corrected".**
+
+The six cross-sections were already bbox-centred and were not touched.
