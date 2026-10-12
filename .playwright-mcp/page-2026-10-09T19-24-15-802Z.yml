@@ -1,0 +1,99 @@
+- generic [active] [ref=f45e1]:
+  - generic [ref=f45e3]:
+    - generic [ref=f45e8]:
+      - link [ref=f45e10] [cursor=pointer]:
+        - /url: ./
+      - generic [ref=f45e13] [cursor=pointer]
+    - main [ref=f45e16]:
+      - generic [ref=f45e27]:
+        - heading "Measured" [level=1] [ref=f45e30]
+        - paragraph [ref=f45e33]: lighting objects.
+      - generic [ref=f45e38]:
+        - generic [ref=f45e47]:
+          - paragraph [ref=f45e49]: Lighting
+          - paragraph [ref=f45e51]:
+            - link "Fixtures" [ref=f45e52] [cursor=pointer]:
+              - /url: ./products
+        - generic [ref=f45e62]:
+          - paragraph [ref=f45e64]:
+            - link "Hardware" [ref=f45e65] [cursor=pointer]:
+              - /url: ./products
+          - paragraph [ref=f45e67]:
+            - link "Elements" [ref=f45e68] [cursor=pointer]:
+              - /url: ./elements
+      - generic [ref=f45e80] [cursor=pointer]:
+        - generic:
+          - link "Projects":
+            - /url: ./projects/belmont-park
+            - generic:
+              - generic:
+                - paragraph: Projects
+    - generic [ref=f45e85]:
+      - generic [ref=f45e86]:
+        - paragraph [ref=f45e88]: Newsroom
+        - link [ref=f45e91] [cursor=pointer]:
+          - /url: ./news
+          - paragraph [ref=f45e94]: All Articles
+      - generic [ref=f45e109]:
+        - link [ref=f45e112] [cursor=pointer]:
+          - /url: ./news/our-brand-for-mush-energy-has-just-won-2-silver-awards
+          - generic [ref=f45e116]:
+            - paragraph [ref=f45e118]: Awards
+            - paragraph [ref=f45e120]: Mush Energy just won 2 gold awards
+            - paragraph [ref=f45e129]: 6 min read
+        - link [ref=f45e132] [cursor=pointer]:
+          - /url: ./news/the-making-of-an-award-winning-website
+          - generic [ref=f45e136]:
+            - paragraph [ref=f45e138]: Featured Campaign
+            - paragraph [ref=f45e140]: The making of an award-winning website
+            - paragraph [ref=f45e149]: 4 min read
+        - link [ref=f45e152] [cursor=pointer]:
+          - /url: ./news/how-aesop-has-reshaped-the-industry
+          - generic [ref=f45e156]:
+            - paragraph [ref=f45e158]: Design & Thoughts
+            - paragraph [ref=f45e160]: How Aesop has reshaped the industry
+            - paragraph [ref=f45e169]: 5 min read
+    - generic [ref=f45e177]:
+      - link [ref=f45e179] [cursor=pointer]:
+        - /url: ./
+      - generic [ref=f45e182]:
+        - generic [ref=f45e183]:
+          - paragraph [ref=f45e185]: Sitemap
+          - generic [ref=f45e186]:
+            - link [ref=f45e189] [cursor=pointer]:
+              - /url: ./projects-grid
+              - paragraph [ref=f45e191]: Case studies
+            - link [ref=f45e195] [cursor=pointer]:
+              - /url: ./about
+              - paragraph [ref=f45e197]: About
+            - link [ref=f45e201] [cursor=pointer]:
+              - /url: ./careers
+              - paragraph [ref=f45e203]: Careers
+            - link [ref=f45e207] [cursor=pointer]:
+              - /url: ./news
+              - paragraph [ref=f45e209]: News
+        - generic [ref=f45e211]:
+          - paragraph [ref=f45e213]: Follow
+          - link [ref=f45e216] [cursor=pointer]:
+            - /url: https://www.instagram.com/ena.supply/
+            - paragraph [ref=f45e218]: Instagram
+        - generic [ref=f45e220]:
+          - paragraph [ref=f45e222]: Contact
+          - paragraph [ref=f45e224]:
+            - link "Get in touch" [ref=f45e225] [cursor=pointer]:
+              - /url: ./contact
+  - generic [ref=f45e229] [cursor=pointer]:
+    - generic "Edit Framer Content": Edit Content
+    - button "Edit Framer Content" [ref=f45e230]
+  - iframe [aria-hidden] [ref=f45e233]:
+    - generic [ref=f46e1]:
+      - iframe [aria-hidden] [ref=f46e2]:
+        - generic:
+          - main
+      - dialog "Edit page" [ref=f46e7]:
+        - generic [ref=f46e9]:
+          - generic [ref=f46e10]:
+            - generic [ref=f46e11]: Edit page
+            - button "Close" [ref=f46e12] [cursor=pointer]
+          - generic [ref=f46e14]: Edit the page directly in the browser, without opening the app.
+          - button "Continue" [ref=f46e17] [cursor=pointer]

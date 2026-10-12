@@ -1,0 +1,115 @@
+- generic [active] [ref=f40e1]:
+  - generic [ref=f40e3]:
+    - generic [ref=f40e7]:
+      - link [ref=f40e9] [cursor=pointer]:
+        - /url: ./
+      - generic [ref=f40e12] [cursor=pointer]
+    - main [ref=f40e15]:
+      - generic [ref=f40e22]:
+        - heading "We are a global team of experts." [level=1] [ref=f40e26]
+        - paragraph [ref=f40e30]: Here to stay, here to make impact.
+      - list [ref=f40e35]:
+        - listitem [ref=f40e36]
+        - listitem [ref=f40e40]
+        - listitem [ref=f40e44]
+        - listitem [ref=f40e48]
+        - listitem [aria-hidden] [ref=f40e52]
+        - listitem [aria-hidden] [ref=f40e56]
+        - listitem [aria-hidden] [ref=f40e60]
+        - listitem [aria-hidden] [ref=f40e64]
+        - listitem [aria-hidden] [ref=f40e68]
+        - listitem [aria-hidden] [ref=f40e72]
+        - listitem [aria-hidden] [ref=f40e76]
+        - listitem [aria-hidden] [ref=f40e80]
+        - listitem [aria-hidden] [ref=f40e84]
+        - listitem [aria-hidden] [ref=f40e88]
+        - listitem [aria-hidden] [ref=f40e92]
+        - listitem [aria-hidden] [ref=f40e96]
+      - generic [ref=f40e100]:
+        - paragraph [ref=f40e102]: Open Roles
+        - generic [ref=f40e103]:
+          - generic [ref=f40e104]:
+            - paragraph [ref=f40e108]: Position
+            - paragraph [ref=f40e112]: Location
+            - paragraph [ref=f40e116]: Category
+          - generic [ref=f40e117]:
+            - generic [ref=f40e121] [cursor=pointer]:
+              - paragraph [ref=f40e124]: Senior Art Director
+              - paragraph [ref=f40e127]: New York
+              - paragraph [ref=f40e130]: Design
+            - generic [ref=f40e147] [cursor=pointer]:
+              - paragraph [ref=f40e150]: Design Intern
+              - paragraph [ref=f40e153]: London
+              - paragraph [ref=f40e156]: Design
+            - generic [ref=f40e173] [cursor=pointer]:
+              - paragraph [ref=f40e176]: Marketing Manager
+              - paragraph [ref=f40e179]: Athens
+              - paragraph [ref=f40e182]: Management
+            - generic [ref=f40e199] [cursor=pointer]:
+              - paragraph [ref=f40e202]: Studio Manager
+              - paragraph [ref=f40e205]: Tokyo
+              - paragraph [ref=f40e208]: Management
+            - generic [ref=f40e225] [cursor=pointer]:
+              - paragraph [ref=f40e228]: Motion Designer
+              - paragraph [ref=f40e231]: London
+              - paragraph [ref=f40e234]: Motion
+      - generic [ref=f40e250]:
+        - generic [ref=f40e251]:
+          - generic [ref=f40e252]:
+            - paragraph [ref=f40e255]: Student
+            - paragraph [ref=f40e258]: Opportunities
+          - paragraph [ref=f40e260]: We’re always on the lookout for great, smart, talented, and fun people. Within our intimate team, we cherish the diverse backgrounds, cultures and perspectives that each individual brings. Our team members represent a tapestry of experiences, talents and skills that enriches our collective creativity.
+        - link [ref=f40e263] [cursor=pointer]:
+          - /url: mailto:hello@ora.com
+          - paragraph [ref=f40e266]: Send your portfolio
+      - generic [ref=f40e275]:
+        - generic [ref=f40e276]:
+          - paragraph [ref=f40e278]: The studio
+          - paragraph [ref=f40e280]: What we do
+        - link [ref=f40e282] [cursor=pointer]:
+          - /url: ./about
+          - paragraph [ref=f40e285]: About us
+    - generic [ref=f40e295]:
+      - link [ref=f40e297] [cursor=pointer]:
+        - /url: ./
+      - generic [ref=f40e300]:
+        - generic [ref=f40e301]:
+          - paragraph [ref=f40e303]: Sitemap
+          - generic [ref=f40e304]:
+            - link [ref=f40e307] [cursor=pointer]:
+              - /url: ./projects-grid
+              - paragraph [ref=f40e309]: Case studies
+            - link [ref=f40e313] [cursor=pointer]:
+              - /url: ./about
+              - paragraph [ref=f40e315]: About
+            - link [ref=f40e319] [cursor=pointer]:
+              - /url: ./careers
+              - paragraph [ref=f40e321]: Careers
+            - link [ref=f40e325] [cursor=pointer]:
+              - /url: ./news
+              - paragraph [ref=f40e327]: News
+        - generic [ref=f40e329]:
+          - paragraph [ref=f40e331]: Follow
+          - link [ref=f40e334] [cursor=pointer]:
+            - /url: https://www.instagram.com/ena.supply/
+            - paragraph [ref=f40e336]: Instagram
+        - generic [ref=f40e338]:
+          - paragraph [ref=f40e340]: Contact
+          - paragraph [ref=f40e342]:
+            - link "Get in touch" [ref=f40e343] [cursor=pointer]:
+              - /url: ./contact
+  - generic [ref=f40e345] [cursor=pointer]:
+    - generic "Edit Framer Content": Edit Content
+    - button "Edit Framer Content" [ref=f40e346]
+  - iframe [aria-hidden] [ref=f40e349]:
+    - generic [ref=f41e1]:
+      - iframe [aria-hidden] [ref=f41e2]:
+        - generic:
+          - main
+      - dialog "Edit page" [ref=f41e7]:
+        - generic [ref=f41e9]:
+          - generic [ref=f41e10]:
+            - generic [ref=f41e11]: Edit page
+            - button "Close" [ref=f41e12] [cursor=pointer]
+          - generic [ref=f41e14]: Edit the page directly in the browser, without opening the app.
+          - button "Continue" [ref=f41e17] [cursor=pointer]

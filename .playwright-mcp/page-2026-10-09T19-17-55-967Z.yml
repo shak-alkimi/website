@@ -1,0 +1,83 @@
+- generic [ref=f20e3]:
+  - generic [ref=f20e8]:
+    - link [ref=f20e10] [cursor=pointer]:
+      - /url: ./
+    - generic [ref=f20e13] [cursor=pointer]
+  - main [ref=f20e16]:
+    - generic [ref=f20e27]:
+      - heading "Measured" [level=1] [ref=f20e30]
+      - paragraph [ref=f20e33]: lighting objects.
+    - generic [ref=f20e38]:
+      - generic [ref=f20e47]:
+        - paragraph [ref=f20e49]: Lighting
+        - paragraph [ref=f20e51]:
+          - link "Fixtures" [ref=f20e52] [cursor=pointer]:
+            - /url: ./products
+      - generic [ref=f20e62]:
+        - paragraph [ref=f20e64]:
+          - link "Hardware" [ref=f20e65] [cursor=pointer]:
+            - /url: ./products
+        - paragraph [ref=f20e67]:
+          - link "Elements" [ref=f20e68] [cursor=pointer]:
+            - /url: ./elements
+    - generic [ref=f20e80] [cursor=pointer]:
+      - generic:
+        - link "Projects":
+          - /url: ./projects/belmont-park
+          - generic:
+            - generic:
+              - paragraph: Projects
+  - generic [ref=f20e85]:
+    - generic [ref=f20e86]:
+      - paragraph [ref=f20e88]: Newsroom
+      - link [ref=f20e91] [cursor=pointer]:
+        - /url: ./news
+        - paragraph [ref=f20e94]: All Articles
+    - generic [ref=f20e109]:
+      - link [ref=f20e112] [cursor=pointer]:
+        - /url: ./news/our-brand-for-mush-energy-has-just-won-2-silver-awards
+        - generic [ref=f20e116]:
+          - paragraph [ref=f20e118]: Awards
+          - paragraph [ref=f20e120]: Mush Energy just won 2 gold awards
+          - paragraph [ref=f20e129]: 6 min read
+      - link [ref=f20e132] [cursor=pointer]:
+        - /url: ./news/the-making-of-an-award-winning-website
+        - generic [ref=f20e136]:
+          - paragraph [ref=f20e138]: Featured Campaign
+          - paragraph [ref=f20e140]: The making of an award-winning website
+          - paragraph [ref=f20e149]: 4 min read
+      - link [ref=f20e152] [cursor=pointer]:
+        - /url: ./news/how-aesop-has-reshaped-the-industry
+        - generic [ref=f20e156]:
+          - paragraph [ref=f20e158]: Design & Thoughts
+          - paragraph [ref=f20e160]: How Aesop has reshaped the industry
+          - paragraph [ref=f20e169]: 5 min read
+  - generic [ref=f20e177]:
+    - link [ref=f20e179] [cursor=pointer]:
+      - /url: ./
+    - generic [ref=f20e182]:
+      - generic [ref=f20e183]:
+        - paragraph [ref=f20e185]: Sitemap
+        - generic [ref=f20e186]:
+          - link [ref=f20e189] [cursor=pointer]:
+            - /url: ./projects-grid
+            - paragraph [ref=f20e191]: Case studies
+          - link [ref=f20e195] [cursor=pointer]:
+            - /url: ./about
+            - paragraph [ref=f20e197]: About
+          - link [ref=f20e201] [cursor=pointer]:
+            - /url: ./careers
+            - paragraph [ref=f20e203]: Careers
+          - link [ref=f20e207] [cursor=pointer]:
+            - /url: ./news
+            - paragraph [ref=f20e209]: News
+      - generic [ref=f20e211]:
+        - paragraph [ref=f20e213]: Follow
+        - link [ref=f20e216] [cursor=pointer]:
+          - /url: https://www.instagram.com/ena.supply/
+          - paragraph [ref=f20e218]: Instagram
+      - generic [ref=f20e220]:
+        - paragraph [ref=f20e222]: Contact
+        - paragraph [ref=f20e224]:
+          - link "Get in touch" [ref=f20e225] [cursor=pointer]:
+            - /url: ./contact

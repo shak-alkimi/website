@@ -1,0 +1,94 @@
+- generic [active] [ref=f40e1]:
+  - generic [ref=f40e3]:
+    - generic [ref=f40e8]:
+      - link [ref=f40e10] [cursor=pointer]:
+        - /url: ./
+      - generic [ref=f40e13] [cursor=pointer]
+    - main [ref=f40e17]:
+      - generic [ref=f40e28]:
+        - heading "Measured" [level=1] [ref=f40e31]
+        - paragraph [ref=f40e34]: lighting objects.
+      - generic [ref=f40e39]:
+        - generic [ref=f40e48]:
+          - paragraph [ref=f40e50]: Lighting
+          - paragraph [ref=f40e52]:
+            - link "Fixtures" [ref=f40e53] [cursor=pointer]:
+              - /url: ./products
+        - generic [ref=f40e63]:
+          - paragraph [ref=f40e65]:
+            - link "Hardware" [ref=f40e66] [cursor=pointer]:
+              - /url: ./products
+          - paragraph [ref=f40e68]:
+            - link "Elements" [ref=f40e69] [cursor=pointer]:
+              - /url: ./elements
+      - generic [ref=f40e81] [cursor=pointer]:
+        - generic:
+          - link "Projects":
+            - /url: ./projects-list
+            - generic:
+              - generic:
+                - paragraph: Projects
+    - generic [ref=f40e86]:
+      - generic [ref=f40e87]:
+        - paragraph [ref=f40e89]: Newsroom
+        - link [ref=f40e92] [cursor=pointer]:
+          - /url: ./news
+          - paragraph [ref=f40e95]: All Articles
+      - generic [ref=f40e110]:
+        - link [ref=f40e113] [cursor=pointer]:
+          - /url: ./news/cauda
+          - generic [ref=f40e117]:
+            - paragraph [ref=f40e119]: Awards
+            - paragraph [ref=f40e121]: A fresh depth of color brought to light
+        - link [ref=f40e125] [cursor=pointer]:
+          - /url: ./news/the-making-of-an-award-winning-website
+          - generic [ref=f40e129]:
+            - paragraph [ref=f40e131]: Featured Campaign
+            - paragraph [ref=f40e133]: The making of an award-winning website
+        - link [ref=f40e137] [cursor=pointer]:
+          - /url: ./news/how-aesop-has-reshaped-the-industry
+          - generic [ref=f40e141]:
+            - paragraph [ref=f40e143]: Design & Thoughts
+            - paragraph [ref=f40e145]: How Aesop has reshaped the industry
+    - generic [ref=f40e154]:
+      - link [ref=f40e156] [cursor=pointer]:
+        - /url: ./
+      - generic [ref=f40e159]:
+        - generic [ref=f40e160]:
+          - paragraph [ref=f40e162]: Sitemap
+          - generic [ref=f40e163]:
+            - link [ref=f40e166] [cursor=pointer]:
+              - /url: ./projects-grid
+              - paragraph [ref=f40e168]: Case studies
+            - link [ref=f40e172] [cursor=pointer]:
+              - /url: ./about
+              - paragraph [ref=f40e174]: About
+            - link [ref=f40e178] [cursor=pointer]:
+              - /url: ./careers
+              - paragraph [ref=f40e180]: Careers
+            - link [ref=f40e184] [cursor=pointer]:
+              - /url: ./news
+              - paragraph [ref=f40e186]: News
+        - generic [ref=f40e188]:
+          - paragraph [ref=f40e190]: Follow
+          - link [ref=f40e193] [cursor=pointer]:
+            - /url: https://www.instagram.com/ena.supply/
+            - paragraph [ref=f40e195]: Instagram
+        - generic [ref=f40e197]:
+          - paragraph [ref=f40e199]: Contact
+          - paragraph [ref=f40e201]:
+            - link "Get in touch" [ref=f40e202] [cursor=pointer]:
+              - /url: ./contact
+  - generic [ref=f40e206] [cursor=pointer]:
+    - generic "Edit Framer Content": Edit Content
+    - button "Edit Framer Content" [ref=f40e207]
+  - iframe [aria-hidden] [ref=f40e210]:
+    - generic [ref=f41e1]:
+      - iframe [aria-hidden] [ref=f41e2]
+      - dialog "Edit page" [ref=f41e7]:
+        - generic [ref=f41e9]:
+          - generic [ref=f41e10]:
+            - generic [ref=f41e11]: Edit page
+            - button "Close" [ref=f41e12] [cursor=pointer]
+          - generic [ref=f41e14]: Edit the page directly in the browser, without opening the app.
+          - button "Continue" [ref=f41e17] [cursor=pointer]

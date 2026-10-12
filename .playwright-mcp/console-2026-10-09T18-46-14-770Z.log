@@ -1,0 +1,24 @@
+[     231ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://events.framer.com/script?v=2:0
+[    1300ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://o20425.ingest.sentry.io/api/1860728/envelope/?sentry_version=7&sentry_key=ec6f39c7d6654defa8ab3d67acd9f94f&sentry_client=sentry.javascript.browser%2F8.41.0:0
+[    1326ms] [ERROR] Permissions policy violation: accelerometer is not allowed in this document. @ https://app.framerstatic.com/chunk-G4N42CTN.mjs:17
+[    1326ms] [WARNING] The devicemotion events are blocked by permissions policy. See https://github.com/w3c/webappsec-permissions-policy/blob/master/features.md#sensor-features @ https://app.framerstatic.com/chunk-G4N42CTN.mjs:17
+[    1326ms] [ERROR] Permissions policy violation: accelerometer is not allowed in this document. @ https://app.framerstatic.com/chunk-G4N42CTN.mjs:17
+[    1326ms] [WARNING] The deviceorientation events are blocked by permissions policy. See https://github.com/w3c/webappsec-permissions-policy/blob/master/features.md#sensor-features @ https://app.framerstatic.com/chunk-G4N42CTN.mjs:17
+[    1326ms] [ERROR] Permissions policy violation: accelerometer is not allowed in this document. @ https://app.framerstatic.com/chunk-G4N42CTN.mjs:17
+[    1326ms] [WARNING] The deviceorientationabsolute events are blocked by permissions policy. See https://github.com/w3c/webappsec-permissions-policy/blob/master/features.md#sensor-features @ https://app.framerstatic.com/chunk-G4N42CTN.mjs:17
+[    2341ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://events.framer.com/track:0
+[    2341ms] [WARNING] Post failed: %s TypeError: Failed to fetch @ https://app.framerstatic.com/chunk-G4N42CTN.mjs:17
+[    4360ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://events.framer.com/track:0
+[    4360ms] [WARNING] Post failed: %s TypeError: Failed to fetch @ https://app.framerstatic.com/chunk-G4N42CTN.mjs:17
+[    8367ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://events.framer.com/track:0
+[    8368ms] [WARNING] Post failed: %s TypeError: Failed to fetch @ https://app.framerstatic.com/chunk-G4N42CTN.mjs:17
+[   16380ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://events.framer.com/track:0
+[   16380ms] [WARNING] Post failed: %s TypeError: Failed to fetch @ https://app.framerstatic.com/chunk-G4N42CTN.mjs:17
+[   32444ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://events.framer.com/track:0
+[   32444ms] [WARNING] Post failed: %s TypeError: Failed to fetch @ https://app.framerstatic.com/chunk-G4N42CTN.mjs:17
+[   48465ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://events.framer.com/track:0
+[   48465ms] [WARNING] Post failed: %s TypeError: Failed to fetch @ https://app.framerstatic.com/chunk-G4N42CTN.mjs:17
+[   64506ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://events.framer.com/track:0
+[   64507ms] [WARNING] Post failed: %s TypeError: Failed to fetch @ https://app.framerstatic.com/chunk-G4N42CTN.mjs:17
+[   80530ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://events.framer.com/track:0
+[   80531ms] [WARNING] Post failed: %s TypeError: Failed to fetch @ https://app.framerstatic.com/chunk-G4N42CTN.mjs:17

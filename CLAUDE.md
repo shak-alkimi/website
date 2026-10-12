@@ -2286,3 +2286,39 @@ Card is `391` CSS px; photo layers are `140%` (Connector, LED) and `185%` (Drive
 **The inch mark is the STRAIGHT QUOTE by Shak's choice, not the prime — do not "correct" it to `″`.** It was briefly normalised the other way (to U+2033, the typographically conventional character for inches) and then switched back on his instruction the same day. Both are internally consistent; this is a settled preference, so a future typography pass should leave it alone.
 
 **The width-only format on the Rima pair is SETTLED — leave it (Shak, 2026-10-12). Do not "fix" it to match the other three.** `Rima 5` reads `0.20w` and `Rima 10` reads `0.39w`, where `Liga T`, `Liga W` and `Driver 5-1` state length x width x height. That is a deliberate difference, not an oversight: the Rimas are tape light supplied on a reel and cut to length, so width is the only fixed dimension and a stated length would be meaningless. A future audit should not re-flag this as an inconsistency.
+
+### Technical-drawing parity — scale, size and centring (2026-10-12, NEEDS A PUBLISH)
+
+The drawings were at wildly different scales: measured as px-per-inch in a nominal 2000px frame, they ranged **386 to 1149** — a 3x spread. So a product three times the size of its neighbour could render smaller, and nothing on the page was comparable. They were also off-centre, each sitting wherever the export had left it.
+
+**THE FIX IS A CROP, NOT A RESCALE — and that distinction is the whole point.** The obvious move is to resample each drawing to a common scale, which resamples line art and softens hairline strokes. Instead, **shrink the FRAME around the existing content**: at a fixed render box, a smaller frame makes the same pixels read larger. Identical visual result, **zero resampling**, and centring comes free because the new frame is positioned on the content's own bbox centre.
+
+```
+F = round(2000 * current_pxin / TARGET_PXIN)      # new square frame, cropped about the bbox centre
+```
+
+**Anchor: `TARGET_PXIN = 1159`** — Prisma Link 2, the largest product, filling 80% of its frame. Chosen so **nothing has to grow**: every other frame shrinks, so no drawing is ever upscaled and no crop can clip content.
+
+**Result — fill now tracks real size monotonically, which is the property that was missing:**
+
+| product | real (longest) | was px/in | fill |
+|---|---|---|---|
+| Vena Mini | 0.39″ | 1051 | 22.2% |
+| Vena Corner Mini | 0.39″ | 931 | 22.6% |
+| Vena Round Mini | 0.41″ | 920 | 23.8% |
+| Liga W | 0.52″ | 821 | 30.3% |
+| Liga T | 0.57″ | 823 | 33.2% |
+| Vena Corner | 0.63″ | 1120 | 36.5% |
+| Vena | 0.67″ | 1149 | 37.8% |
+| Prisma Multiplier | 0.71″ | 900 | 40.6% |
+| Flow 20 | 0.79″ | 691 | 45.9% |
+| Prisma Link 1 | 1.12″ | 424 | 64.6% |
+| Prisma Link 2 | 1.38″ | 386 | 79.0% |
+
+All 11 land on **1159–1160 px/in, centred 50/50, no alpha**, frames `667` to `1982`. Verified twice — on the generated files and again on the **hosted** assets after upload, where the numbers matched exactly.
+
+**FIVE PRODUCTS ARE DELIBERATELY EXCLUDED (Shak, 2026-10-12): `Driver 5-1`, `Rima 5`, `Rima 10`, `Flow Straight`, `Flow Spine`.** The first three are off-scale by an order of magnitude (the Driver is `8.07″`, 14x Liga T; the Rimas are sub-`0.4″` coils), and the two Flows trail cables, which the end-cap density rule already handles separately. **Known consequence: Flow Spine and Flow Straight now read LARGER than they should beside corrected neighbours.** A cross-category scale policy is still open.
+
+**The rebind matched on the stored asset URL, never on a hand-written table** — and the self-check is that the skip list came back as exactly those five names without being told them.
+
+**`fieldData[id].value` FOR A CMS IMAGE NOW READS BACK AS AN OBJECT, NOT A STRING.** This file previously recorded it as a string, and that is no longer true: a `.includes()` against it matched zero of sixteen items and the pass silently did nothing. Read `value.url`, and accept either (`typeof raw === "string" ? raw : raw.url`). **The write contract is unchanged — pass a URL string.** So the field is now asymmetric: object out, string in.
