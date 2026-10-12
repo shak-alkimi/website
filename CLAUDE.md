@@ -2759,3 +2759,27 @@ Both **monotonic with real size**, verified `11/11` on the hosted assets, all on
 **Gains are capped at `x1.85`** rather than forced to the coverage target. `Flow Straight` wanted `x4.03`, because **coverage conflates line DENSITY** and it is a sparse drawing — forcing a simple drawing to the same ink-per-area as a busy one over-darkens it. The cap is the correct behaviour, not a compromise.
 
 **`Flow 20` is the borderline case.** It is classed as an extrusion but is a short component, so at `12.27%` profile it reads smaller than its neighbours. Reclassifying it as a section would put it at about `40%`. Left as an extrusion; worth revisiting by eye.
+
+**`Flow Spine` / `Flow Straight` moved to the LEFT EDGE, then the isometric five enlarged 1.25x (2026-10-12).**
+
+**First: left-flush, by pure translation.** At their hierarchy size the drawn run spanned only `47.2%` / `50.5%` of frame, so they floated with white on both sides. Shifted so the ink starts at `x = 0`; size, profile and vertical centring all preserved, nothing clipped.
+
+**That broke the shared right anchor, unavoidably.** A product `47%` wide cannot be both left-flush and end at `62.9%` — there is not enough drawn run. Their right ends fell to `47.16%` / `50.54%`.
+
+**Then Shak asked for the isometric group to grow so those two reach further right. `K = 1.25` applied to all five.**
+
+| | right end | profile | card scale |
+|---|---|---|---|
+| `Flow 20` | `62.88%` | `12.27 -> 15.39%` | `0.32` |
+| `Flow Spine` | `47.16 -> **58.94%**` | `12.75 -> 15.94%` | `0.29` |
+| `Flow Straight` | `50.54 -> **63.17%**` | `12.99 -> 16.23%` | `0.29` |
+| `Prisma Link 1` | `62.89%` | `13.81 -> 16.83%` | `0.63` |
+| `Prisma Link 2` | `62.98%` | `15.99 -> 18.72%` | **`1.25` UPSCALED** |
+
+`Flow Straight` lands back on the anchor; `Flow Spine` closes most of the gap but stays short at `58.94%`, because its run is genuinely shorter. Extrusions remain **monotonic with real size**; sections untouched at `25.98 - 37.01%`.
+
+**THE CONSTRAINT THAT MAKES THIS A TRADE: `Prisma Link 2` was at EXACTLY 1:1, so ANY enlargement of the group upscales it.** There is no "slight" increase that avoids it. At `1.25x` the softening is mild — well short of the `1.85x` rejected earlier — but it is a real departure from the no-upscaling rule chosen for this set, and it is the price of the two Flows reaching the anchor.
+
+**Verification now reports `9/11` and that is the CHECK being out of date, not the assets.** It tests `right end = 62.9%` and `card scale <= 1.0`; `Flow Spine` and `Prisma Link 2` deliberately fail those. **Do not "fix" either — both are decisions.**
+
+**The clean fix for `Flow Spine` is artwork: a longer drawn run.** With more extrusion drawn it would reach `62.9%` while left-flush, at its correct hierarchy size, with no upscaling anywhere — the only option that gives up nothing.
