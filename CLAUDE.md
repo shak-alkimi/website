@@ -2849,3 +2849,29 @@ All five `Product Photo` renders sat **low in frame**: horizontally they were al
 2. **Always fill the canvas with the backdrop colour before drawing.** An uncovered region then degrades to a flat fill rather than to transparency, which is recoverable rather than catastrophic.
 
 **And the method rule, now proven twice today: a geometry check on the generated file is not a substitute for the same check on the hosted asset.** The local measurement was taken on a canvas whose transparent pixels read as `0,0,0,0` only after encoding; the JPEG round-trip is what made the defect measurable.
+
+### Sections are sized by the GEOMETRIC MEAN of the box, not its height (2026-10-12)
+
+Shak asked why `Vena` looked much larger than `Vena Corner` when their widths are nearly the same (`0.67"` against `0.63"`). **The artwork was fine; the metric was wrong.**
+
+**Sections were being scaled on the end-cap HEIGHT, which ignores aspect ratio.** `Vena` is `0.67w x 0.39h` — a **`1.72:1`** section — while `Vena Corner` is `0.63 x 0.63`, square. Equalising their heights therefore made `Vena` far wider, and width is what the eye reads as size:
+
+| | real | aspect | width before | width now |
+|---|---|---|---|---|
+| `Vena` | `0.511` | **`1.72:1`** | **`~36.4%`** | **`27.89%`** |
+| `Vena Corner` | `0.630` | `1.00:1` | `24.2%` | `24.24%` |
+
+**And the ordering was inverted.** By the real geometric mean `Vena` (`0.511`) is **smaller** than `Vena Corner` (`0.630`) and should render about 10% smaller under the `gamma 0.5` compression. It was rendering ~50% wider.
+
+**Fix: size a section by `sqrt(W x H)` of its rendered box** — the same measure already used for its real dimensions (`sqrt(0.67 x 0.39)`). **The rendered metric must match the metric the targets were derived from**; mixing a one-dimensional measure with a two-dimensional one is what produced the error.
+
+Result: `Vena` `21.85%` against `Vena Corner` `24.26%` — correctly 10% smaller — and still 15% wider, which is right, because it *is* a wide section. Sections remain monotonic (`17.56 - 25.01%`) and all centred `50/50`. Verified **11/11** on the hosted assets.
+
+**THE TWO GROUPS NOW USE DIFFERENT SIZE METRICS, AND THAT IS CORRECT, NOT AN INCONSISTENCY:**
+
+| kind | metric | why |
+|---|---|---|
+| **cross-sections** | `sqrt(W x H)` of the box | the drawing is a 2-D shape; both dimensions are real |
+| **isometric extrusions** | end-cap height | width is arbitrary **run length**, not a product dimension |
+
+**Applying either metric to the other group is wrong**: geometric mean on an extrusion would scale it by how much run happens to be drawn, and height on a section ignores its aspect. **This is the third time a convention built for one drawing kind mis-applied to the other** — after the right-edge anchor and the end-cap vertical centre.
