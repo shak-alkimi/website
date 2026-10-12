@@ -2419,3 +2419,27 @@ Real spread across the eleven: **4.77x**. Reference `Prisma Multiplier` = `0.404
 **The asymmetry makes physical sense:** darkening a light stroke deepens ink that is already there, while brightening a thin one has to recruit the antialiased skirt, so the line gets *softer and fatter* rather than simply heavier. At `x16` (`Driver 5-1`) that is extreme. **So treat a large upward gain as a warning sign, not merely a large number** — the safe direction is downward.
 
 **STILL NORMALISED AND LIKELY TO READ THE SAME WAY, both on `/products`:** `Vena` at **`x2.54`** and `Flow Straight` at **`x1.85`**. `Vena`'s gain is *larger* than `Liga W`'s (`x1.98`), which was rejected. Raised with Shak rather than reverted unilaterally, since the threshold is his eye. `Vena Corner` (`x1.55`), `Flow Spine` (`x1.15`) and `Vena Mini` (`x1.06`) are milder and may be fine.
+
+### Why Vena's top arc reads as straight segments — the arc is too shallow to be smooth (2026-10-12)
+
+Shak asked why the curved top line on `Vena` is not smooth. **It is not the ink gain, and it is not a polygonal CAD export — it is pixel quantisation of an extremely shallow arc, and it has been there from the start.**
+
+**Measured in the 2000px source:** the arc spans **420 px** and descends **10.15 px** — a rise:run of **1 : 41**.
+
+**Rendered into the 587 device-px card** (scale `0.296`) that becomes **124 px wide with a total descent of 3.0 px**. A curve that falls three pixels across its whole width has nowhere to be smooth: it can only be three one-pixel steps with **flat runs of ~41 px between each jog**, which is exactly what reads as faceting. **No source resolution fixes this** — the constraint is at the display end, not the source end.
+
+**Proven present in the earliest version, by three independent checks:**
+
+| | curvature rms | direction changes | arc descent |
+|---|---|---|---|
+| original (pre-crop) | `0.2633` | 181 | `10.15 px` |
+| pre-gain (lossless crop) | `0.2633` | 181 | `10.15 px` |
+| current (ink gain `x2.54`) | **`0.1908`** | **123** | `10.30 px` |
+
+The first two are **byte-identical in geometry**, confirming the crop passes were lossless. **The current version measures SMOOTHER, not rougher** — more ink gives a better-defined subpixel edge.
+
+**But the gain did make it more VISIBLE, and that distinction matters.** A 6x zoom shows the line is a run of alternating dark and grey dashes — the rasteriser's antialiasing, dark where the line sits on a pixel row and split into two lighter rows where it straddles. The pattern is identical across all three versions; `x2.54` raises the contrast between the dark and light dashes, so the joints that were previously muted now read as hard steps. **So "my change did not cause it" and "my change made it obvious" are both true, and only the second one matters to the viewer.**
+
+**Mitigations, cheapest first:** revert the gain on `Vena` (consistent with the three already reverted, and it directly lowers the contrast that exposes the steps); or re-render that drawing with a deeper arc or a heavier stroke, since a thicker line hides a one-pixel jog. **Raising the source resolution is NOT a mitigation** and should not be attempted.
+
+**The general rule: before treating a jagged curve as an artwork defect, compute its rise over run and convert it to device pixels at the rendered size.** Below about five pixels of total descent, faceting is arithmetic, not a fault in the file.
