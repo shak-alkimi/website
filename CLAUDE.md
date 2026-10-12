@@ -2732,3 +2732,30 @@ Shak: *"treat flow 20, flow spine, flow straight, prisma link 1, prisma link 2 a
 **A note on the vertical anchor: it is the right END's centre, not the drawing's.** `Flow Straight` previously read `52.5%` by that measure while its overall bbox was centred — on a descending diagonal those differ by a couple of points, which is exactly the distinction established for the Prisma Links. **Anchoring a family on a shared feature only works if every member measures that feature the same way.**
 
 **A silly bug worth recording because it wasted two runs:** `dumpall.js` already appends a trailing comma to each emitted line, and the shell pipeline added a second one with `sed 's/$/,/'`. The resulting `,,` creates **undefined array slots** in JS, and the page died on `Cannot read properties of undefined (reading 'url')` after processing exactly one item — which looks like a slow script, not a syntax problem. **Read the console on a stalled local page before assuming it is still working.**
+
+### /products size hierarchy — SEPARATE ANCHORS for cross-sections and extrusions (2026-10-12)
+
+Shak asked for a size hierarchy across all 11 Fixtures drawings, Prisma Link 2 largest down to Vena Mini smallest.
+
+**The CMS dimensions are PROFILE CROSS-SECTIONS, not lengths** — `Flow Straight 0.92w x 0.84h` is its section. The audit's note that these fields were `— × — ″` placeholders is **stale; all 11 are now filled in**. That makes the profile the correct common measure, and it coincides with the end-cap anchor already established.
+
+**The starting state was almost exactly inverted:** `Prisma Link 2` (`1.345"`, the largest product) rendered at `14.2%` — the *smallest* on screen — while `Prisma Multiplier` (`0.669"`) rendered at `37%`, the largest. Implied scale spanned `11-74 %/inch`, a **6.95x** inconsistency.
+
+**ONE SCHEME DOES NOT WORK, BECAUSE THE ELEVEN ARE TWO KINDS OF DRAWING.** Six are **cross-sections**, where the drawing *is* the profile and nothing else fills the card; five are **isometric extrusions**, where the profile is only the end cap and the length fills the card. Scaling all eleven on one profile anchor is dimensionally correct and **looked wrong** — the six sections became small shapes adrift in empty cards while the extrusions still spanned theirs. **A render caught this; the numbers did not.** Shak chose separate anchors.
+
+| | anchor | result | spread |
+|---|---|---|---|
+| **cross-sections** | `Prisma Multiplier` (largest) at `37%` | `25.98% - 37.01%` | `1.42x` |
+| **isometric extrusions** | `Prisma Link 2` (largest) at **1:1** | `12.27% - 15.99%` | `1.30x` |
+
+Both **monotonic with real size**, verified `11/11` on the hosted assets, all on the shared anchor (right end `62.9%`, v-centre `50%`), **no upscaling anywhere** (max card scale `1.00`) and **no resampling** — every frame is a lossless crop of the source.
+
+**THE MEASUREMENT TRAP THAT COST TWO BUILDS, AND IT IS THE SAME ONE AS ALWAYS.** The end-cap window is `20%` of the product's bbox width. Measured on the **source** it spans 20% of the *whole* product; measured on the **output** it spans 20% of the *visible* part — and the Prisma Links are heavily cropped, so the two differ a lot. Building from source measurements and verifying on output produced `Prisma Link 2` at `16.01%` where `23.68%` was intended, and the extrusion order came out **non-monotonic**.
+
+**The fix is structural: binary-search the FRAME against the profile measured ON THE OUTPUT**, so the quantity being solved is the quantity being checked. The anchor must be derived the same way — `Prisma Link 2` at 1:1 measures `16.01%`, not the `23.68%` the source suggested.
+
+**The same inconsistency then bit the VERTICAL placement**, which still used a source-derived end-cap centre: `Prisma Link 2` sat at `53.74%`. Corrected by iterating a pure translation against the output measurement until the residual fell below a pixel. **When a value is derived on one canvas and checked on another, expect them to disagree — solve and verify on the same one.**
+
+**Gains are capped at `x1.85`** rather than forced to the coverage target. `Flow Straight` wanted `x4.03`, because **coverage conflates line DENSITY** and it is a sparse drawing — forcing a simple drawing to the same ink-per-area as a busy one over-darkens it. The cap is the correct behaviour, not a compromise.
+
+**`Flow 20` is the borderline case.** It is classed as an extrusion but is a short component, so at `12.27%` profile it reads smaller than its neighbours. Reclassifying it as a section would put it at about `40%`. Left as an extrusion; worth revisiting by eye.
