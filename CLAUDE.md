@@ -2962,3 +2962,21 @@ Three Flows within **0.02 pts**. Sections are untouched and still centred to `0.
 **A SIGN ERROR IN MY OWN VERIFIER nearly produced a false failure.** `drawImage(src, -dx, -dy)` means `output(X,Y) = source(X+dx, Y+dy)`, so a source row maps to output row `sy - dy`; the check had `y - dy` on the source side instead. `Flow 20` passed anyway because its `dy` was `0`, which is exactly the kind of coincidence that hides an indexing bug. **When a comparison passes on one item and fails on another, check whether the passing one exercised the code at all.**
 
 Both moves are pure translations at unchanged frame size — no rescale, no re-gain, no resampling — so size, line weight and the vertical balance pass all survive by construction.
+
+**FLOW 20 CENTRED, AND THE POSITIONING RULE IS NOW CLEAN: CONTAINED = CENTRED, BLEEDING = RIGHT-ANCHORED (Shak, 2026-10-12).**
+
+`Flow 20` moved `+119 px` to sit at **h-centre `49.97%`** with margins equal to a pixel (`35.82%` / `35.87%`). Nothing clipped — ink count identical at `5,067` — and the vertical is untouched at `49.97%`.
+
+**It had been the one layer following the wrong convention.** It was right-anchored like a bleeding run while being the only extrusion that does **not** bleed, so the anchor pushed it `6.8 pts` left of centre inside a card with white on both sides. Centring removes the hybrid.
+
+| convention | drawings | position |
+|---|---|---|
+| **contained -> CENTRED** | 6 cross-sections **+ `Flow 20`** | h-centre `49.97 - 50.00%` |
+| **bleeding -> RIGHT-ANCHORED** | `Flow Spine`, `Flow Straight` | flush left, right end **`57.3%`** |
+| | `Prisma Link 1`, `Prisma Link 2` | flush left, right end **`62.9%`** |
+
+**So the rule is about whether the drawing runs off the frame, NOT about whether it is a section or an extrusion.** Earlier notes framed the two conventions as section-versus-extrusion; that was a proxy that happened to hold until `Flow 20`. **The real test is: does the product bleed?** If it does, its left edge is arbitrary and the right end is the only stable anchor. If it does not, the bbox is the object and centring is correct.
+
+**Note `Flow 20`'s right end is now `64.13%`, past even the Prisma anchor.** That is meaningless — it is a consequence of centring, not a position anyone chose, and it must **not** be read as a third anchor.
+
+**The one-line check that catches a mis-assigned drawing:** a drawing whose left edge is neither `0%` (bleeding) nor roughly equal to its right margin (centred) is following the wrong convention. `Flow 20` read `29.00%` / `42.69%` before this change.
