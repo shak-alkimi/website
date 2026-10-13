@@ -3287,3 +3287,21 @@ Both pages re-fetched twice and byte-stable (`/products` 290,655; `/elements` 23
 Two values sit outside the `140 ±12` band by design: `Prisma Link 2` at `182` (reverted, settled above) and `Vena Corner Mini` at `154` (never changed; the single-pixel extremum drifts run to run and is not worth chasing).
 
 **What remains open is phase 2 only, and it needs artwork, not layout:** one pen width across the set. The per-drawing pen spec is recorded above, and the actionable finding inside it is that `Prisma Link 1` and `2` have source frames of just `641` and `385` px after the size-hierarchy crops, so they are upscaled into a `587` px card and need **larger source renders rather than a different pen**.
+
+### Vena darkened to match its family (2026-10-12, NEEDS A PUBLISH)
+
+Shak reported `Vena`'s lines reading light. **He was right, and the single-pixel darkness said the opposite** — `Vena` had the *darkest* peak of its six-drawing family while carrying the *lightest* weight:
+
+| | per-stroke ink | mean ink | darkest |
+|---|---|---|---|
+| `Vena` before | `0.278` | `3.6` | **`136`** — the darkest peak |
+| its five neighbours, averaged | `0.326` | `4.8` | `144` |
+| | **−15%** | **−26%** | |
+
+Thin lines, not pale ones. Applied **`x1.30`**, Shak's pick from three candidates, landing per-stroke at **`0.365` — exactly `Vena Corner`'s** — and mean ink at `4.6` against the family's `4.8`. Verified on the hosted asset with two agreeing reads; nothing clipped to black.
+
+**THE PHASE 1 DARKNESS BAND IS A DEFAULT, NOT A RULE — this is the second deliberate departure from it.** `Vena`'s darkest pixel goes `136 -> 101`, making it the darkest peak on the site, and site-wide darkness widens from `135 - 182` (`1.35x`) to **`101 - 182`** (`1.80x`). That is the inevitable trade for a thin-lined drawing: **you cannot match a family on stroke WEIGHT and on peak DARKNESS at the same time when its stroke width differs.** Weight is what the eye reads, so weight wins.
+
+Three values now sit outside `140 ±12` and **all three are intentional**: `Vena` at `101` (matched to its family), `Prisma Link 2` at `182` (reverted out of phase 1), `Vena Corner Mini` at `154` (never changed; noisy extremum).
+
+**The diagnostic worth reusing:** when a user says something reads light or dark, compare it against **its own neighbours on the page** in per-stroke ink and mean ink — not against the site-wide band, and never against darkest-pixel alone, which pointed the wrong way here.
