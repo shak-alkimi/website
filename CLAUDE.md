@@ -3950,3 +3950,35 @@ Checking for stray "Case Studies" across the site turned up something unrelated 
 So the footer rebuild of 2026-10-13 reached most pages but **those two still serve a build that predates it**, even though `Footer / Footer` is one shared component. The next publish should pick them up; worth re-checking afterwards rather than assuming.
 
 **A grep trap in the same check:** `grep -i "Case Studies"` reported hits on `/products` and `/elements` that looked like a second copy of the toggle. They are **`Case studies`, lowercase `s`** — the old footer sitemap link to `/projects-grid`, a completely different string. **Match case-sensitively when a label's capitalisation is the thing distinguishing two layers**, which is the mirror of the already-recorded advice to grep case-*insensitively* for a brand colour.
+
+### Home wide card button -> "Project Portfolio", transparent with a white border (2026-10-13, NEEDS A PUBLISH)
+
+All three instances of the wide card's `Utilities / Primary Button` (`Project Left > Product Card > CTA`, node suffix `beNpOjgIR`) now read **`Project Portfolio`** and render **transparent with a 1px white border**:
+
+| node | variant | was |
+|---|---|---|
+| `Q__AVxo4PbeNpOjgIR` desktop base | `eI_njgAoy` | `PQb6JRcY1` Button Blue to White |
+| `uR6T4xhGKbeNpOjgIR` hover gesture | `eI_njgAoy` | `PQb6JRcY1` |
+| `tDcw55E8QbeNpOjgIR` mobile | `eI_njgAoy` | `C1hBM5Wy4` Button Blue - No Hover |
+
+**The label is scriptable, the appearance is not.** `setAttributes({ controls: { XqpXZUGU6: "Project Portfolio" } })` worked first time on all three and preserved `NhREodF7M` (`/projects-list`) — but **the `variant` control still cannot be written**, confirming the long-standing note, so the fill had to be changed in the editor.
+
+**A COMPONENT INSTANCE HAS NO FILL OF ITS OWN — this is why the variant is the only lever.** A full key dump of the instance node returns layout and identity only (`position`, `top/right/bottom/left`, `width`, `height`, `opacity`, `rotation`, `aspectRatio`, `controls`, `componentIdentifier`, …) and **no `backgroundColor` and no `border`**. So you cannot override a component's colour from the instance; you can only point it at a different variant.
+
+**`Button White to Outline - Hover` (`eI_njgAoy`) already was exactly the requested treatment** — `backgroundColor: rgba(255,255,255,0)`, `border: 1px solid rgb(255,255,255)`, white text — and **no instance was using it**, so repurposing it costs nothing. Picking an existing variant also avoided `addVariant`, which creates a variant that **instances are never offered** (the `hLYcAEbg2` orphan).
+
+**All four candidate variants are geometrically identical** — `fit-content`, `padding: 11px 18px`, `gap: 10px`, `radius: 200px`, same four children — so the switch changes fill and border and nothing else. **Check that before swapping a variant**; a geometry difference would move the button inside the card.
+
+**THE INSTANCE'S VARIANT `<select>` CAN BE DRIVEN WITHOUT JAVASCRIPT — and it has to be, because `javascript_tool` is now BLOCKED on the Framer editor tab** (`BLOCKED: Cookie/query string data`). That removes the recorded native-setter route for panel dropdowns. What works instead:
+
+1. **Click the select.** No menu opens — that is expected and is why the old note says clicks are rejected — **but the click DOES focus it.**
+2. **Press `End`** to jump to the last option and screenshot. If the value changed, focus is confirmed; if not, nothing has been altered (`End` is inert on the canvas, unlike arrow keys, which move layers).
+3. **Then one `Up`/`Down` per click**, because the select loses focus after every committed change. Verify each step with a **zoomed screenshot** — the panel truncates the name, so the final value must be confirmed another way.
+
+**The variant ids in `getChildren()` order ARE the dropdown's order**, which is what makes the arrow-key count predictable: `Blue to White`, `Blue to White - Hover`, `White to Black`, `White to Black - Hover`, `Black to Outline - Hover`, `Black to Outline`, `Blue to Outline`, `Blue to Outline - Hover`, `White to Outline`, **`White to Outline - Hover`**, `Blue - No Hover`, `Black - No Hover`.
+
+**SETTING THE BASE VARIANT'S INSTANCE CASCADED TO THE HOVER GESTURE STATE** — one edit on `Q__AVxo4P` set `uR6T4xhGK` as well, so only the mobile variant needed its own pass. The gesture state inherits an instance control it does not override; **do not assume that, but do check before repeating the edit.**
+
+**Scope verified by sweeping every button instance:** `Project Portfolio -> White to Outline - Hover` 3, and the other **74** unchanged (`Spec Sheet` 18, `Manual` 18, `IES` 18, `View Case Study` 11 + 6, `Get in touch` 3). **The `Alkimi Green` colour style was NOT touched** — it still feeds the other blue-descended buttons, so this change is scoped to the wide card exactly as asked.
+
+**Open, and only the published page can answer it: what the button does on its own hover.** The chosen variant is a hover *target*, and variant interactions are not readable through the API, so it is unknown whether hovering now changes it or leaves it static. Desktop previously went green -> white on hover. **Check after publishing**; if it needs a defined resting/hover pair, that is editor work.
