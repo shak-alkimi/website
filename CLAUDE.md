@@ -3911,3 +3911,9 @@ Shak reported the `Read more` row empty on the third news article. **Same family
 **THIS IS A STANDING CHORE AND WILL DRIFT.** The pointers encode positions, not relationships, so **every time an article is published or unpublished the rotation must be recomputed** — the same manual upkeep as the `/projects-list` fifth-image boolean and the static `(3)` case-study count. **The durable fix is to replace the three pointer fields with a Collection List filtered to "not the current item", limited to 2**, which needs no maintenance at all; that is editor work and worth doing when the news section is next touched.
 
 Draft counts verified after the write (News 3/7 unchanged).
+
+**"All Projects" link removed from the project pages' "Lighting options" row (2026-10-13, NEEDS A PUBLISH).** It is a `Text Link / Text Link - Arrow` instance in `Main > Container Relative > Next Projects Heading > Container`, carrying `mI3TCS136: "All Projects"` and `Y7ZaaF8zk: "/projects-grid"` — one per breakpoint (`nDnLUCuxg`, `E0qmMgmpWnDnLUCuxg`, `ZgcpmiHcknDnLUCuxg`). Set `visible: false`; the Desktop write cascaded. **Hidden rather than deleted** because deletion silently fails on this template — the same behaviour already recorded for `Image Wrapper 16x9`, whose `remove()` returned `ok` three times and changed nothing.
+
+The heading beside it is the text layer named **`News`** — the stale Ora name for "Lighting options", already on the list of template names that lie.
+
+**Note the equivalent link still exists on the news pages**: the `Read more` row carries an `All Articles` link to `/news`. Shak asked only about the projects one, so it was left alone.
