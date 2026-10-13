@@ -3879,3 +3879,15 @@ Both were seeded by reading `/about`, not transcribed.
 **A SEEDING BUG WORTH REMEMBERING: variants share their children, so walking one variant sees ALL slides' text.** The first attempt walked each `Slide N` variant and took the first quote-shaped layer it found — and got **the same quote four times**, because walking `Slide 1` already reaches all four quote layers. The fix is to collect **distinct** quote layers across the whole component in document order and assign by index. **When a component's variants toggle visibility rather than swap content, a per-variant walk is not per-variant data.**
 
 Repaired with `addItems` carrying `draft` through explicitly. Draft counts verified after: Home 3/3, Fixtures 11/11, Elements 5/5, Projects 3/10, News 3/7, About 1/1, Clients 8/8, Testimonials 4/4.
+
+### PROJECT DUO IMAGES 3:4 -> 4:3 (2026-10-13, NEEDS A PUBLISH)
+
+Shak asked how to make the images below the project hero smaller, and chose 4:3.
+
+**`Image Wrapper 3x4` is `width: 1fr` with an `aspectRatio`, so the container sets the width and the RATIO sets the height** — at 1536 the box is `745.5` wide, and the height was `745.5 / 0.75 = 994`. The two levers were therefore the ratio (height only) or a `maxWidth` on `Image Duo Wrapper` (both dimensions). Applied the ratio: **`0.75` -> `1.333333`**, so the rendered height goes **994 -> 559 (-44%)** with the width unchanged.
+
+**!!! `aspectRatio` IS SETTABLE THROUGH THE API — the editor's aspect lock is not required. !!!** The Home-card section above describes the only known route as **unlock -> type the height -> re-lock** in the editor, which is slow and error-prone and burned several publishes in October. `setAttributes({ aspectRatio, height })` works directly and verified first time on all six nodes. **Use the API for any future ratio change**; the lock dance is an editor workflow, not a constraint of the format.
+
+**The fidelity argument is why 4:3 was recommended, and it is the real win.** Every project photo is **landscape** in what was a **portrait** box, so each was cropped to about **57% of its width** *and upscaled* — Belmont's duo ran at `1.41x`, Tuft's at `0.66x`. At 4:3 the worst case drops to **`0.79x`, i.e. no upscaling anywhere**, and roughly the full frame width is kept. **Resorts World's `Image 1` is the exception at `1.5x`** because its master is only `739x415` against a `1118` device-px box; no ratio fixes that, only new artwork.
+
+**A cascade artefact worth knowing:** writing Desktop first cascaded to Tablet and Phone, so when the loop reached them it recomputed their height from the **already-changed** value and produced `434.70px` against Desktop's `434.81px`. Harmless (height is derived from the ratio at render) but untidy, and it is the general hazard of **deriving a new value from a node you may already have written**. Normalised all six to `434.81px` in a second pass. Note the API read rounds `aspectRatio` to 3 dp (`1.333`) while storage keeps full precision — confirm the real value in the published CSS, as with the Home cards.
