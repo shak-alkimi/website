@@ -3269,3 +3269,21 @@ Both enlarged by **cropping the frame from the RIGHT only** (`Flow Spine 2116 ->
 Site-wide darkness is now **`135 - 182`** across all 16. The only two outside `140 ±12` are `Vena Corner Mini` at `154` (untouched; the single-pixel extremum drifts run to run) and `Prisma Link 2` at `182` (deliberately reverted).
 
 **A VERIFICATION NEARLY PASSED ON STALE DATA — check that your data file is the one you think it is.** The verification page was derived with `sed 's/audit4\.js/audit5.js/'` from a file that actually referenced `audit3.js`, so the substitution silently did nothing and the page measured the **pre-revert** dataset. It reported `Prisma Link 2` at `140` when the live binding was `182`, and would have confirmed a state that no longer existed. **After generating a derived page, grep it for the data file it loads before trusting its output.**
+
+### PUBLISHED AND VERIFIED LIVE 2026-10-12 — and the Prisma Link mismatch is SETTLED
+
+Both pages re-fetched twice and byte-stable (`/products` 290,655; `/elements` 232,800). **All 32 assets referenced by the published pages are the current ones — 16 of 16 drawings and 16 of 16 photos.**
+
+**`Prisma Link 1` and `Prisma Link 2` are deliberately left mismatched (Shak, 2026-10-12). Do not re-flag this.** `Prisma Link 1` reads `darkest 142` against `Prisma Link 2`'s `182`, so Link 1 is the darker of the pair. That is the relationship they had before phase 1 — Link 1 was never in that pass, and Link 2 was reverted to its pre-pass value — so this is the original state restored, not drift. Matching them would need `x0.660` on Link 1; it was offered and declined.
+
+**Final published state of the 16 technical drawings:**
+
+| | range | was before phase 1 |
+|---|---|---|
+| darkness | **`135 - 182`** (`1.35x`) | `58 - 182` (`3.14x`) |
+| per-stroke ink | `0.110 - 0.522` (`4.75x`) | `0.086 - 0.522` (`6.05x`) |
+| stroke width | `2 - 5 px` (`2.50x`) | `1 - 6 px` (`6.00x`) |
+
+Two values sit outside the `140 ±12` band by design: `Prisma Link 2` at `182` (reverted, settled above) and `Vena Corner Mini` at `154` (never changed; the single-pixel extremum drifts run to run and is not worth chasing).
+
+**What remains open is phase 2 only, and it needs artwork, not layout:** one pen width across the set. The per-drawing pen spec is recorded above, and the actionable finding inside it is that `Prisma Link 1` and `2` have source frames of just `641` and `385` px after the size-hierarchy crops, so they are upscaled into a `587` px card and need **larger source renders rather than a different pen**.
