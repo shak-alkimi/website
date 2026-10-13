@@ -3855,3 +3855,13 @@ Shak asked for the gap between the last image and the black footer on the projec
 **The value is 105px, not 120 — and the reason is worth keeping.** The section's rendered bottom already sits exactly on the footer top, while the last image ends **15px** above it, so that 15 comes from *inside* the row component, not from the section. Adding a flat `120px` would therefore have produced a **135px** gap. `105 + 15 = 120` matches `/about` exactly. **When copying a spacing value between pages, measure what the inner component already contributes rather than transplanting the number.**
 
 Set to `0px 0px 105px 0px` on all three breakpoints (Desktop cascaded), verified in a separate `exec`. Side padding stays `0` because this row, unlike its siblings, has no `15px` side inset — the component supplies its own.
+
+### THE DRAWING WORK IS ALREADY LIVE — the "NEEDS A PUBLISH" markers above are STALE (verified 2026-10-13)
+
+Shak asked for the Prisma Link drawings and the sizing pass to be published. **There was nothing to publish.** `framer.getUnpublishedPageChanges()` returns **0**, and the last deployment covers everything — his many publishes through the day had already carried them.
+
+**Verified rather than trusted**, because a counter saying "0" is weaker evidence than the served bytes: every current CMS drawing asset appears on the published pages, including both Prisma Links (`7jjVHMOg7iZ…` 8 refs, `OJkUIOqztYI…` 6 refs on `/products`), and the superseded assets (`dVoqHngJJrc33a`, `e9Ca8o7jjBGrjH29YvGzW41g17w`) return **0**. Two identical reads, byte-for-byte.
+
+**So every `NEEDS A PUBLISH` marker in the drawing, photo and sizing sections above is spent.** They were accurate when written and were never cleared.
+
+**The lesson is about carried-forward state, and it is the same failure this file already records for the dispatch board.** A "still pending" line copied from one status update to the next acquires no new evidence, and after a day of frequent publishing it silently became false. **Re-derive pending state from `getUnpublishedPageChanges()` or the served page before repeating it — never from the previous note.** `getUnpublishedPageChanges()` is cheap and exact; there is no excuse for carrying the claim by hand.
