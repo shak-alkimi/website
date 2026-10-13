@@ -3355,3 +3355,22 @@ Site-wide darkness is now `101 - 207` (`2.05x`). Stroke width improved to `2 - 4
 Same effect as the previous Prisma upload, and now measured twice with a clear pattern: **the fainter the drawing, the more of its ink the re-encode discards.** `Prisma Link 2` is now the lightest drawing on the page by a wide margin (next is `154`).
 
 **To pre-compensate, build darker by the measured factor**: for `Prisma Link 2`, landing on `182` needs local ink of `73 / 0.63 ≈ 116`, i.e. a local darkest near `139`. **Do not assume a single compensation factor across drawings** — it was `0.94` on one and `0.63` on the other in the same upload batch.
+
+### CORRECTION — THE UPLOAD DOES NOT LIGHTEN DRAWINGS. The "evidence" was a single-pixel extremum (2026-10-13)
+
+Two sections above claim Framer's upload lightens drawings, badly for faint ones, and propose pre-compensating. **That is wrong and pre-compensating would have made the drawings genuinely too dark.** Diagnosed by comparing the hosted file against the exact local file, at native resolution:
+
+| | local | hosted | |
+|---|---|---|---|
+| `Prisma Link 1` total ink | `1168k` | `1164k` | **retained `0.996`** |
+| `Prisma Link 2` total ink | `305k` | `297k` | **retained `0.973`** |
+| `Prisma Link 2` ink at card size | `472` | `469` | **0.6% apart** |
+| `Prisma Link 2` **darkest pixel** | `183` | **`210`** | the only thing that moved |
+
+**Total ink is preserved to within 3%. Only the extremum moves.** The upload is a heavy lossy re-encode — `127,497` bytes becomes `11,880` — and a lossy encoder blunts isolated extremes while preserving the bulk. `19,693` of `1,849,600` pixels differ at all, with a max delta of `57`, and those are the few darkest ones.
+
+**So the drawings render with the ink they were built with.** Nothing was lost and no compensation is warranted.
+
+**THIS IS THE TRAP THIS FILE ALREADY NAMED, WALKED INTO ANYWAY.** The earlier Vena work recorded: *"the single-pixel extremum is noisy run to run… for a control variable prefer a percentile over the extreme."* `darkest` was then used as the control variable for the whole phase-1 pass and for every tone decision after it, and a two-upload "pattern" was built on it — `0.94` and `0.63` ink "retained" — which the direct file comparison shows to be `0.996` and `0.973`. **A statistic over one pixel cannot support a claim about a whole image.**
+
+**Standing rule: measure tone with TOTAL INK or a percentile, never with `darkest`.** Report `darkest` if useful, but do not solve against it and never infer a pipeline behaviour from it. Where a built file and its hosted copy appear to disagree, **compare the two files directly at native resolution before theorising about the pipeline.**
