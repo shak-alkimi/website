@@ -3815,3 +3815,28 @@ Stock footage on a third party's bandwidth, which breaks the day they stop servi
 **Twitter (X) and LinkedIn removed from the footer (2026-10-13, NEEDS A PUBLISH).** Shak's call — `Follow` is back to Instagram alone. Done by `visible: false` on the two instances rather than deletion, since `removeNodes` does not reach inside a `ComponentNode`; a hidden layer emits no markup, and this keeps the labels and hrefs recoverable. Verified in a separate `exec`: `Instagram=visible, Twitter (X)=HIDDEN, LinkedIn=HIDDEN` on all three variants, with the Desktop write cascading to Tablet and Mobile.
 
 **A STALE SESSION REPORTED THE NODES AS ABSENT, WHICH NEARLY READ AS "NOTHING TO DO".** The first run, on a session opened earlier in the task, returned **"none found"** for Desktop and Tablet while finding them on Mobile — a partial, self-consistent, entirely wrong answer. A fresh session saw all six. **This is the documented staleness in its most dangerous form: not a wrong value, but a missing node.** The existing rule says a depth-limited walk finding nothing is not evidence of absence; widen it — **an old session finding nothing is not evidence of absence either.** Open a fresh session before concluding that something is not there, especially after the document has been edited in the meantime.
+
+### FOOTER SITEMAP NOW MIRRORS THE NAV MENU (2026-10-13, NEEDS A PUBLISH)
+
+Shak asked for the footer Sitemap to carry the same links as the menu. **The menu's links are not readable from the published page** — it renders only when opened, so the DOM has none of them. Read from the canvas instead: `Navigation / Mobile Full Navigation` -> `Menu Content > Link Wrapper > Individual Link Wrapper > Open Navigation Link`, whose `link` attribute is the href. Six rows:
+
+```
+/products  /elements  /projects-list  /about  /news  /contact
+```
+
+Labels live in text layers named `PROFILE` (stale Ora naming), so they are not readable either; the row labels recorded in this file — **Fixtures, Elements, Projects, About, News, Contact** — line up one-for-one with those hrefs.
+
+**The Sitemap had 4 slots and needed 6**, so two were added by selecting the last `Stack` and pressing `Ctrl+D` twice in the editor (the API cannot create nodes inside a `ComponentNode`). Then all six were set through the API by **document order**, which also un-hid the old `Careers` slot and reused it:
+
+| slot | label | href |
+|---|---|---|
+| 1 | Fixtures | `/products` |
+| 2 | Elements | `/elements` |
+| 3 | Projects | `/projects-list` |
+| 4 | About | `/about` |
+| 5 | News | `/news` |
+| 6 | Contact | `/contact` |
+
+**The Sitemap wrapper is identified by its children's shape, not by name.** Both columns' wrappers are called `Link Wrapper`; the Sitemap one has `Stack` children while Follow's holds the link instances directly. Matching on "every child is a Stack" picks the right one without hard-coding an index.
+
+Verified in a separate `exec` across all three variants: six links, correct hrefs, none hidden, with `Twitter (X)` and `LinkedIn` still self-hidden in the Follow column.
