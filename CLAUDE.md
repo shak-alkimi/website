@@ -3108,3 +3108,49 @@ Applied `x1.507` by **cropping the frame `2000 -> 1327`** — the inverse of the
 At the smaller size the sub-pixel strokes were averaged toward white; enlarged, they resolve closer to their true value, so **peak darkness nearly doubles in contrast** while the bounding box grows faster than the ink so coverage falls. `Rima 5` now carries **the darkest peak on the page** (`65`, against `123` for Rima 10 and `157-161` for the Ligas) on the lowest mean ink of the three detailed drawings. If it reads harsh once published, a small lightening fixes it without touching size.
 
 The previous asset (`1PWQ2WsgrJf5…`) stays hosted, so this is one rebind from reverting.
+
+## VISUAL AUDIT of /products and /elements as a design system (2026-10-12)
+
+All 16 products measured at true card size (`587` device px), photos rendered at their real layer scale (`/products` 100%, `/elements` 140%, `Driver 5-1` 185%).
+
+### What IS already a system — do not disturb these
+
+| | status |
+|---|---|
+| card geometry | identical on both pages: square, `10px` radius, `12px` padding, `overflow: clip` |
+| card treatment | photo card filled `#f7f6f2`; drawing card **no fill**, `1px #DDDCDA` border |
+| photo backgrounds | **all 16 exactly `247,246,242`** |
+| formats | photos JPEG, drawings opaque PNG, every field `resolution: auto` |
+| **drawing position rule** | **holds on BOTH pages**: a drawing that bleeds off the frame is left-flush, one that is contained is centred at ~`49.9%` |
+
+That last one is the strongest piece of existing continuity and was not designed deliberately across both pages — it emerged. Keep it.
+
+### Measured discontinuities, ranked by how much they break the look
+
+**1. COLOUR — two photos out of sixteen carry saturated colour and nothing else does.**
+
+| | mean saturation | subject pixels at sat > 25 | max sat |
+|---|---|---|---|
+| all 11 `/products` | `0.1 - 1.0%` | **`0.0%` on every one** | ≤ 26% |
+| `Liga T` / `Liga W` / `Driver 5-1` | `0.1 - 2.0%` | **`0.0%`** | ≤ 11% |
+| **`Rima 5`** | **`28.3%`** | **`38.1%`** | **98%** |
+| **`Rima 10`** | **`28.1%`** | **`37.0%`** | **99%** |
+
+The yellow-green LED tape is the **only colour in the entire product system**. Everything else is monochrome to a degree that is unusual even for product photography. This is a single artwork decision, not a layout one.
+
+**2. Line weight spans `5.3x` across the 16 drawings** — per-stroke ink `0.098` (`Liga T`) to `0.522` (`Prisma Link 2`); `/products` alone spans `2.3x` and `/elements` `4x`. The 2026-10-12 normalisation to `0.384` was undone for four drawings by the reverts, and `/elements` was then set against its own local reference rather than the site-wide one.
+
+**3. Stroke WIDTH spans `2 - 5 px`** at card size (`Prisma Link 2` 5px, `Rima 10` 4px, several at 3px, the rest 2px). **This cannot be fixed by tone** — it is the source artwork's pen width divided by the render scale, so it caps how uniform the set can be made without re-exporting.
+
+**4. Peak darkness spans `53 - 182`** (`3.4x`). `Vena` (53) and `Flow Straight` (58) are near-black; `Prisma Link 2` (182) and `Liga T` (161) are pale grey. Two drawings on the same page can read as different media.
+
+**5. The photo convention is opposite between the pages.** `/products`: every photo bleeds off the left (`left = 0%` on all 11) with right edges at `86.9 - 99.8%`. `/elements`: every photo is contained and centred (`h-centre 49.5 - 50.1%`). **This is defensible** — fixtures are continuous runs with no left edge, elements are compact objects — but it does mean the two pages do not look like siblings.
+
+**6. The photo-to-drawing bottom alignment exists only on `/products`.** On `/elements` the two disagree by up to **12 points** (`Rima 5`: photo bottom `63.7%`, drawing bottom `51.6%`). Applying the same rule would give the two pages a shared relationship rather than two unrelated ones.
+
+**7. `/elements`' bleeding drawings have no shared right anchor** — `Rima 5` ends at `65.4%`, `Rima 10` at `86.7%`. On `/products` the bleeding drawings share `57.3%` or `62.9%`.
+
+### What is scriptable versus what needs artwork
+
+- **Scriptable now:** one line-weight standard across all 16; `/elements` photo-to-drawing bottom alignment; a shared right anchor for `/elements`' bleeding drawings.
+- **Artwork only:** the Rima colour; stroke width uniformity; the left-bleed on the long fixtures.
