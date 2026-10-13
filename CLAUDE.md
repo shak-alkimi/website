@@ -3671,3 +3671,26 @@ Container            759.6px (90vh)
 **Available travel is only 120px**, from `200px` down to `80px` where the box hugs its two 40px lines and the 30px stack padding is all that remains. **A literal "25% of the hero" (190px) is not reachable** — it would put the text past the hero's bottom edge. That is why the amount was agreed as a measured choice rather than assumed; Shak picked 60px (half the travel), leaving a 90px gap beneath.
 
 **The lever to use for any future vertical nudge on this headline is that text node's height**, not `top`, `centerY` or the stack padding — the first two are `null`/overridden by the bottom pin, and the padding is shared with the hero's bottom inset.
+
+### NAV LOGO MATCHED TO main — and VECTORS ARE NOT RESIZABLE THROUGH THE API (2026-10-13, NEEDS A PUBLISH)
+
+Measured on both published sites at 1536: **main `145 x 26`, ours `194 x 35`** — same aspect (5.58 vs 5.54), ours about 34% larger. **Main is `145 x 26` at phone too**, so it does not change across breakpoints. Set ours to `145 x 26`.
+
+**`ShapeGroupNode` EXPOSES ONLY `id`, `originalId` AND `__class`.** No width, no height, nothing positional — a dump of every key returns three. So **a vector's size cannot be read or written through the Agent API at all**, which makes this editor-only, like appear effects. Add it to the blind-spot list. The size *is* in the editor panel as an ordinary `Size W / H` pair, so it is only the API that is blind.
+
+**THE NAV LOGO EXISTS TWICE, IN TWO SEPARATE COMPONENTS — changing one leaves the other wrong:**
+
+| component | id | variants | instances |
+|---|---|---|---|
+| `Navigation / Navigation Desktop` | `F0lbt84nG` | **11** | 41 |
+| `Navigation / Navigation Mobile` | `CA2UVAOBt` | 3 | 41 |
+
+Each holds its **own** `ShapeGroupNode`, both at `194 x 35`, and both were set. **41 instances each is the tell that both are live** — do not assume the desktop component covers phone just because the phone page renders an element named `logo dark`.
+
+**The size cascades from the primary variant.** Setting it on `Nav white · Primary` changed all 11 desktop variants, and on `Navigation Transparent White · Primary` all 3 mobile ones — confirmed by eye on the component canvas, where every variant's logo visibly shrank together. **That is worth knowing before editing 11 variants by hand.**
+
+**Finding it is awkward because the layer names do not say "logo".** The desktop path is `Nav white > Top Nav > Stack > Stack > logo dark > Group`, and the vector is the layer named plainly **`Group`**. The mobile path is `Navigation Transparent White > Container > Logo > Group`.
+
+**A DIFFERENT 194x35 logo exists in the FOOTER and was deliberately NOT changed** — `Brand Logo` in `Footer / Footer` (`CPt2kErNr`), one per breakpoint. Shak asked for the nav bar only. **A search for the nav logo by size matches the footer one too**, which is how it was nearly edited by mistake; check the owning component before writing.
+
+**The coordinate conversion caught me out again.** A click computed from the CSS rect via the documented `1459/1536` factor landed on the aspect-lock padlock instead of the width field. **Locate panel fields from a screenshot (image pixels / scale) rather than converting the DOM rect**, and confirm with `document.activeElement` — which showed `INPUT value "194"` with its text selected before any typing.
