@@ -3512,3 +3512,32 @@ H1 Hero - Style   tag=p   60px  ls=-0.01em  Gellix 500
 Writing either one as the node's `inlineTextStyle` applies to the **whole node**, so it would retag the other paragraph — giving the page two `<h1>`s, or demoting the heading to a `<p>`. Both are visible regressions that would then need undoing by hand. **A node-level write cannot express per-paragraph styling, so this is editor work by construction, not by API limitation.**
 
 **The editor step, with both styles already correct:** select "Measured" and apply **`H1 Hero`**; select "lighting objects." and apply **`H1 Hero - Style`**. The styles carry 60px / 44px / 40px across the breakpoints plus `-0.01em` and Gellix, so nothing needs typing. **Applying a style also clears the direct formatting** that is currently pinning the `p` to 44px — which is the actual reason the style route is better than typing `60` by hand, since direct formatting carries no breakpoint values.
+
+### THE GAP BETWEEN THE TWO HEADLINE LINES IS A PARAGRAPH BREAK — main uses a LINE break (2026-10-13, NEEDS A PUBLISH)
+
+Shak published, both lines came through in Gellix at the right size, and the two lines sat too far apart. **The extra space is `margin-top: 20px` on the `<p>`, which is Framer's PARAGRAPH SPACING** — inherited into `H1 Hero - Style` when those styles were built by copying `H1`'s attributes (`paragraphSpacing: 20` on the p style, `40` on the h1 one).
+
+**The structural difference, read from main's branch preview:**
+
+```html
+main:  <h1>Measured<br class="framer-text">lighting objects.</h1>     <- ONE paragraph, Shift+Enter
+ours:  <h1>Measured</h1> <p>lighting objects.</p>                      <- TWO paragraphs, Enter
+```
+
+**So the break type is the root cause**: a line break keeps both lines in one paragraph, where paragraph spacing can never apply; a paragraph break makes the gap `line-height + paragraphSpacing`. **In Framer, Shift+Enter and Enter inside a text layer are not cosmetically equivalent — they change the emitted element structure and therefore which spacing rules apply.**
+
+**It was still fixable without touching the text, because `paragraphSpacing` is a style attribute.** With it at `0` the two-paragraph version renders at exactly the same pitch as main's one-paragraph version. The remaining difference is only semantic (`h1` + `p` against a single `h1`), which is invisible on the page.
+
+**`main` HAS MOVED ON — measure the BRANCH, not the production site.** The reference is now `https://foolish-leprechaun-359985--shak-shhjfy3nc.framer.app/`, and it does **not** match the production `foolish-leprechaun-359985.framer.app` that was measured earlier the same day (60px, h1 in Gellix Regular, p in Inter). Measured across widths on the branch:
+
+| width | size | line-height | tracking |
+|---|---|---|---|
+| 1536 / 1280 | **72px** | **72px = 100%** | `-0.01em` |
+| 1000 | 44px | 44px | `-0.01em` |
+| 600 | 40px | 40px | `-0.01em` |
+
+Note **line-height 100%, not the template's 121%** — that is a second thing the earlier match got wrong, and it compounds with the paragraph spacing.
+
+**Both hero styles now read `72px / lh 100% / ls -0.01em / ps 0 / Gellix`** with breakpoints `1200: 44px` and `810: 40px`, each carrying the same `lineHeight` and `paragraphSpacing`. Verified in a separate `exec`. `H1` and `H1 - Style` are untouched at `44px / 121% / General Sans`, so the **19 other `<h1>`s on the site** are unaffected.
+
+**Counting `<h1>` on the published pages is the cheap way to size the blast radius** of anything tempting in the text-style context menu: `/` 2, `/about` 4, `/careers` 2, `/contact` 5, `/elements` 1, `/news` 2, `/products` 1, `/projects-grid` 1, `/projects-list` 1. **"Apply to all H1s" and "Replace" in that menu are PROJECT-WIDE** — neither is a way to style one piece of text. Applying a style to a selection is done from the canvas: select the words, then pick the style in the Text panel.
