@@ -3757,3 +3757,16 @@ Shak reported the footer logo sitting wrong and the Sitemap/Follow columns space
 Both were written on the Desktop variant and **cascaded to Tablet and Mobile** (the loop reported "nothing to change" for the other two). Verified in a separate `exec`: all three read `BrandLogo 127x23` and `RightContent gap=80px`.
 
 **Note there are three `Right Content` nodes per variant** — `gap: 18px` inside `Row Top`, `gap: 80px` inside `Row Bottom`, `gap: 10px` inside `Details`. Target by gap value or by ancestor, never by name alone.
+
+**THE LOGO OFFSET HAD TWO FIXED BOXES, NOT ONE — check the whole ancestor chain (2026-10-13).** The note above fixed `Brand Logo` from `194x35` to `127x23`, which accounts for the horizontal `33.5px`. **The vertical `6px` survived**, because the grandparent `Link Wrapper` was *also* fixed at **`35px`** with `stackAlignment: center` — so a 23px logo was still being centred in a 35px box. Main's equivalent is `fit-content`.
+
+Measured live against main at 1536, gap from the footer divider to each element:
+
+| | divider -> logo | divider -> `Sitemap` |
+|---|---|---|
+| main | **15px** | 15px |
+| ours | **21px** | 15px |
+
+`Sitemap` was already correct, which is what localised the fault to the logo's own column rather than the row.
+
+Set `Link Wrapper` to `fit-content`; verified across all three variants. **So the rule from the previous note needs widening: after resizing a vector, walk UP until you hit a `fit-content` ancestor, and clear every fixed size on the way.** One fixed box centres the child once; two do it twice, on whichever axes they constrain.
