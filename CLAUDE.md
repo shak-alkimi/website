@@ -3446,3 +3446,19 @@ Shak pointed at `Alkimi (main)` as the reference and asked to match it, **with G
 The files are ready at `G:\My Drive\Claude\Alkimi\Gellix_Font\Gellix` in `otf`, `ttf`, `woff` and `woff2` across the full weight range. **Once Gellix is uploaded, switching is one call** — `framer.getFont("Gellix")` then `setAttributes({ font })` on the two hero styles; no other change is needed.
 
 Note `main`'s own H1 carries mismatched font slots (base General Sans, bold Inter), which is why `createTextStyle` rejects a straight copy — see the note above about passing only the base `font`.
+
+**THE HEADLINE DID NOT CHANGE BECAUSE THE PUBLISH PREDATED THE WORK — the document was correct all along (2026-10-13).** Shak published and reported it "clearly not matching". The diagnosis took one query, and the method is the reusable part: **read `data-styles-preset` off the live element and look the id up in `getTextStyles()`.** The live page emitted `sA1pdkMlu` / `NSHp39t7X` — the **old** `H1` / `H1 - Style` — while all six hero nodes in the document carry `f5vNtZkWz` / `Q8aIAfMKm` (`H1 Hero` / `H1 Hero - Style`). Not a failed write, not an override: simply a build older than the change.
+
+**The tell was in the computed value, before any of that.** Live read `letter-spacing: normal`, and **no branch of `H1 Hero` can produce it** — every band is `-0.01em`. Chrome reports `letter-spacing: 0px` as `normal`, which is exactly the old `H1`. **A computed value that no branch of the intended style can emit proves the style is not applied, without needing to know why.**
+
+**TEXT-STYLE BREAKPOINT SEMANTICS, SETTLED BY MEASUREMENT — a `minWidth: N` entry is the band BELOW the base, not above it.** Measured on `main`, which carries base `60px` with entries `1200:44px` and `810:40px`:
+
+| viewport | renders |
+|---|---|
+| 1600, 1280 | **60px** — the style's own `fontSize` |
+| 1000 | **44px** — the `minWidth: 1200` entry |
+| below 810 | 40px |
+
+So the style's own `fontSize`/`letterSpacing` serve **Desktop (>= 1200)**, the `minWidth: 1200` entry serves **Tablet (810-1199)** and `minWidth: 810` serves **Phone**. The field name reads backwards; do not reason from it. Our two hero styles hold numbers identical to `main`'s, so a republish lands on `main`'s rendering exactly.
+
+**Gellix is still absent** — re-checked against **9,584** fonts (the catalogue has grown from 2,023; the absence has not changed). Note `main` is itself mid-transition: its `Measured` renders **Gellix Regular** while `lighting objects.` still renders **Inter**. Ours will be General Sans on both until the typeface is uploaded by hand.
