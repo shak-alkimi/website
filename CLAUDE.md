@@ -3462,3 +3462,53 @@ Note `main`'s own H1 carries mismatched font slots (base General Sans, bold Inte
 So the style's own `fontSize`/`letterSpacing` serve **Desktop (>= 1200)**, the `minWidth: 1200` entry serves **Tablet (810-1199)** and `minWidth: 810` serves **Phone**. The field name reads backwards; do not reason from it. Our two hero styles hold numbers identical to `main`'s, so a republish lands on `main`'s rendering exactly.
 
 **Gellix is still absent** — re-checked against **9,584** fonts (the catalogue has grown from 2,023; the absence has not changed). Note `main` is itself mid-transition: its `Measured` renders **Gellix Regular** while `lighting objects.` still renders **Inter**. Ours will be General Sans on both until the typeface is uploaded by hand.
+
+### GELLIX IS IN THE PROJECT — `getFonts()` SIMPLY DOES NOT LIST CUSTOM UPLOADS (corrected 2026-10-13)
+
+**The note above saying "Gellix is not among the project's 2,023 fonts, and there are no custom uploaded fonts at all" is WRONG.** It was drawn from `framer.getFonts()`, which returns **only Framer's built-in catalogue**. Shak had uploaded Gellix, and the published page proves it: the served CSS carries real `@font-face` rules for **`Gellix Medium` (w500)** and **`Gellix SemiBold` (w600)**, both from `framerusercontent.com/assets/`.
+
+**Both API lookups are blind to it.** `getFonts()` returns `0` matches across `9,584` entries, and **`framer.getFont("Gellix")` / `("Gellix Medium")` / `("Gellix SemiBold")` all return `null`.** So neither call can confirm or deny a custom typeface. **To find out what fonts a project really has, read the `@font-face` rules on the published page**, never the API.
+
+**A CUSTOM FONT CAN STILL BE SET — BY BORROWING THE LIVE `Font` OFF A NODE THAT ALREADY USES IT.** Exactly the pattern already established for `ImageAsset`, `LinearGradient` and `TextStyle`:
+
+```js
+let gellix = null                       // walk the component, take the first node using it
+if (n.__class === "TextNode" && /gellix/i.test(n.font?.selector || "")) gellix = n.font
+await textStyle.setAttributes({ font: gellix })     // same exec - do NOT serialise
+```
+
+Applied this way, `H1 Hero` and `H1 Hero - Style` now read `font=Gellix`, verified in a separate `exec`. **So the rule generalises: anything the API cannot construct or look up, it can usually still copy from a live instance.**
+
+**Custom uploads register as ONE FAMILY PER WEIGHT**, not as a family with weights: the selector is `CUSTOMV2;Gellix Medium` and `node.font` reports `family: "Gellix", weight: 500`. Only those two weights are uploaded. **`main` renders its headline in Gellix *Regular* (400), which this project does not have**, so exact weight parity with `main` is not available without uploading more weights.
+
+### THE HERO HEADLINE WAS REBUILT IN THE EDITOR — and paragraph-level styling is ANOTHER API BLIND SPOT (2026-10-13)
+
+Everything assigned on 2026-10-13 was gone by that evening, and **not because a write failed.** Shak rebuilt the headline by hand. Read from a fresh session, confirmed by a second session and a separate `exec`:
+
+| node | state |
+|---|---|
+| `YZe5vZrew` | **`visible: false`** — the old headline, hidden. Path `Image > Container > stack` |
+| `ky4WRvC4S` | **`visible: true`**, `font: Gellix` — the live headline, now **two Stacks deeper** at `… > stack > Stack > Stack` |
+| `pGW6pPXTR` | **deleted** — it no longer exists in the document |
+
+**"Measured" and "lighting objects." are now TWO PARAGRAPHS INSIDE ONE TEXT NODE**, confirmed from the published DOM: one `div[data-framer-name]` holding an `<h1>` and a `<p>` as siblings. They were previously two separate text nodes.
+
+**Each paragraph is styled by a DIFFERENT mechanism, and the node API sees neither:**
+
+| paragraph | how it is styled | renders |
+|---|---|---|
+| `<h1>` "Measured" | the shared **`H1` preset** (`data-styles-preset="sA1pdkMlu"`) | 44px General Sans |
+| `<p>` "lighting objects." | **direct inline formatting** — `--framer-font-family:"Gellix Medium"; --framer-font-size:44px; --framer-font-weight:500` | 44px Gellix Medium |
+
+`node.inlineTextStyle` reads **`null`** on all three variants, because it is a **node-level** property and neither paragraph is styled at that level. **Add paragraph-level presets and direct text formatting to the list of things invisible to the node API**, alongside CMS bindings, conditional visibility, code overrides and the hover rise.
+
+**WHY THE LAST STEP WAS NOT SCRIPTED, DELIBERATELY: a `TextStyle` carries a `tag`, and this node holds one `h1` and one `p`.**
+
+```
+H1 Hero           tag=h1  60px  ls=-0.01em  Gellix 500
+H1 Hero - Style   tag=p   60px  ls=-0.01em  Gellix 500
+```
+
+Writing either one as the node's `inlineTextStyle` applies to the **whole node**, so it would retag the other paragraph — giving the page two `<h1>`s, or demoting the heading to a `<p>`. Both are visible regressions that would then need undoing by hand. **A node-level write cannot express per-paragraph styling, so this is editor work by construction, not by API limitation.**
+
+**The editor step, with both styles already correct:** select "Measured" and apply **`H1 Hero`**; select "lighting objects." and apply **`H1 Hero - Style`**. The styles carry 60px / 44px / 40px across the breakpoints plus `-0.01em` and Gellix, so nothing needs typing. **Applying a style also clears the direct formatting** that is currently pinning the `p` to 44px — which is the actual reason the style route is better than typing `60` by hand, since direct formatting carries no breakpoint values.
