@@ -3422,3 +3422,27 @@ Shak's call was hero-only, so two new styles were created and assigned to those 
 **`createTextStyle` REJECTS A STRAIGHT COPY OF AN EXISTING STYLE'S FONTS.** Passing `boldFont` / `italicFont` / `boldItalicFont` through from `H1` fails with *"Font 'Inter' is not the same family as the base font 'General Sans'"* — the source style itself holds a mismatched set. **Pass only the base `font` and let the variants default.** Note the first call had already created `H1 Hero` before the second threw, so the retry found it existing; **a partially-applied batch is the normal failure mode here, so make the retry idempotent** (this one reuses by name).
 
 **Watch on a real phone after publishing.** Below 810px the headline goes `28px -> 46px`, and the phone hero's headline stack sits only `30px` from the bottom edge — the clearance that was tuned once already. A real-device check is worth it.
+
+### Home hero headline matched to `Alkimi (main)` — everything except the typeface (2026-10-13, NEEDS A PUBLISH)
+
+Shak pointed at `Alkimi (main)` as the reference and asked to match it, **with Gellix instead of its Inter**.
+
+**`Alkimi (main)` IS AUTHORIZED FOR THE AGENT CLI and IS PUBLISHED** — neither fact was recorded here before. `npx @framer/agent@latest session new "lGFTo9egwT6d6ra5S4uP"` authorizes in the browser, and its `getPublishInfo()` returns **`https://foolish-leprechaun-359985.framer.app`**. That makes it directly measurable, which beats reading a `?view=preview` editor link that needs a logged-in browser. **The project is still slated for archiving — read it as a design reference only, never write to it.**
+
+**How Framer's text-style breakpoints actually resolve — the base is the WIDEST, not the narrowest.** `main`'s H1 reads `fontSize: 60px` with breakpoints `1200 -> 44px` and `810 -> 40px`, which looks like the desktop size is 44. The published page settles it: it emits **`--framer-font-size:60px`** for the headline. So:
+
+| width | value |
+|---|---|
+| above the largest breakpoint (1200) | the style's own `fontSize` |
+| 810 - 1200 | the `1200` breakpoint |
+| below 810 | the `810` breakpoint |
+
+**Do not read a style's `fontSize` as its desktop size when breakpoints exist** — check the published page, as the docs' own example (`24px` base with `1024` and `320` breakpoints) implies but does not spell out.
+
+**Applied to `H1 Hero` and `H1 Hero - Style`:** base `60px`, `1200 -> 44px`, `810 -> 40px`, **`letterSpacing: -0.01em`** on the base and both breakpoints. Verified in a separate `exec`. The shared `H1` / `H1 - Style` remain `44px` / `0px`, so the other 35 headings are still untouched.
+
+**GELLIX IS NOT IN THE PROJECT AND CANNOT BE ADDED THROUGH THE API.** Searched all **2,023** available fonts: no Gellix, and **no custom uploaded fonts at all**. The API offers only `framer.getFont(family)` for fonts already present — there is no `uploadFont` / `addFont` / `createFont`. **A custom typeface must be uploaded in the Framer editor by hand.**
+
+The files are ready at `G:\My Drive\Claude\Alkimi\Gellix_Font\Gellix` in `otf`, `ttf`, `woff` and `woff2` across the full weight range. **Once Gellix is uploaded, switching is one call** — `framer.getFont("Gellix")` then `setAttributes({ font })` on the two hero styles; no other change is needed.
+
+Note `main`'s own H1 carries mismatched font slots (base General Sans, bold Inter), which is why `createTextStyle` rejects a straight copy — see the note above about passing only the base `font`.
