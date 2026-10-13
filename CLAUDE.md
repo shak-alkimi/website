@@ -3571,3 +3571,25 @@ So ours rises 60px with a 4-degree tilt over two seconds after a 0.6s wait, and 
 Ours carries the identical definition on all three breakpoints, so a Desktop edit should cascade — **but re-read all three from the published page afterwards**, per the standing rule that a breakpoint you skip is not a breakpoint you preserved.
 
 **To match main, in the editor** (deep-link the component `LXjJUpECH`, then `Image > Container > stack > Stack > Stack >` the **visible** `Designing brands today for tomorrow.` layer — note the hidden old headline one level up shares the name): Effects -> Appear, set **Y `60` -> `0`**, **Rotate `4` -> `0`**, **Opacity `100` -> `0`**, transition **Spring** with bounce `0.2` and duration `0.4`, and **Delay `0.6` -> `0`**.
+
+### DRIVING THE APPEAR EFFECT FROM CHROME — done 2026-10-13, NEEDS A PUBLISH
+
+The headline's entrance now matches main on **all three variants**: `Opacity 0`, `Scale 1`, `Rotate 0`, `Skew 0/0`, `Offset 0/0`, `Transition Spring` with **Time `0.4`, Bounce `0.2`, Delay `0`**. Verified by zoomed screenshot on `Image · Primary`, `Image Active` and `Mobile`.
+
+**The route, which is reusable for any effect the node API cannot reach:**
+
+1. Deep-link the **component** (`?node=LXjJUpECH`) — layer ids still do not resolve.
+2. Left panel -> **Layers**, then expand `Image > Container > stack > Stack > Stack` and select the **deepest** `Designing brands today for tomorrow.` (the one at the shallower level is the hidden old headline).
+3. Right panel -> **Effects -> Appear -> the purple `Effect` chip** -> **`Enter` chip** -> the transform fields; the `Transition` chip opens `Ease`/`Spring` with Time / Bounce / Delay.
+
+**SYNTHETIC EVENTS OPEN THE LAYER TREE BUT NOT THE EFFECT CHIPS.** `pointerdown/mousedown/pointerup/mouseup/click` dispatched on an element works for the Layers tab, every disclosure arrow and every layer row — but the `Effect`, `Enter` and `Transition` chips **ignore it entirely** and need a real `computer left_click`. So the standing advice to "drive this panel through the DOM" holds for the tree and **not** for the effect popovers. Convert CSS -> screenshot coordinates with the documented `1459/1536 = 0.9499` factor.
+
+**!!! THE INPUT'S `value` PROPERTY CAN HOLD WHAT YOU SET WHILE THE APP STATE NEVER TOOK IT !!!**
+
+Four of five fields went in cleanly with the native-setter route (`Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set` plus `input`/`change`/Enter). **`Time` silently failed** — and reading the input back returned **`0.4`**, the value just written, while a zoomed screenshot of the same field showed **`2`**. The helper even asserted `document.activeElement === input` first, so focus was not the problem.
+
+This sharpens the recorded trap. The file already says *"typing into a focused panel number field fails silently maybe half the time — always read the input back"*, and separately that a locked Height field *"happily shows what you typed"*. **Both are the same failure, and the consequence is that reading the input back is WORTHLESS as verification.** The only reliable check is a **zoomed screenshot of the rendered field**. A corroborating tell is the paired slider: it stays at the old position when the write did not take, and Framer colours a genuinely-overridden value **purple**.
+
+**The fix that worked was real keystrokes:** `triple_click` the field, `type` the value, `Return`. Prefer that for any numeric panel field, and keep the native setter only for `<select>`.
+
+**The effect CASCADES from the primary variant.** Only `Image · Primary` was edited; `Image Active` and `Mobile` both read the new values without being touched. Consistent with effects cascading from the primary breakpoint — **but it was checked rather than assumed**, which is the standing rule and cost two minutes.
