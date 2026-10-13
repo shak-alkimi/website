@@ -4016,3 +4016,49 @@ The map is a static image, `Zlz1h2PsNKVA4gGWdMoxcZIYI.png`, **3166 x 1684**, com
 **Frames crop the image differently, so one percentage does not mean one place.** With `object-fit: cover` against the image's 1.880 aspect: Desktop and Tablet (~1.75) show ~93-96% of the width, **Mobile (360x360) shows only the middle 53%**. The same `centerX 60%` therefore lands ~127 px apart in image space between breakpoints — tolerable for a Brooklyn pin near the centre, not for one near an edge.
 
 **So the right fix is a new map export centred on the new address**, after which the pin returns to roughly `50% / 50%` and all three breakpoints agree. Moving the pin on the existing image would put it in the corner of a picture still framed on the wrong borough. **Raised rather than bodged.**
+
+### PUBLISHED 2026-10-13 — four of five live; THE ADDRESS WAS EDITED IN THE WRONG COMPONENT
+
+| change | live? |
+|---|---|
+| footer CTA off on `/contact` only | **yes** — `Row Top` 0 on `/contact`, 3 on every other page |
+| toggle pill reads `Projects (3)` | **yes** — `Case Studies` 0 on both pages |
+| Home wide button `Project Portfolio`, transparent + white border | **yes** |
+| `All Projects` link hidden on project pages | **yes** — 0, heading intact |
+| **office address** | **NO — still `209 Hudson Ave`** |
+
+The button was confirmed by reading the **`::after` pseudo-element**, since Framer draws borders there and `getComputedStyle(el).borderTopWidth` returns `0px`: the root carries `data-framer-name="Button White to Outline - Hover"`, `data-border="true"`, `background: rgba(255,255,255,0)` and `::after` `0.666667px solid rgb(255,255,255)` — 1 device px at `dpr 1.5`. Full Home regression sweep passes (11x `1.17458`, 0 stale `1.180xx`, both Elements ratios, 2 hero overlays, `#f7f6f2` with 0 `#f6f4f0`, brand green, 0 stale `View Case Study`, `lossless=1` 0, badge 0, orb byte-exact at `4,280,052`).
+
+**!!! THE ADDRESS EXISTS IN TWO DIFFERENT COMPONENTS AND ONLY ONE OF THEM RENDERS !!!**
+
+| component | copies | renders? |
+|---|---|---|
+| `About / About - Map` (`l7w_crSRE`) -> `Address Card` | 1, seen through 3 variants | **NO** — dormant |
+| **`Contact / Tooltip-Indicator` (`Shxtkgadh`) -> `Hover Area - Wrapper > Address Card`** | **one per variant, 7 variants** | **YES** |
+
+The map component's own `Address Card` is a leftover. The live card is **nested inside the tooltip instance**, which sits inside the map — so the map's own copy and the tooltip's copy look identical in a layer search and are easy to confuse.
+
+**I EDITED THE DORMANT ONE, SHIPPED IT, AND IT CHANGED NOTHING — because I read an ancestor chain out of a byte window, which this file already warns against.** Grepping `data-framer-name` from a window of bytes around the address returns names in **document order**, not nesting, and that produced a chain that looked like the map component's. **The check that settles it is walking `parentElement` on the live page:**
+
+```js
+let chain = [], n = el
+while (n && n !== document.body) { const nm = n.getAttribute?.('data-framer-name'); if (nm) chain.push(nm); n = n.parentElement }
+// Address Card < Hover Area - Wrapper < State 1 < Map Desktop < Content Right < Section Location < Main
+```
+
+`State 1` is a **tooltip variant**, which named the real owner immediately.
+
+**CONTENT IS PER-VARIANT HERE, AND THE PRIMARY IS THE BASE.** Neither the text nor the link is shared the way text usually is:
+
+- Editing a **non-primary** variant (`Show Address`) created an override on that variant **alone** — the primary kept the old address, which is why the live page was unchanged.
+- Editing the **primary** (`State 1`) changed the base and **cascaded to every variant without its own override** — `State 2` and `Mobile 3` both picked up the new text *and* the new link without being touched.
+
+**So: edit the PRIMARY variant, then spot-check one far variant to confirm the cascade.** Editing a non-primary first is worse than useless — it creates an override that will then shadow the base you fix afterwards.
+
+**A link is a per-layer property and follows the same rule.** `State 1` still held the old Google Maps URL after the `Show Address` edit, which is what exposed the whole thing. **To read a truncated link field, click into it and press `End`** — the panel shows the start, and only the tail distinguishes two Google Maps URLs.
+
+**`getText()` fails on every one of these nodes** (`Node is not a text node`), so text cannot be read through the API at all. The only way to read a variant's text is to double-click it on the canvas — **which also reveals text that renders transparent**: the non-hovered tooltip variants paint nothing on the component canvas, but entering edit mode shows the string.
+
+**Current state: the address and link are now correct on the tooltip's primary variant and cascaded to the rest. NEEDS A PUBLISH.** The map component's dormant copy was also updated and left that way; it is harmless either way.
+
+**`/products` AND `/elements` HAVE NOW MISSED TWO CONSECUTIVE PUBLISHES.** Both still serve the old four-slot footer sitemap (`About / Case studies / News`) while the other seven pages carry `Fixtures / Elements / Projects / About / News / Contact`, even though `Footer / Footer` is a single shared component. **This is not propagation delay** — it has survived two publishes and repeated byte-stable re-fetches. Worth opening those two pages in the editor and republishing, or checking whether something excludes them from the build.
