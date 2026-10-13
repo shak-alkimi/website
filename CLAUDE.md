@@ -3694,3 +3694,30 @@ Each holds its **own** `ShapeGroupNode`, both at `194 x 35`, and both were set. 
 **A DIFFERENT 194x35 logo exists in the FOOTER and was deliberately NOT changed** — `Brand Logo` in `Footer / Footer` (`CPt2kErNr`), one per breakpoint. Shak asked for the nav bar only. **A search for the nav logo by size matches the footer one too**, which is how it was nearly edited by mistake; check the owning component before writing.
 
 **The coordinate conversion caught me out again.** A click computed from the CSS rect via the documented `1459/1536` factor landed on the aspect-lock padlock instead of the width field. **Locate panel fields from a screenshot (image pixels / scale) rather than converting the DOM rect**, and confirm with `document.activeElement` — which showed `INPUT value "194"` with its text selected before any typing.
+
+### FOOTER REBUILT TO MATCH main — and CROSS-PROJECT COPY/PASTE IS THE WAY PAST THE API'S CREATE LIMIT (2026-10-13, NEEDS A PUBLISH + ONE MANUAL DRAG)
+
+**The two footers are the SAME COMPONENT from the same template** — both are `Footer / Footer` with id **`CPt2kErNr`**, and even the variant ids match (`tNEqhl1aI` / `Wkpy7bZw9` / `In5qJquLm`), as do `Stack` (`zsVnjH4ha`) and `Row Bottom` (`aP6TEuA8_`). **Ours had simply lost two whole rows that main still has**, and gained one main does not:
+
+| row | main | ours (before) |
+|---|---|---|
+| `Row Top` `lvepBJXEU` — the "Let's start a conversation" CTA | yes | **absent** |
+| `Row Bottom` `aP6TEuA8_` — logo / Sitemap / Follow | yes | yes |
+| `Details` `OKuhXaFcD` — `© Alkimi YYYY` · Made in The Shire · Back to top | yes | **absent** |
+| `Footer Spacer` `ov38Fb1IJ` — 200px | **no** | yes |
+
+**!!! COPY/PASTE BETWEEN FRAMER PROJECTS WORKS, AND PRESERVES NODE IDs !!!** Selecting `Details` in `Alkimi (main)`, `Ctrl+C`, then selecting our Desktop variant and `Ctrl+V` produced a node with **main's exact id `OKuhXaFcD`** and its whole subtree. Same for `Row Top` (`lvepBJXEU`). **This is the general escape hatch for everything the API cannot create inside a `ComponentNode`** — rather than rebuilding a structure by hand, copy it from a project that has it. It is also non-destructive to the source: main was re-read afterwards and is byte-for-byte unchanged.
+
+**A paste into one variant propagates to ALL variants** — `Details` and `Row Top` each appeared in Desktop, Tablet and Mobile from a single paste, with the usual variant id prefixes.
+
+**BUT A PASTE APPENDS — it does not honour the source's position.** `Row Top` landed *after* `Row Bottom`, where main has it first, so the CTA currently renders below the sitemap. **Reordering needs a manual drag in the Layers panel and CANNOT be automated**: a real `left_click_drag` merely expanded the row, and a synthesised `pointerdown`/`pointermove`×10/`pointerup` sequence did nothing, even though the same synthetic events reliably select rows and toggle disclosure arrows. **Add layer-tree reordering to the list of editor actions automation cannot perform.**
+
+**What was done through the API** (all verified in a fresh session): `Careers` wrapper hidden, `Contact Column` hidden, `Footer Spacer` hidden — each on all three variants, and **hiding the Desktop one cascaded to Tablet and Mobile**.
+
+**The two extra social links were made by duplicating in the editor, then labelled through the API.** `Ctrl+D` on the Instagram instance twice gave three, and `setAttributes({ controls: { UvO00kpP1, pN5qcoZCL } })` set #2 and #3 to Twitter (X) and LinkedIn. **Setting Desktop cascaded**, which is why the script then reported "found 1 Instagram" on Tablet and Mobile — that is the cascade working, not a failure.
+
+**A STRUCTURAL EDITOR CHANGE TAKES ~20 SECONDS TO REACH THE API.** Straight after the `Ctrl+D` duplication, two reads on a fresh session both reported **one** link while the editor's own layer tree plainly showed **three**. A read ~20s later showed three. **When verifying something you just did in the editor, the editor's layer tree is the authority and the API is the laggard** — the reverse of the usual advice, and the opposite of the case where a stale session contradicts the user.
+
+**Stock Ora content carried across, deliberately and visibly:** main's Follow URLs are still `instagram.com/ena.supply`, `twitter.com/ena_supply` and `linkedin.com/company/ena-supply`. Matching main means ours now carries all three. **These are template handles and need replacing with Alkimi's before launch** — they join the stock-cleanup bundle.
+
+**Consequence to weigh: the CTA is now in the footer on EVERY page.** `Global / Section CTA` (`bDuMp2cg2`) is separately placed on one page across its three breakpoints, so that page will show the CTA twice once this publishes. Either hide that instance or hide `Row Top`.
