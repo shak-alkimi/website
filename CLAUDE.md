@@ -3235,3 +3235,17 @@ The first two agree **exactly** on all three; only the canvas path diverges, and
 **A post-upload read can also be stale, and it cost a near-miss here.** A verification run one minute after upload reported `Prisma Multiplier` at `59` and I was about to re-tone an asset that was already correct. A read a minute later gave `139`, and two agreeing reads confirmed it. **Re-fetch until two reads agree before concluding anything about a just-uploaded asset** — the same discipline already required of `exec` reads and freshly published pages.
 
 **Note the single-pixel extremum is noisy run to run.** `Vena Corner Mini` was skipped (unchanged asset) and read `142` in one session and `154` in the next. Within a run two reads agree; across runs it moves. **For a control variable prefer a percentile over the extreme**; `darkest` is fine for reporting but is a single sample.
+
+### Prisma Link 2 reverted out of phase 1 (2026-10-12, NEEDS A PUBLISH)
+
+Shak reported both Prisma Links reading too dark after the phase 1 publish and asked for both to go back.
+
+**Only ONE of them was in the pass.** `Prisma Link 1` was one of the five **skipped** drawings — it measured `142`, already inside the `±8` tolerance — so its asset is byte-for-byte what it was before phase 1 and there is nothing to revert. Confirmed by diffing the pass input against the current binding: `dVoqHngJJrc33a…` on both sides.
+
+`Prisma Link 2` was darkened `x1.589` (`182 -> 140`) and has been **rebound to its pre-pass asset** `e9Ca8o7jjBGrjH29YvGzW41g17w.png`, which was still hosted, so no upload was needed. Verified with two agreeing reads: **back to `182` exactly**.
+
+**This is the second time a reported problem has turned out to predate the change blamed for it** (the first being `Liga T`/`Liga W`, which were already on their originals). **Before reverting anything, diff the pass input against the current binding** — the skip list is in `crop/_phase1.json` and makes this a ten-second check.
+
+**The pair no longer matches each other**: `Prisma Link 1` sits at `142` against `Prisma Link 2`'s `182`, and `Prisma Link 1` is now visibly the darker of the two. Lightening it to match would need **`x0.660`** (`-> 180`), which is in the always-accepted `k < 1` direction. **Raised with Shak rather than applied**, since he asked for a revert and this would be a new change.
+
+Site-wide darkness after the revert: **`135 - 182`** (`1.35x`), against `58 - 182` (`3.14x`) before phase 1. The two values outside the `140 ±12` band are `Vena Corner Mini` at `154` (never changed; a single-pixel extremum that drifts run to run) and `Prisma Link 2` at `182` (deliberately reverted).
