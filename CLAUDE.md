@@ -3024,3 +3024,36 @@ The two assembled-fixture renders sit on a surface and cast a real shadow; a bbo
 **THE PHOTOS NO LONGER SIT AT A CONSISTENT HEIGHT DOWN THE PAGE, and that is inherent, not a defect.** Their bottoms now span **`57.56%` to `70.91%`** (13.4 pts) because the drawings' bottoms span that range — a direct consequence of the size hierarchy, which draws a small product small and centred (high bottom) and a large one large (low bottom). **Per-row alignment and column-wide consistency are mutually exclusive here**; this change chooses per-row.
 
 All 11 are pure vertical translations at unchanged frame, so **horizontal is untouched** (right edges identical to 0.01 pts) and the earlier right-edge alignment survives. The exposed strip is filled by replicating the source's own edge row **read from the source canvas, with the destination pre-filled** — the two halves of the padding bug that shipped a transparent strip in October.
+
+### Liga T and Liga W read DARK — and per-stroke ink is the wrong metric for that question (2026-10-12, NEEDS A PUBLISH)
+
+Shak asked to "revert Liga T and W to their original line work" because they were reading dark. **They were already on their originals** — the normalisation inputs `L3WkKiHtat3j` / `xoLKImKI7m89` were still bound and live. So the request could not be satisfied by reverting; they needed to go **lighter than the original**.
+
+**THE DIAGNOSTIC ERROR, AND IT IS THE SECOND TIME: I answered "they are light" using PER-STROKE ink mass while Shak was reading COVERAGE.** Both measurements were correct and they say opposite things:
+
+| | per-stroke ink | coverage | darkest px |
+|---|---|---|---|
+| `Liga T` | `0.129` — **68% below reference** | **4.56%** — highest on the page | **68** |
+| `Liga W` | `0.224` — 45% below | **3.91%** | **65** |
+| `Rima 10` | `0.388` | `3.01%` | `123` |
+| `Rima 5` | `0.384` | `3.38%` | `108` |
+
+These two are **thin but genuinely dark lines packed densely into a small drawing**. A single stroke is light; the cluster is not. This is the exact lesson already recorded for Prisma Link 1 vs 2 and it was not applied. **When a user says something "reads dark", the metric is coverage or mean ink over the product box — never per-stroke.**
+
+**Applied Shak's choice of matching the Rima drawings:** `Liga T x0.683`, `Liga W x0.644`. Verified on the hosted assets:
+
+| | coverage | darkest | mean ink |
+|---|---|---|---|
+| `Rima 5` | `3.38%` | 108 | 8.4 |
+| `Rima 10` | `3.01%` | 123 | 9.7 |
+| **`Liga T`** | **`3.19%`** | **128** | **8.6** |
+| **`Liga W`** | **`3.20%`** | **134** | **8.6** |
+| `Driver 5-1` | `0.82%` | 129 | 2.2 |
+
+Four of five now sit in a band of `8.4 - 9.7` mean ink. **`Driver 5-1` remains the outlier at `2.2`** — it is a sparse outline of a large box, so low coverage is honest rather than a defect; do not "fix" it to match.
+
+**A LIGHTENING IS SAFE WHERE A BRIGHTENING IS NOT.** Source ink-pixel counts are **identical** before and after (`44,269` and `40,694`), so nothing structural was lost; `minAlpha` stays `255` and corners stay pure white, so **the lightbox fix is intact**. Note the direction: every gain Shak has rejected was `k > 1`; every `k < 1` has been accepted, now five times.
+
+**THE SOLVER AND THE VERIFIER MUST SHARE A DECODE PATH — this bit again and changed a result by 23%.** A first pass measured candidates via `createImageBitmap(canvas)` and reported `Liga W` needing only `x0.829`; measuring through a real **PNG encode -> decode** round-trip, which is what a hosted asset actually goes through, gave `x0.644`. The two disagreed by `3.91%` vs `5.09%` coverage on the same file. **For any tone decision, round-trip the candidate through `toBlob` and `createImageBitmap` before measuring it.**
+
+**The previous asset ids remain hosted** (`L3WkKiHtat3j…`, `xoLKImKI7m89…`), so this is one rebind away from reverting if the lighter version reads washed out on the published page.
