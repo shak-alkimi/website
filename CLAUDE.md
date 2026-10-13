@@ -3811,3 +3811,7 @@ https://ena-supply.b-cdn.net/Ora/587890_Silhouette Red Background Man Hoodie_…
 ```
 
 Stock footage on a third party's bandwidth, which breaks the day they stop serving it. It belongs with the `instagram.com/ena.supply` links as pre-launch cleanup.
+
+**Twitter (X) and LinkedIn removed from the footer (2026-10-13, NEEDS A PUBLISH).** Shak's call — `Follow` is back to Instagram alone. Done by `visible: false` on the two instances rather than deletion, since `removeNodes` does not reach inside a `ComponentNode`; a hidden layer emits no markup, and this keeps the labels and hrefs recoverable. Verified in a separate `exec`: `Instagram=visible, Twitter (X)=HIDDEN, LinkedIn=HIDDEN` on all three variants, with the Desktop write cascading to Tablet and Mobile.
+
+**A STALE SESSION REPORTED THE NODES AS ABSENT, WHICH NEARLY READ AS "NOTHING TO DO".** The first run, on a session opened earlier in the task, returned **"none found"** for Desktop and Tablet while finding them on Mobile — a partial, self-consistent, entirely wrong answer. A fresh session saw all six. **This is the documented staleness in its most dangerous form: not a wrong value, but a missing node.** The existing rule says a depth-limited walk finding nothing is not evidence of absence; widen it — **an old session finding nothing is not evidence of absence either.** Open a fresh session before concluding that something is not there, especially after the document has been edited in the meantime.
