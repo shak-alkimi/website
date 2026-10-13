@@ -3154,3 +3154,50 @@ The yellow-green LED tape is the **only colour in the entire product system**. E
 
 - **Scriptable now:** one line-weight standard across all 16; `/elements` photo-to-drawing bottom alignment; a shared right anchor for `/elements`' bleeding drawings.
 - **Artwork only:** the Rima colour; stroke width uniformity; the left-bleed on the long fixtures.
+
+### Audit outcomes — Shak's calls, and the shared Rima anchor (2026-10-12, NEEDS A PUBLISH)
+
+**Declined, settled — do not re-flag these:**
+
+- **The Rima colour stays.** `Rima 5` and `Rima 10` remain the only saturated images in the set (38% / 37% of subject pixels above sat 25, against `0.0%` on the other fourteen). Deliberate.
+- **The photo convention stays different between the pages** — `/products` bleeding off the left, `/elements` contained and centred.
+- **`/elements` does NOT get the photo-to-drawing bottom alignment** that `/products` has.
+
+**Item 7 DONE: the two Rima drawings now share a right anchor at `65.42%`**, verified on the hosted assets at a `0.00` pt difference, both still flush left.
+
+`Rima 10` was translated left `426` source px, shortening its visible run `509 -> 384` px to match `Rima 5`. Its connector end is **bit-identical** (33,200 pixels compared, 0 differ), and its **strip height is untouched at `24` px against Rima 5's `19`**, so the `0.792` size relationship chosen earlier that day survives.
+
+**The consequence to understand: the two runs are now the SAME LENGTH, so the visible width ratio went `0.754 -> 1.000`.** That does not undo the `x1.507` scale decision — it changes which feature carries the size difference. **For tape light the run length is arbitrary (it is cut to length) and the real dimension is the strip width**, which is the drawing's height. So size is now carried by the `19` vs `24` px strip heights rather than by how much run happens to be drawn, which is the more honest reading of a product sold on a reel.
+
+### The parity plan for line weight — 2, 3 and 4 are ONE problem
+
+**`per-stroke ink` ≈ `stroke width` x `stroke darkness`, and tone can only move darkness.** So uniform per-stroke ink and uniform darkness cannot both hold while widths differ — and **the earlier normalisation to equal per-stroke ink is what CREATED the darkness spread**, because it had to pale down the thick strokes and darken the thin ones. `Prisma Link 2` (5px, darkest 182) and `Vena` (2px, darkest 67) are the two ends of exactly that trade.
+
+**PHASE 1 — normalise DARKNESS, not per-stroke ink. Scriptable, no artwork.** Target darkest `140`:
+
+| | now | after |
+|---|---|---|
+| darkness | `58 - 182` (`3.14x`) | **one value** |
+| stroke width | `1 - 5 px` (`5.0x`) | unchanged — tone cannot move it |
+| per-stroke ink | `0.086 - 0.522` (`6.05x`) | `0.110 - 0.847` (`7.71x`) |
+
+**All 16 gains land inside the `x1.85` limit** (largest `x1.698` on `Vena Corner`; six are lightenings).
+
+**The per-stroke spread GROWING is correct, not a regression.** One ink with varying stroke weights reads as one pen used at different weights, like a type family. Equal ink with varying widths reads as thick-pale against thin-black — different media. **Prefer uniform darkness over uniform per-stroke ink whenever widths are not uniform.**
+
+**PHASE 2 — one pen width. Artwork only.** `rendered stroke = source pen x 587 / frame`, so for a `2px` rendered stroke the source pen must be `2 x frame / 587`:
+
+| drawing | frame | pen | | drawing | frame | pen |
+|---|---|---|---|---|---|---|
+| Vena Corner | 2908 | **9.9** | | Flow Straight | 1984 | 6.8 |
+| Vena | 2686 | **9.2** | | Vena Mini | 1977 | 6.7 |
+| Prisma Multiplier | 2407 | 8.2 | | Vena Round Mini | 1926 | 6.6 |
+| Flow Spine | 2116 | 7.2 | | Vena Corner Mini | 1902 | 6.5 |
+| Rima 10 / Driver 5-1 | 2000 | 6.8 | | Liga T | 1805 | 6.1 |
+| Liga W | 1723 | 5.9 | | Flow 20 | 1745 | 5.9 |
+| Rima 5 | 1327 | 4.5 | | **Prisma Link 1** | **641** | **2.2** |
+| | | | | **Prisma Link 2** | **385** | **1.3** |
+
+**THE SPEC EXPOSES A REAL PROBLEM WITH THE PRISMA LINKS: their frames are only `641` and `385` px**, because the size hierarchy cropped them hard. At those sizes the source is being **upscaled** into a `587` px card, so they cannot carry a clean 2px line at any pen setting. **They need larger source renders, not a thinner pen** — which matches the standing note about `Prisma Link 2`'s `1.52x` upscale.
+
+**A uniform pen and the size hierarchy are in tension**, and this is the thing to understand before commissioning: because we set product size by changing the frame, a drawing placed small renders its lines thinner. A uniform *rendered* stroke therefore needs a per-drawing source pen, i.e. the renders must be made knowing their final size. The alternative is to accept that smaller products carry lighter lines, which is a defensible convention but a different one.
