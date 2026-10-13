@@ -3201,3 +3201,37 @@ The yellow-green LED tape is the **only colour in the entire product system**. E
 **THE SPEC EXPOSES A REAL PROBLEM WITH THE PRISMA LINKS: their frames are only `641` and `385` px**, because the size hierarchy cropped them hard. At those sizes the source is being **upscaled** into a `587` px card, so they cannot carry a clean 2px line at any pen setting. **They need larger source renders, not a thinner pen** — which matches the standing note about `Prisma Link 2`'s `1.52x` upscale.
 
 **A uniform pen and the size hierarchy are in tension**, and this is the thing to understand before commissioning: because we set product size by changing the frame, a drawing placed small renders its lines thinner. A uniform *rendered* stroke therefore needs a per-drawing source pen, i.e. the renders must be made knowing their final size. The alternative is to accept that smaller products carry lighter lines, which is a defensible convention but a different one.
+
+### PHASE 1 DONE — darkness normalised across all 16 drawings (2026-10-12, NEEDS A PUBLISH)
+
+Every drawing on both pages now renders its darkest ink in one band. Verified on the hosted assets with **two agreeing reads each**:
+
+| | before | after |
+|---|---|---|
+| **darkness** | `58 - 182` (**`3.14x`**) | **`135 - 154`** (**`1.14x`**) |
+| stroke width | `1 - 6 px` | unchanged — tone cannot move it |
+| per-stroke ink | `0.086 - 0.522` | `0.110 - 0.847` |
+
+**11 drawings changed, 5 were SKIPPED** because they already sat within `±8` of the target — `Vena Mini`, `Vena Corner Mini`, `Flow 20`, `Prisma Link 1`, `Rima 10`. **Skipping saved five permanent assets for no visible change**, and that check is worth keeping in any future pass: there is no asset-delete in this API, so a no-op upload is a permanent cost.
+
+Gains ran `x0.569` to `x1.698` — **all inside the `x1.85` limit, with six being lightenings**. No geometry moved, no alpha introduced, nothing clipped to black, every corner still white.
+
+**The per-stroke spread grew and that is the intended trade**, not a regression: with widths fixed at `1 - 6 px`, equalising darkness necessarily lets width drive the ink. One ink at varying stroke weights reads as one pen used at different weights; equal ink at varying widths reads as thick-pale against thin-black. **Prefer uniform darkness over uniform per-stroke ink whenever stroke widths are not uniform.**
+
+**!!! `drawImage(canvas, …)` AND `drawImage(ImageBitmap, …)` DOWNSCALE DIFFERENTLY — BY UP TO 80 LEVELS, NOT THE 5-18% RECORDED BEFORE !!!**
+
+Proven directly on three assets by measuring the identical pixels three ways:
+
+| | Prisma Multiplier | Vena | Liga T |
+|---|---|---|---|
+| fetched `ImageBitmap` | **139** | **136** | **140** |
+| encode to PNG -> decode -> draw | **139** | **136** | **140** |
+| draw the intermediate **canvas** | **59** | 149 | 144 |
+
+The first two agree **exactly** on all three; only the canvas path diverges, and on `Prisma Multiplier` it is wrong by **80 levels**. This is the same trap already recorded, but the earlier note understated it badly enough to be dangerous — an 80-level error is the difference between near-black and mid-grey.
+
+**The rule, now unambiguous: measure tone by fetching the asset and drawing the `ImageBitmap`, or by round-tripping a candidate through `toBlob` -> `createImageBitmap`. Never measure by drawing a canvas.**
+
+**A post-upload read can also be stale, and it cost a near-miss here.** A verification run one minute after upload reported `Prisma Multiplier` at `59` and I was about to re-tone an asset that was already correct. A read a minute later gave `139`, and two agreeing reads confirmed it. **Re-fetch until two reads agree before concluding anything about a just-uploaded asset** — the same discipline already required of `exec` reads and freshly published pages.
+
+**Note the single-pixel extremum is noisy run to run.** `Vena Corner Mini` was skipped (unchanged asset) and read `142` in one session and `154` in the next. Within a run two reads agree; across runs it moves. **For a control variable prefer a percentile over the extreme**; `darkest` is fine for reporting but is a single sample.
