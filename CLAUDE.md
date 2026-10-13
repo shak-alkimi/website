@@ -3541,3 +3541,33 @@ Note **line-height 100%, not the template's 121%** — that is a second thing th
 **Both hero styles now read `72px / lh 100% / ls -0.01em / ps 0 / Gellix`** with breakpoints `1200: 44px` and `810: 40px`, each carrying the same `lineHeight` and `paragraphSpacing`. Verified in a separate `exec`. `H1` and `H1 - Style` are untouched at `44px / 121% / General Sans`, so the **19 other `<h1>`s on the site** are unaffected.
 
 **Counting `<h1>` on the published pages is the cheap way to size the blast radius** of anything tempting in the text-style context menu: `/` 2, `/about` 4, `/careers` 2, `/contact` 5, `/elements` 1, `/news` 2, `/products` 1, `/projects-grid` 1, `/projects-list` 1. **"Apply to all H1s" and "Replace" in that menu are PROJECT-WIDE** — neither is a way to style one piece of text. Applying a style to a selection is done from the canvas: select the words, then pick the style in the Text panel.
+
+### THE HEADLINE'S ENTRANCE ANIMATION — how to READ an appear effect without the editor (2026-10-13)
+
+Shak reported our headline "coming from below" while main's is "just there". **Both have an appear effect; they are simply different animations**, and main's is fast enough to read as no animation at all.
+
+**APPEAR EFFECTS ARE INVISIBLE TO THE NODE API — confirmed, not assumed.** A dump of every key on the headline node returns **40 attributes** (`id, name, visible, opacity, font, inlineTextStyle, position, …`) with **nothing animation-related**, and a recursive probe of every attribute value for `y / rotate / delay / duration / ease / bounce` returns **0 hits**. Add appear effects to the blind-spot list beside code overrides, CMS bindings, conditional visibility and the hover rise.
+
+**But they ARE fully readable from the published page, which is the reusable technique.** The animated element carries `data-framer-appear-id`, and the page ships every definition as JSON in `#__framer__appearAnimationsContent`:
+
+```js
+JSON.parse(document.getElementById("__framer__appearAnimationsContent").text)
+// -> { "<appearId>": { "default": {initial, animate}, "1veez17": {...}, "wpowcz": {...} } }
+```
+
+Keys are the breakpoint tokens already documented (`default`/desktop, `1veez17` tablet, `wpowcz` phone), so **an appear effect's per-breakpoint values are directly checkable from the served page** — no editor, no publish, no animation frames needed. `document.querySelectorAll("[data-framer-appear-id]").length` also gives the page's whole appear-effect count in one query: **ours is 1 on Home, main's is 2.**
+
+**The two definitions, measured:**
+
+| | main (`1fzrzm3`) | ours (`6hb5yw`) |
+|---|---|---|
+| opacity | **`0.001` -> `1`** — a real fade | `1` -> `1` — **no fade at all** |
+| `y` | `0` | **`60`** |
+| `rotate` | `0` | **`4`** |
+| transition | **spring, bounce `0.2`, duration `0.4`, delay `0`** | tween, `ease [0.16, 1, 0.3, 1]`, duration **`2`**, delay **`0.6`** |
+
+So ours rises 60px with a 4-degree tilt over two seconds after a 0.6s wait, and never fades; main's simply fades in over 0.4s with no movement and no delay. **"Just there" is a 0.4s fade, not the absence of an effect** — worth stating plainly, because "remove the animation" and "match main" are different instructions and only the second one is what was asked for.
+
+Ours carries the identical definition on all three breakpoints, so a Desktop edit should cascade — **but re-read all three from the published page afterwards**, per the standing rule that a breakpoint you skip is not a breakpoint you preserved.
+
+**To match main, in the editor** (deep-link the component `LXjJUpECH`, then `Image > Container > stack > Stack > Stack >` the **visible** `Designing brands today for tomorrow.` layer — note the hidden old headline one level up shares the name): Effects -> Appear, set **Y `60` -> `0`**, **Rotate `4` -> `0`**, **Opacity `100` -> `0`**, transition **Spring** with bounce `0.2` and duration `0.4`, and **Delay `0.6` -> `0`**.
