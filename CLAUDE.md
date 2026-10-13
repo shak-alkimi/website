@@ -3840,3 +3840,18 @@ Labels live in text layers named `PROFILE` (stale Ora naming), so they are not r
 **The Sitemap wrapper is identified by its children's shape, not by name.** Both columns' wrappers are called `Link Wrapper`; the Sitemap one has `Stack` children while Follow's holds the link instances directly. Matching on "every child is a Stack" picks the right one without hard-coding an index.
 
 Verified in a separate `exec` across all three variants: six links, correct hrefs, none hidden, with `Twitter (X)` and `LinkedIn` still self-hidden in the Follow column.
+
+### PROJECT PAGES — bottom spacing matched to `/about` (2026-10-13, NEEDS A PUBLISH)
+
+Shak asked for the gap between the last image and the black footer on the project pages to match `/about`. Measured live at 1536:
+
+| | last image bottom -> footer top |
+|---|---|
+| `/about` | **120px** |
+| `/projects/:slug` | **15px** |
+
+`/about` gets its 120 from its **last section's own bottom padding** (`Section Testimonials`, `0px 15px 120px 15px`). On the project template the last section is **`Section Next Projects`** (the "Lighting options" row) and it carried **`padding: 0px`**.
+
+**The value is 105px, not 120 — and the reason is worth keeping.** The section's rendered bottom already sits exactly on the footer top, while the last image ends **15px** above it, so that 15 comes from *inside* the row component, not from the section. Adding a flat `120px` would therefore have produced a **135px** gap. `105 + 15 = 120` matches `/about` exactly. **When copying a spacing value between pages, measure what the inner component already contributes rather than transplanting the number.**
+
+Set to `0px 0px 105px 0px` on all three breakpoints (Desktop cascaded), verified in a separate `exec`. Side padding stays `0` because this row, unlike its siblings, has no `15px` side inset — the component supplies its own.
