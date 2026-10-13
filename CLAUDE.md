@@ -3891,3 +3891,23 @@ Shak asked how to make the images below the project hero smaller, and chose 4:3.
 **The fidelity argument is why 4:3 was recommended, and it is the real win.** Every project photo is **landscape** in what was a **portrait** box, so each was cropped to about **57% of its width** *and upscaled* — Belmont's duo ran at `1.41x`, Tuft's at `0.66x`. At 4:3 the worst case drops to **`0.79x`, i.e. no upscaling anywhere**, and roughly the full frame width is kept. **Resorts World's `Image 1` is the exception at `1.5x`** because its master is only `739x415` against a `1118` device-px box; no ratio fixes that, only new artwork.
 
 **A cascade artefact worth knowing:** writing Desktop first cascaded to Tablet and Phone, so when the loop reached them it recomputed their height from the **already-changed** value and produced `434.70px` against Desktop's `434.81px`. Harmless (height is derived from the ratio at render) but untidy, and it is the general hazard of **deriving a new value from a node you may already have written**. Normalised all six to `434.81px` in a second pass. Note the API read rounds `aspectRatio` to 3 dp (`1.333`) while storage keeps full precision — confirm the real value in the published CSS, as with the Home cards.
+
+### "Read more" WAS EMPTY ON THE THIRD ARTICLE — the next-article pointers walk off the end of the live set (2026-10-13, NEEDS A PUBLISH)
+
+Shak reported the `Read more` row empty on the third news article. **Same family as the `Sorting Next Project 1/2` trap**: each News item carries `Sorting Next Article 1/2/3` holding *sorting orders*, and the row renders whatever those resolve to. The values counted upward from each article, so they ran past the three live items into the four drafts:
+
+| article | SO | next 1/2/3 | rendered |
+|---|---|---|---|
+| cauda | 1 | 2, 3, 4 | 2 cards |
+| kimi | 2 | 3, 4, 5 | **1 card** |
+| debut | 3 | **4, 5, 6** | **nothing** |
+
+**An unmatched pointer renders NOTHING here, not a blank card** — verified on the published cauda page, whose third slot points at draft SO 4 and simply does not appear. That is the opposite of the Projects grid, where an unmatched `Filter` leaves an empty card, so **do not assume the two behave alike**.
+
+**Fixed by rotating each live article through the others**, computed from the live set rather than hard-coded: sort live items by `Sorting Order`, then `next1` = the following one cyclically and `next2` = the one after. `1 -> 2,3` · `2 -> 3,1` · `3 -> 1,2`. `Sorting Next Article 3` was left pointing at drafts, which renders nothing today and will **fill in by itself** if a fourth article goes live.
+
+**The row has THREE slots per variant** (`News / Next Articles`, Desktop and Mobile), so with only three live articles the third is always empty by design.
+
+**THIS IS A STANDING CHORE AND WILL DRIFT.** The pointers encode positions, not relationships, so **every time an article is published or unpublished the rotation must be recomputed** — the same manual upkeep as the `/projects-list` fifth-image boolean and the static `(3)` case-study count. **The durable fix is to replace the three pointer fields with a Collection List filtered to "not the current item", limited to 2**, which needs no maintenance at all; that is editor work and worth doing when the news section is next touched.
+
+Draft counts verified after the write (News 3/7 unchanged).
