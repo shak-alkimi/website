@@ -3650,3 +3650,24 @@ Two nested masks at **461px**, with a **514px** text node inside them. Measured 
 Current: `H1 Hero` and `H1 Hero - Style` = `72px / lh 100% / ls -0.01em / ps 0 / Gellix`, breakpoints `1200: 44px`, `810: 30px`.
 
 **The lesson is about blast radius, and it is mine.** Matching main's type meant a **64% size increase**, and I checked the result against main's *metrics* without checking whether the longer line still fitted its container. **When a size changes substantially, measure the ink against its clipping ancestor, not just the computed font-size** — the published page shows the truncation plainly, and a `Range.getClientRects()` ink extent compared against the nearest `overflow: hidden` ancestor's rect answers it in one query.
+
+### LOWERING THE PHONE HEADLINE — it is the TEXT NODE'S HEIGHT, not a position value (2026-10-13, NEEDS A PUBLISH)
+
+**First, a misread worth recording: "lower measured lighting objects it 25%" meant move it DOWN, not make it smaller.** It was applied as a 25% type reduction (40px -> 30px) and had to be reverted. Both hero styles are back to `810: 40px`. **"Lower" is ambiguous in a sizing context — ask when the two readings give different work.**
+
+**The phone headline's geometry, measured live at 390x844:**
+
+```
+Container            759.6px (90vh)
+  └ stack            position absolute, bottom: 0px, height fit-content, padding 0 15px 30px 15px
+      └ … wrappers   height follows the text node
+          └ TextNode height 200px   <- the text only fills 80px of it
+```
+
+**The stack is BOTTOM-ANCHORED**, so stack top = `heroHeight - (textNodeHeight + 30)`. The 150px of space under the headline is therefore **mostly empty text-node box, not margin** — the text renders at the top of a 200px box that only needs 80px.
+
+**So lowering the headline means SHRINKING THE TEXT NODE, and the relationship is exactly 1:1** — every pixel removed from its height moves the text down one pixel, because the bottom is pinned. Applied `200px -> 140px` on the **Mobile variant only** (`Ga1eDgeVyky4WRvC4S`); `Image` and `Image Active` stay at `200px`, verified in a separate `exec`, so desktop and tablet do not move.
+
+**Available travel is only 120px**, from `200px` down to `80px` where the box hugs its two 40px lines and the 30px stack padding is all that remains. **A literal "25% of the hero" (190px) is not reachable** — it would put the text past the hero's bottom edge. That is why the amount was agreed as a measured choice rather than assumed; Shak picked 60px (half the travel), leaving a 90px gap beneath.
+
+**The lever to use for any future vertical nudge on this headline is that text node's height**, not `top`, `centerY` or the stack padding — the first two are `null`/overridden by the bottom pin, and the padding is shared with the hero's bottom inset.
