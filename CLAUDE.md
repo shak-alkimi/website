@@ -3622,3 +3622,31 @@ animate { transition: { type: "spring", duration: 0.4, bounce: 0.2, delay: 0 } }
 **A check in that sweep was wrong and passed only because it was re-done properly** — the orb was grepped for by its *local build filename* (`alkimi-orb-enso-v7-60fps`), which has never been the asset id, so it returned 0 and looked like a regression. The real check is the **byte count of the served asset**: `4cCuy9y2vsiqhoNspOmSAC7mrjY.mp4` is **4,280,052 bytes**, byte-exact for the recorded 60fps orb, referenced 3 times. **Match a video by `content-length`, never by a filename that only ever existed on disk.**
 
 Note the hero video is now `ege1ICH4tsMvwYK2FTfSBE2frbA.mp4` at **4,009,893 bytes** — the id matches what this file records, the size is not recorded anywhere, so take this as the current baseline.
+
+### THE HEADLINE WAS BEING CLIPPED — a MASK left over from the rise animation (2026-10-13, NEEDS A PUBLISH)
+
+Shak reported "objects." cut off on phone. **It was cut on DESKTOP too, live** — the published page read **"lighting object"**, missing the `s.`. That is a defect **the 72px change introduced**: at the old 44px the line measured ~312px and fitted; at 72px it measures **510.6px** and did not.
+
+**The clip chain, inside each hero variant:**
+
+```
+stack [aFsTkdLYT]          100% / fit-content   overflow VISIBLE
+  ├ YZe5vZrew              the hidden old headline
+  └ Stack [xUmm_ible]      fit-content          overflow HIDDEN
+      └ Stack [QwEWs5bu6]  461px                overflow HIDDEN, centerX 50%
+          └ TextNode [ky4WRvC4S]   514px x 200px, absolute
+```
+
+Two nested masks at **461px**, with a **514px** text node inside them. Measured live at 1536: text ink reached `x 560.6` against a clip edge at `x 511`, so **49.6px was being cut**.
+
+**Those masks exist for the rise animation.** The appear effect used to move the text `y: 60 -> 0`, and a `overflow: hidden` wrapper is the standard Framer way to make text slide up from behind an edge. **Once the rise was removed, the mask stopped doing anything useful and only clipped horizontally.** So the fix is to open it: `overflow: visible` on both wrappers, in all three variants — **6 nodes, verified in a separate `exec`**.
+
+**Widening the frame was considered and REJECTED.** `QwEWs5bu6` is `centerX: 50%`, so growing `461 -> 514` would have moved its left edge 26.5px left and shifted the whole headline. Opening the overflow moves nothing.
+
+**If the rise is ever restored, the masks must come back** — otherwise the text will be visible outside its wrapper during the animation. The two are a pair.
+
+**Phone reduced 25% on Shak's request: the `minWidth: 810` entry goes `40px -> 30px`** on both hero styles. That entry is the phone band (measured: 1000 -> the `1200` entry, 600 -> the `810` entry). At 30px the line measures ~213px, so phone has ample room regardless of the mask.
+
+Current: `H1 Hero` and `H1 Hero - Style` = `72px / lh 100% / ls -0.01em / ps 0 / Gellix`, breakpoints `1200: 44px`, `810: 30px`.
+
+**The lesson is about blast radius, and it is mine.** Matching main's type meant a **64% size increase**, and I checked the result against main's *metrics* without checking whether the longer line still fitted its container. **When a size changes substantially, measure the ink against its clipping ancestor, not just the computed font-size** — the published page shows the truncation plainly, and a `Range.getClientRects()` ink extent compared against the nearest `overflow: hidden` ancestor's rect answers it in one query.
