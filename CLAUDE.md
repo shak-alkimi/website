@@ -3982,3 +3982,37 @@ All three instances of the wide card's `Utilities / Primary Button` (`Project Le
 **Scope verified by sweeping every button instance:** `Project Portfolio -> White to Outline - Hover` 3, and the other **74** unchanged (`Spec Sheet` 18, `Manual` 18, `IES` 18, `View Case Study` 11 + 6, `Get in touch` 3). **The `Alkimi Green` colour style was NOT touched** — it still feeds the other blue-descended buttons, so this change is scoped to the wide card exactly as asked.
 
 **Open, and only the published page can answer it: what the button does on its own hover.** The chosen variant is a hover *target*, and variant interactions are not readable through the API, so it is unknown whether hovering now changes it or leaves it static. Desktop previously went green -> white on hover. **Check after publishing**; if it needs a defined resting/hover pair, that is editor work.
+
+### Contact page — footer CTA switched off, and the address updated (2026-10-13, NEEDS A PUBLISH)
+
+Two unrelated changes, both on `/contact`.
+
+**1. The "Let's start a conversation" block is the FOOTER's `Row Top`, not a contact-page section.** Counting it across the site settles that in one query — **6 occurrences on every page including `/contact`**, identical. It is the row copied in from `main` earlier the same day, and the eyebrow beside it is a layer literally named `Contact`, which is what makes it look page-specific.
+
+**So removing it from one page needed a component property, because a shared component has no per-instance layer visibility.** The footer is a `ComponentInstanceNode` placed once per breakpoint per page, carrying only `variant` and `XOac4bt7c` (the scroll-to-top link). **`main` does not solve this either** — its own contact page shows the CTA, so there was no pattern to copy.
+
+**What was built, following the `5th Image Visible` precedent already in this project:** a boolean component variable **`Show CTA`** (`tDzMcZtyR`, default **Yes**) bound to `Row Top`'s `Visible` on all three footer variants, then set to **`false`** on the three `/contact` footer instances (`zq_rHhLk8`, `lc_ppdu3Jzq_rHhLk8`, `sRIHrtJLmzq_rHhLk8`). Verified: **3 off, 38 other footer instances untouched** on the default.
+
+**!!! FRAMER'S POPOVER MENU ITEMS IGNORE SYNTHETIC CLICKS — USE `Down` THEN `Return` !!!** This has now cost time twice: the canvas **zoom menu** ("Zoom to 100%" did nothing, `shift+0` worked) and the **property binding menu** ("Create variable" did nothing, and the click fell through to the panel row underneath). A `computer left_click` opens these menus but cannot activate an item in them. **Open the menu, press `Down`, press `Return`.** There is no visible highlight after `Down`, so do not read the lack of one as the keyboard being ignored.
+
+**The circle-plus beside a property is the binding affordance, and `Create variable` does BOTH steps** — it creates a typed variable (boolean, from a `Visible` row) and binds the property to it, then opens the component's variables dialog with the name field focused for renaming. Far quicker than creating a variable and binding it separately.
+
+**`ComponentNode` has a full variable API: `getVariables()`, `addVariables()`, `removeVariables()`** (all `@alpha`). `getVariables()` is how to turn a variable's *name* into the control *id* you need for an instance write — the footer's read as `Overlay`, `ena Cursor`, `Scroll Section`, `Scroll to top` (`XOac4bt7c`), `Show CTA` (`tDzMcZtyR`). **Note `removeVariables` exists, so unlike an API-created variant a stray variable IS removable** — this is the one piece of component schema that can be cleaned up by script.
+
+**An instance only stores a control key when it OVERRIDES the default.** Right after creating `Show CTA`, every footer instance still read `{ variant, XOac4bt7c }` with no third key, which looks like the variable failed to reach them. It had not — absence of the key means "inheriting the default". **Do not read a missing control key as a missing variable.**
+
+**2. The address now reads `387 Park Ave S, New York, NY 10016`.** It lives in `About / About - Map` (`l7w_crSRE`) -> `Address Card > Content >` the text layer still named **`Ehlersvej 21, 2900 hellerup Denmark`** (another stale Ora name). The component is used on `/contact` only — 3 instances, one per breakpoint — so nothing else is affected. The text edit **cascaded to all three variants**, and the Google Maps **link survived the retype** and was repointed to `https://www.google.com/maps/search/?api=1&query=387+Park+Ave+S,...`.
+
+**`Address Card` is stored `visible: false` yet renders on the live site** — the usual stored-boolean-versus-binding split. It had to be shown temporarily to edit the text, and **the visibility cascade is ONE-WAY**: setting the primary's `visible: true` propagated to Tablet and Mobile, but setting it back to `false` did **not** — those two kept their own `true` and had to be written explicitly. **After any cascade-assisted change, re-read every variant rather than assuming the reverse cascades too.**
+
+**SELECTING WRAPPED TEXT IN THE CANVAS — `triple_click` does NOT do it.** On an unselected layer a triple-click selects the **layer** (dashed box, no text caret); used *after* entering edit mode it **collapses** the selection to a caret. The reliable sequence for a multi-line string is **double-click to enter edit mode, then `ctrl+End`, then `ctrl+shift+Home`** — plain `End`/`shift+Home` only cover the visual line, which is wrong for wrapped text. **Move the mouse away before the confirming zoom**: the cursor graphic sits exactly over the word under it and hides the selection highlight, which twice looked like "no selection".
+
+### THE CONTACT MAP STILL SHOWS BROOKLYN — it needs new artwork, measured not guessed (2026-10-13)
+
+The map is a static image, `Zlz1h2PsNKVA4gGWdMoxcZIYI.png`, **3166 x 1684**, composed around Downtown Brooklyn, with the pin a separate `Contact / Tooltip-Indicator` layer at `centerX 60% / centerY 56%` of the frame.
+
+**Georeferencing it shows the pin cannot simply be moved.** Fitting longitude and latitude against the map's own neighbourhood labels (East Village, SoHo, Financial District, Midtown, DUMBO) gives ~**2785 px per degree of longitude** and ~**4053 px per degree of latitude** at the Desktop render size, and the fit is tight — Midtown predicts to within 3 px and DUMBO to within 2. Applying it to 387 Park Ave S (**40.7430, -73.9845**) puts the new pin at about **centerX 57%, centerY 16%** — hard against the **top edge** of the frame, far from the address card in the bottom-left.
+
+**Frames crop the image differently, so one percentage does not mean one place.** With `object-fit: cover` against the image's 1.880 aspect: Desktop and Tablet (~1.75) show ~93-96% of the width, **Mobile (360x360) shows only the middle 53%**. The same `centerX 60%` therefore lands ~127 px apart in image space between breakpoints — tolerable for a Brooklyn pin near the centre, not for one near an edge.
+
+**So the right fix is a new map export centred on the new address**, after which the pin returns to roughly `50% / 50%` and all three breakpoints agree. Moving the pin on the existing image would put it in the corner of a picture still framed on the wrong borough. **Raised rather than bodged.**
