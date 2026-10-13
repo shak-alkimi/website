@@ -3305,3 +3305,30 @@ Thin lines, not pale ones. Applied **`x1.30`**, Shak's pick from three candidate
 Three values now sit outside `140 ±12` and **all three are intentional**: `Vena` at `101` (matched to its family), `Prisma Link 2` at `182` (reverted out of phase 1), `Vena Corner Mini` at `154` (never changed; noisy extremum).
 
 **The diagnostic worth reusing:** when a user says something reads light or dark, compare it against **its own neighbours on the page** in per-stroke ink and mean ink — not against the site-wide band, and never against darkest-pixel alone, which pointed the wrong way here.
+
+### Prisma Link drawings replaced with the Wall Washer renders (2026-10-13, NEEDS A PUBLISH)
+
+Shak asked for the two Prisma Link drawings to be replaced from `Darkened 75/Transparent`. **The folder's three newest files were NOT the Prisma Links** — shape-matched against all 11 fixtures, `DI-LIN-3D-MTCL-2` scored `2.25` against **Flow Spine** (runner-up `9.66`) and `DI-LIN-3D-MTCH-39` `6.84` against **Flow Straight**, with both Prisma Links ranking 3rd/4th in the reject band. Shak then named the right files: **`Wall Washer - NW3020S`** and **`Wall Washer - NW3131TS`**.
+
+**IDENTIFICATION WAS SETTLED BY LENS COUNT, NOT BY THE SHAPE MATCHER, WHICH REFUSED.** Both candidates scored `10.9 - 11.8` against both targets with gaps of `0.4 - 0.7` — squarely in the band this file already says to distrust. The decisive feature is visible at module level:
+
+| | modules | → |
+|---|---|---|
+| `NW3020S` | **one lens** each | **Prisma Link 1** (single-lens) |
+| `NW3131TS` | **two lenses** each | **Prisma Link 2** (two oval lenses) |
+
+Corroborated by the part numbers (`3131` ≈ 31x31 mm square double; `Prisma Link 2` is `1.31 x 1.38"`) and by the CMS dimensions. **Note this is the OPPOSITE of the matcher's bijective guess** — a reminder that a bijection among rejected scores is not evidence.
+
+**THE CORD MUST BE IGNORED WHEN PLACING (Shak, explicit).** The first attempt anchored the rightmost ink at `62.9%`, which put the **cable tip** on the line and left the module chain tiny in a card full of cable. Corrected to the documented appendage rule: find the body/cable boundary by **per-column ink density** (last column holding >= 50% of peak), anchor the **body**, and let the cord bleed off the right. `NW3020S` is `1192` px of body and `808` px of cable; `NW3131TS` is `1355` and `645`.
+
+**THREE SEPARATE SOLVER FAILURES, ALL THE SAME CLASS — solve against the measurement you will verify with.**
+
+1. A proportional frame update **diverged to the floor** and produced an empty image: shrinking the frame crops more off the left, and because the chain recedes, the surviving height *falls* as the scale rises. Replaced with a **scan**, which cannot run away.
+2. Placing from the **source** body-end while measuring the **output** one left `Prisma Link 1` at `55.4%` instead of `62.4%`.
+3. Settling `dx` at **frame** resolution while verifying at **card** resolution changed nothing — the residual stayed at exactly `-97 px` across five corrections. **A correction that does not move the measurement means the two are measuring different things**, which this file already records and which was not recognised quickly enough.
+
+`Prisma Link 1`'s body-right still reads `55.4%` against a `62.4%` target. That is a **metric artifact**, not a placement error: on a 12-module chain the 50%-of-peak threshold latches onto an interior feature. Confirmed by eye in the render before uploading.
+
+**THE UPLOAD LIGHTENED BOTH DRAWINGS BY ABOUT 11% — a new and unexplained effect.** Built and verified locally at darkest `144` and `184`; the hosted assets read **`160`** and **`207`**. Per-stroke ink also fell, `0.325 -> 0.153` and `0.522 -> 0.180`, so **the new Prisma Links render noticeably lighter than the drawings they replace**. Earlier uploads in this project did not show this. Not yet diagnosed; a darkening of roughly `x1.15` would restore the intended tone if wanted.
+
+Site-wide darkness is now `101 - 207` (`2.05x`). Stroke width improved to `2 - 4 px` and per-stroke ink to `4.25x`.
