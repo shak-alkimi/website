@@ -3736,3 +3736,24 @@ Verified across all three variants in a fresh session. **Everything inside survi
 **The one side effect: the cut-and-pasted node gets a NEW id.** `Row Bottom` went `aP6TEuA8_` -> `ir3AhIDlV`, losing the id it had shared with main. Harmless here — nothing referenced it — but **do not use this trick on a node whose id something else depends on**, and re-read ids afterwards rather than reusing cached ones.
 
 **So the drag is the only thing that cannot be automated; the ORDER it produces can be.** Prefer this over asking for a manual drag, and note it composes with the cross-project paste above: copy a structure in from another project, then cut/paste its sibling to fix the position.
+
+### RESIZING A VECTOR WITHOUT ITS FRAME LEAVES IT CENTRED AND OFFSET (2026-10-13, NEEDS A PUBLISH)
+
+Shak reported the footer logo sitting wrong and the Sitemap/Follow columns spaced differently from main. Measured at 1536 against main's branch, both causes were exact:
+
+| | main | ours | delta |
+|---|---|---|---|
+| logo x | **14** | 47.5 | **+33.5** |
+| logo size | 127x23 | 127x23 | — |
+| `Sitemap` x | 526.7 | 526.7 | identical |
+| `Follow` x | **690.7** | 649.2 | **-41.5** |
+
+**The logo offset was arithmetic, not a position value.** The `Brand Logo` **frame** was still `194 x 35` while the vector inside had been resized to `127 x 23`, and the frame centres its child: `(194-127)/2 = 33.5` and `(35-23)/2 = 6` — exactly the measured horizontal and vertical offsets. **Resizing a `ShapeGroupNode` in the editor does NOT resize its parent frame**, so the smaller vector floats in the middle of the old box.
+
+**The nav logo did not hit this** because its frame (`logo dark`) is `1fr / fit-content`, which has no fixed box to float inside. **So the rule is: after resizing a vector, check whether its parent frame has a FIXED size — if it does, set it to match.** `Brand Logo` is an ordinary `FrameNode`, so this one *is* settable through the API: `194x35 -> 127x23`.
+
+**The column spacing was one attribute:** `Row Bottom > Content > Right Content` carries `gap: 40px` where main has **`80px`** — which is the whole 41.5px discrepancy. Set to `80px`.
+
+Both were written on the Desktop variant and **cascaded to Tablet and Mobile** (the loop reported "nothing to change" for the other two). Verified in a separate `exec`: all three read `BrandLogo 127x23` and `RightContent gap=80px`.
+
+**Note there are three `Right Content` nodes per variant** — `gap: 18px` inside `Row Top`, `gap: 80px` inside `Row Bottom`, `gap: 10px` inside `Details`. Target by gap value or by ancestor, never by name alone.
