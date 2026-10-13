@@ -3770,3 +3770,21 @@ Measured live against main at 1536, gap from the footer divider to each element:
 `Sitemap` was already correct, which is what localised the fault to the logo's own column rather than the row.
 
 Set `Link Wrapper` to `fit-content`; verified across all three variants. **So the rule from the previous note needs widening: after resizing a vector, walk UP until you hit a `fit-content` ancestor, and clear every fixed size on the way.** One fixed box centres the child once; two do it twice, on whichever axes they constrain.
+
+### `About` CMS COLLECTION CREATED — fields and content are in; the BINDING needs a Collection List (2026-10-13)
+
+Shak asked for `/about` to be CMS-editable. **`framer.createCollection(name)` and `Collection.addFields` both work in this scope**, so the collection, its 19 fields and a seeded item were all scripted.
+
+**`About` `b5mBXx5ht`, 1 item (slug `about`, `draft: false`), 19 fields:**
+
+`Hero Title`, `Intro Heading`, `Intro Body`, `Approach Heading`, `Value 1-3 Number / Title / Text / Image`, `Services Heading`, `Clients Heading`, `Testimonials Heading`.
+
+**It was seeded FROM THE PAGE, not transcribed** — the script walks `/about`, reads the three `About / Core Value` instances' controls (`rFExBnb6h` number, `Mz0wvNH6v` title, `kB1rNTf7X` text, `ZLxZW1prj` image) and takes each section's heading from its first text layer's *name*, since `getText()` returns `<unreadable>` on these nodes and Framer names a text layer after its content. Values sort by their number so `01/02/03` land in `Value 1/2/3`. **Never hand-transcribe a mapping; read it from the thing itself.**
+
+**!!! THE BINDING CANNOT BE DONE YET — A STATIC PAGE HAS NO ITEM CONTEXT !!!** A layer can only bind to a collection field when it sits inside a **Collection List** scoped to that collection, or on a CMS detail-page template. `/about` is a plain page (`collectionId` is null), so **the sections must first be wrapped in a Collection List on `About` with `Limit to: 1`** — the same mechanism the Home page uses for its Fixtures/Elements cards. That wrapping is editor work, and so is every binding (the API cannot create CMS bindings at all).
+
+**The alternative is `/about/:slug`**, which Framer binds natively — but it changes the URL and generates one page per item, so it was not taken.
+
+**Modelling note worth acting on: the 8 `About / Client Card` instances should be their OWN repeating collection**, not eight image fields on a single item. Only `Clients Heading` was created here. The same argument applies to the testimonials. Those sections are still stock Ora content, so they are cheap to restructure now and expensive later.
+
+**Spotted in passing: the Core Value images carry `resolution: "full"`.** The 2026-10-09 pass set every CMS value and canvas node to `auto`, but **component-instance control images were not in its scope**, so these were missed. Worth a sweep of `controls` across the project for `resolution: "full"`.
