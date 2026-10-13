@@ -3079,3 +3079,32 @@ Done by **padding the frame**, not rescaling the content — `Liga T 1354 -> 180
 The wash is almost certainly a by-product of the earlier lightening pass pulling faint antialiasing up toward white; it is invisible (within 6% of white) and not worth removing.
 
 **Previous assets remain hosted** (`5KkEMF2w…`, `p9tM449m…`), so both the size and the weight are one rebind from reverting.
+
+### Rima 5 enlarged to match the PHOTO's ratio, not the real dimensions (2026-10-12, NEEDS A PUBLISH)
+
+Shak reported `Rima 5` reading too small beside `Rima 10`. **The drawing was dimensionally correct and the page was contradicting itself:**
+
+| | Rima 5 : Rima 10 |
+|---|---|
+| **drawing** (before) | `0.499` w / `0.542` h |
+| **photo** | `0.752` w / `0.747` h |
+| real dimensions (CMS `0.20w` / `0.39w`) | `0.513` |
+
+The drawing followed the truth; the **photo** is the outlier, because Shak's `Rima 5` render was deliberately exported at 75% so the smaller part would not read as insignificant. With both in the same row the two disagreed by half. **Shak chose to bring the drawing up to the photo.**
+
+Applied `x1.507` by **cropping the frame `2000 -> 1327`** — the inverse of the pad used on the Ligas, equally lossless. Verified on the hosted asset: **`384x19` px, ratio `0.754w` / `0.792h`**.
+
+**Width matches the photo exactly; height overshoots to `0.792`.** The two cannot both be matched because the two Rima drawings' drawn runs are not proportional to each other (aspects `19.5` and `21.2`). Width was chosen because the drawn length is what reads as size on a long strip. **The cost, accepted: the tape now looks `0.79x` Rima 10's width while the dimensions text beside it says `0.20w` against `0.39w`.**
+
+**BOTH RIMA DRAWINGS ARE LEFT-FLUSH — a symmetric crop destroys them.** Their content starts at exactly `x = 0` and runs right (`Rima 5` to `43%`, `Rima 10` to `87%`), the same structure as the `/products` extrusions. The first attempt cropped equally on both sides, clipped the left end and dragged the measured centre to `20%`. **Crop from the RIGHT only, keeping `x = 0` anchored, and centre vertically.**
+
+**ENLARGING A THIN-LINE DRAWING DARKENS ITS PEAK SHARPLY WHILE LOWERING ITS COVERAGE** — the two move in opposite directions, which is worth expecting rather than discovering:
+
+| | before | after |
+|---|---|---|
+| darkest pixel | `108` | **`65`** |
+| mean ink | `8.4` | **`7.8`** |
+
+At the smaller size the sub-pixel strokes were averaged toward white; enlarged, they resolve closer to their true value, so **peak darkness nearly doubles in contrast** while the bounding box grows faster than the ink so coverage falls. `Rima 5` now carries **the darkest peak on the page** (`65`, against `123` for Rima 10 and `157-161` for the Ligas) on the lowest mean ink of the three detailed drawings. If it reads harsh once published, a small lightening fixes it without touching size.
+
+The previous asset (`1PWQ2WsgrJf5…`) stays hosted, so this is one rebind from reverting.
