@@ -3057,3 +3057,25 @@ Four of five now sit in a band of `8.4 - 9.7` mean ink. **`Driver 5-1` remains t
 **THE SOLVER AND THE VERIFIER MUST SHARE A DECODE PATH — this bit again and changed a result by 23%.** A first pass measured candidates via `createImageBitmap(canvas)` and reported `Liga W` needing only `x0.829`; measuring through a real **PNG encode -> decode** round-trip, which is what a hosted asset actually goes through, gave `x0.644`. The two disagreed by `3.91%` vs `5.09%` coverage on the same file. **For any tone decision, round-trip the candidate through `toBlob` and `createImageBitmap` before measuring it.**
 
 **The previous asset ids remain hosted** (`L3WkKiHtat3j…`, `xoLKImKI7m89…`), so this is one rebind away from reverting if the lighter version reads washed out on the published page.
+
+### Liga T and Liga W reduced 25% (2026-10-12, NEEDS A PUBLISH)
+
+Done by **padding the frame**, not rescaling the content — `Liga T 1354 -> 1805`, `Liga W 1292 -> 1723` (`x 4/3`). Both `Technical Drawing` layers on `/elements` are pinned on all four edges, so the frame fills the card and a larger frame renders the product proportionally smaller. **Pure pad, zero resampling.** Verified on the hosted assets at exactly **`x0.750`** on both, centres `49.9 / 49.9`.
+
+| | rendered | coverage | mean ink | darkest |
+|---|---|---|---|---|
+| `Rima 5` | `254x13` | `3.56%` | `8.4` | 108 |
+| `Rima 10` | `509x24` | `3.98%` | `9.7` | 123 |
+| **`Liga T`** | **`120x154`** | `3.56%` | **`8.9`** | **161** |
+| **`Liga W`** | **`126x148`** | `3.25%` | **`8.2`** | **157** |
+| `Driver 5-1` | `358x146` | `0.90%` | `2.2` | 129 |
+
+**Shrinking did NOT cost the weight match, which is worth knowing because the frame/scale coupling usually does.** Mean ink moved only `8.6 -> 8.9` and `8.6 -> 8.2`, still inside the Rimas' `8.4 - 9.7`. **For line art, coverage is roughly scale-invariant** — stroke length and width both scale, so ink mass and bbox area both scale as `s^2` and the ratio holds. What *does* drop is **peak darkness** (`128 -> 161`, `134 -> 157`), because thinner strokes antialias more. So the Ligas now have the lightest darkest-pixel on the page while matching it on average. If they read washed out once published, a small darkening (`k` slightly below 1) fixes it without touching size.
+
+**A MEASUREMENT TRAP THAT LOOKED LIKE A BROKEN FILE — the first verification reported `Liga T` at `x0.9` with its centre drifted to `51.96`.** Nothing was wrong with the output. `Liga T` carries a **faint near-white wash in the 240-250 band** reaching ~75 px beyond the solid body: its bbox measures `518 px` wide at threshold `250` and `368 px` at `240`. The card-size downscale moves that wash across the threshold unpredictably, so a plain `< 250` bbox is unstable on this image.
+
+**The fix is a robust bbox: keep only columns and rows holding >= 2% of peak ink.** That ignores the wash, and both drawings then measured exactly `x0.750`. **Use the robust bbox for any size or position measurement on these drawings** — the plain threshold is fine for solid artwork and silently wrong for anything carrying a soft halo.
+
+The wash is almost certainly a by-product of the earlier lightening pass pulling faint antialiasing up toward white; it is invisible (within 6% of white) and not worth removing.
+
+**Previous assets remain hosted** (`5KkEMF2w…`, `p9tM449m…`), so both the size and the weight are one rebind from reverting.
