@@ -3865,3 +3865,17 @@ Shak asked for the Prisma Link drawings and the sizing pass to be published. **T
 **So every `NEEDS A PUBLISH` marker in the drawing, photo and sizing sections above is spent.** They were accurate when written and were never cleared.
 
 **The lesson is about carried-forward state, and it is the same failure this file already records for the dispatch board.** A "still pending" line copied from one status update to the next acquires no new evidence, and after a day of frequent publishing it silently became false. **Re-derive pending state from `getUnpublishedPageChanges()` or the served page before repeating it — never from the previous note.** `getUnpublishedPageChanges()` is cheap and exact; there is no excuse for carrying the claim by hand.
+
+### `Clients` AND `Testimonials` COLLECTIONS CREATED — and why the slider still cannot use one (2026-10-13)
+
+Both were seeded by reading `/about`, not transcribed.
+
+**`Clients` `jEgaeZaMN` — 8 items, fields `Logo` (image) + `Order`.** The page carries **16 `About / Client Card` instances per breakpoint but only 8 DISTINCT logos** — each appears twice, once in the large variant pair (`TAVSi7b5s` / `jTtUP8UDI`) and once in the small pair (`F2EA5KIN9` / `X0thC1TX2`). **Dedupe on the image url before seeding**, or the collection comes out with every client twice.
+
+**`Testimonials` `Sy_edh8S4` — 4 items, fields `Quote`, `Author`, `Role`, `Image`, `Order`.** Quotes and the four images are captured; `Author`/`Role` are the stock `Tommy Jacobson / Partner` on all four.
+
+**!!! THE SLIDER CANNOT BE DRIVEN BY THAT COLLECTION WITHOUT BEING REBUILT !!!** `About / Testimonial Slider` (`GmJX9wZ_Z`) has **8 variants** — `Slide 1-4` and `Tablet 1-4` — and the quote, author and role are **text layers inside the component**. Its instance controls expose **only the four images** (`subcL21wx`, `BwmASNSxY`, `VcuWulVmE`, `V82VkGTJX`). So the four testimonials are hard-coded as variants, and making them CMS-driven means **rebuilding the slider as a Collection List**, not binding an existing layer. That is editor work of a different size from the Clients section, and it changes how the slider behaves. **The collection is seeded and waiting; nothing is wired to it.**
+
+**A SEEDING BUG WORTH REMEMBERING: variants share their children, so walking one variant sees ALL slides' text.** The first attempt walked each `Slide N` variant and took the first quote-shaped layer it found — and got **the same quote four times**, because walking `Slide 1` already reaches all four quote layers. The fix is to collect **distinct** quote layers across the whole component in document order and assign by index. **When a component's variants toggle visibility rather than swap content, a per-variant walk is not per-variant data.**
+
+Repaired with `addItems` carrying `draft` through explicitly. Draft counts verified after: Home 3/3, Fixtures 11/11, Elements 5/5, Projects 3/10, News 3/7, About 1/1, Clients 8/8, Testimonials 4/4.
