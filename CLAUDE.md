@@ -3374,3 +3374,19 @@ Two sections above claim Framer's upload lightens drawings, badly for faint ones
 **THIS IS THE TRAP THIS FILE ALREADY NAMED, WALKED INTO ANYWAY.** The earlier Vena work recorded: *"the single-pixel extremum is noisy run to run… for a control variable prefer a percentile over the extreme."* `darkest` was then used as the control variable for the whole phase-1 pass and for every tone decision after it, and a two-upload "pattern" was built on it — `0.94` and `0.63` ink "retained" — which the direct file comparison shows to be `0.996` and `0.973`. **A statistic over one pixel cannot support a claim about a whole image.**
 
 **Standing rule: measure tone with TOTAL INK or a percentile, never with `darkest`.** Report `darkest` if useful, but do not solve against it and never infer a pipeline behaviour from it. Where a built file and its hosted copy appear to disagree, **compare the two files directly at native resolution before theorising about the pipeline.**
+
+### Prisma Link 2 darkened to match its sibling (2026-10-13, NEEDS A PUBLISH)
+
+A genuine tone call, **not** the pre-compensation that was withdrawn above. `x1.660` applied to the Viper drawing, solved against **per-stroke ink** rather than darkest:
+
+| | before | after | reference (`Prisma Link 1`) |
+|---|---|---|---|
+| per-stroke ink | `0.122` | **`0.192`** | `0.192` |
+| total ink | `490` | `815` | `857` |
+| darkest | `210` | `180` | `147` |
+
+Geometry untouched — right `62.86%`, height `250` — and no alpha, clean corners, nothing clipped to black.
+
+**This upload also confirms the correction above: the hosted per-stroke measured `0.192`, exactly what was built.** Ink survives the upload intact; only the single-pixel extremum moves. Solving against ink gives a result that lands where intended, which solving against `darkest` never reliably did.
+
+`Prisma Link 1` and `Prisma Link 2` now carry identical stroke weight, which is right for a pair from one family sitting in adjacent rows.
