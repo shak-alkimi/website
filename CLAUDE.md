@@ -3788,3 +3788,26 @@ Shak asked for `/about` to be CMS-editable. **`framer.createCollection(name)` an
 **Modelling note worth acting on: the 8 `About / Client Card` instances should be their OWN repeating collection**, not eight image fields on a single item. Only `Clients Heading` was created here. The same argument applies to the testimonials. Those sections are still stock Ora content, so they are cheap to restructure now and expensive later.
 
 **Spotted in passing: the Core Value images carry `resolution: "full"`.** The 2026-10-09 pass set every CMS value and canvas node to `auto`, but **component-instance control images were not in its scope**, so these were missed. Worth a sweep of `controls` across the project for `resolution: "full"`.
+
+**CORRECTION — THE FOOTER CTA DOES NOT DOUBLE UP ON `/careers`. The warning recorded above is withdrawn (2026-10-13).**
+
+When the footer's `Row Top` was copied in from main, this file warned that `/careers` would show two CTAs because `Global / Section CTA` (`bDuMp2cg2`) is placed there. **That was wrong, and it was wrong because the component's internals were read instead of the instance's.**
+
+The component's own text layers are named **"Become a part of us" / "Join the team"** — stock Ora. **The `/careers` instance overrides all of it through controls:**
+
+```
+ZDfZwYuPj "What we do"   bJdYDnmQo "The studio"
+zow_NcOKW "About us"     fayx_WUJb "/about"
+```
+
+So it renders as the **"What we do / The studio -> About us"** promo block with the red silhouette video, not a contact CTA. Verified on the published page: `/careers` contains exactly **one** rendered "Let's start a conversation" (y 4238), identical to every other page, and **no** rendered "Become a part of us" anywhere.
+
+**The method lesson: a component's default content tells you nothing about what an instance renders.** Read `node.controls` on the instance — the defaults are frequently stock template copy that every real placement overrides. A `grep` of the published HTML also mislead here: "Become a part of us" appears 3 times in the SSR markup yet is absent from the hydrated DOM, which is the already-recorded SSR-versus-hydrated split.
+
+**A real find in the same instance, for the stock-cleanup bundle: the block's video is hosted on `ena-supply.b-cdn.net`** — the template author's own CDN:
+
+```
+https://ena-supply.b-cdn.net/Ora/587890_Silhouette Red Background Man Hoodie_…mp4
+```
+
+Stock footage on a third party's bandwidth, which breaks the day they stop serving it. It belongs with the `instagram.com/ena.supply` links as pre-launch cleanup.
