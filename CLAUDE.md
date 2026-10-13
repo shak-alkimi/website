@@ -3593,3 +3593,32 @@ This sharpens the recorded trap. The file already says *"typing into a focused p
 **The fix that worked was real keystrokes:** `triple_click` the field, `type` the value, `Return`. Prefer that for any numeric panel field, and keep the native setter only for `<select>`.
 
 **The effect CASCADES from the primary variant.** Only `Image · Primary` was edited; `Image Active` and `Mobile` both read the new values without being touched. Consistent with effects cascading from the primary breakpoint — **but it was checked rather than assumed**, which is the standing rule and cost two minutes.
+
+### HERO HEADLINE — PUBLISHED AND VERIFIED LIVE 2026-10-13
+
+Measured on the served page, two agreeing reads, against `main`'s branch preview.
+
+**Type, at all three breakpoints:**
+
+| width | h1 | p | pitch |
+|---|---|---|---|
+| 1536 | `72px / 72px / -0.72px` Gellix Medium | same, `margin-top: 0` | **72** |
+| 1000 | `44px / 44px / -0.44px` | — | **44** |
+| 600 | `40px / 40px / -0.4px` | — | **40** |
+
+Pitch equals line-height at every width, i.e. **the paragraph gap is gone** and the two-paragraph structure now renders identically to main's single-paragraph one.
+
+**Appear effect — all three breakpoint entries identical and matching main:**
+
+```
+initial { opacity: 0.001, y: 0, rotate: 0 }
+animate { transition: { type: "spring", duration: 0.4, bounce: 0.2, delay: 0 } }
+```
+
+**No collateral damage to the other headings**, checked by reading `data-styles-preset` off every `<h1>` on five other pages: `/about` 4, `/contact` 5, `/news` 2, `/careers` 2 — **all still `sA1pdkMlu`**, the untouched `H1`. (`/products`' single `h1` carries no preset and is pre-existing.)
+
+**Full Home regression sweep passes:** 11x `aspect-ratio:1.17458` with 0 stale `1.180xx`, both Elements breakpoint ratios, 2 hero overlays at `rgb(8, 2, 0)`, `#f7f6f2` with 0 of the wrong `#f6f4f0`, brand green present, 0 stale `View Case Study`, `lossless=1` 0, badge 0, and **58 Gellix references** where there were none.
+
+**A check in that sweep was wrong and passed only because it was re-done properly** — the orb was grepped for by its *local build filename* (`alkimi-orb-enso-v7-60fps`), which has never been the asset id, so it returned 0 and looked like a regression. The real check is the **byte count of the served asset**: `4cCuy9y2vsiqhoNspOmSAC7mrjY.mp4` is **4,280,052 bytes**, byte-exact for the recorded 60fps orb, referenced 3 times. **Match a video by `content-length`, never by a filename that only ever existed on disk.**
+
+Note the hero video is now `ege1ICH4tsMvwYK2FTfSBE2frbA.mp4` at **4,009,893 bytes** — the id matches what this file records, the size is not recorded anywhere, so take this as the current baseline.
