@@ -3332,3 +3332,26 @@ Corroborated by the part numbers (`3131` ≈ 31x31 mm square double; `Prisma Lin
 **THE UPLOAD LIGHTENED BOTH DRAWINGS BY ABOUT 11% — a new and unexplained effect.** Built and verified locally at darkest `144` and `184`; the hosted assets read **`160`** and **`207`**. Per-stroke ink also fell, `0.325 -> 0.153` and `0.522 -> 0.180`, so **the new Prisma Links render noticeably lighter than the drawings they replace**. Earlier uploads in this project did not show this. Not yet diagnosed; a darkening of roughly `x1.15` would restore the intended tone if wanted.
 
 Site-wide darkness is now `101 - 207` (`2.05x`). Stroke width improved to `2 - 4 px` and per-stroke ink to `4.25x`.
+
+### Prisma Links updated from the Viper folder — drawings AND photos (2026-10-13, NEEDS A PUBLISH)
+
+`…/Product Toons/Darkened 75/Viper` holds exactly four files: two **(No Cord) Toon** drawings and two **Rendered** photos, all `2000x2000` RGB with **no alpha**, so no flatten was needed and the lightbox requirement was already met. Mapping is the one established by lens count: **`NW3020S` -> Prisma Link 1**, **`NW3131TS` -> Prisma Link 2**.
+
+**The (No Cord) toons are a much better input than the cord versions.** With no cable the body/cord density split is unnecessary and the bbox is the body, so placement is stable: both landed first time at **right `62.86%`, left `0%`, v-centre `49.91%`**, heights `236` and `250` against targets of `235` and `253`.
+
+**The renders arrived on PURE WHITE while the other nine fixture photos are on `#f7f6f2`** — left alone they would have shown a visibly different card background. Normalised by a **multiplicative** map (`v' = v * 247/255` per channel) rather than a subtractive offset: it sends white exactly to the card colour while **leaving black at black**, which matters here because the product is near-black. Verified on the hosted assets at exactly `247,246,242`.
+
+**Photos verified live:** flush left `0.00%`, body right `88.76%` / `88.42%` (matching what they replaced), bottoms `69.85%` / `70.87%` against their new drawings' `70.02%` / `71.21%` — **aligned within 0.3 pts**, so the per-row bottom alignment survives.
+
+**Framing them by body WIDTH, not height, is what keeps them flush left.** Matching height left `Prisma Link 2` with a `6.47%` white gap on its left, breaking the convention every `/products` photo follows. The photo each replaces spans `0%` to its right edge, so **matching the body width lands the left edge flush by construction**. Consequence: the new renders are a closer view, so at the same width they are proportionally taller — body heights `337` and `309` against the old `264` and `207`. The products read larger.
+
+**!!! THE UPLOAD LIGHTENS DRAWINGS, AND IT HITS LIGHT ONES FAR HARDER !!!**
+
+| drawing | built & verified locally | hosted | ink retained |
+|---|---|---|---|
+| `Prisma Link 1` | darkest `140` | `147` | `0.94` |
+| `Prisma Link 2` | darkest `183` | **`210`** | **`0.63`** |
+
+Same effect as the previous Prisma upload, and now measured twice with a clear pattern: **the fainter the drawing, the more of its ink the re-encode discards.** `Prisma Link 2` is now the lightest drawing on the page by a wide margin (next is `154`).
+
+**To pre-compensate, build darker by the measured factor**: for `Prisma Link 2`, landing on `182` needs local ink of `73 / 0.63 ≈ 116`, i.e. a local darkest near `139`. **Do not assume a single compensation factor across drawings** — it was `0.94` on one and `0.63` on the other in the same upload batch.
