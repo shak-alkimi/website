@@ -3390,3 +3390,35 @@ Geometry untouched — right `62.86%`, height `250` — and no alpha, clean corn
 **This upload also confirms the correction above: the hosted per-stroke measured `0.192`, exactly what was built.** Ink survives the upload intact; only the single-pixel extremum moves. Solving against ink gives a result that lands where intended, which solving against `darkest` never reliably did.
 
 `Prisma Link 1` and `Prisma Link 2` now carry identical stroke weight, which is right for a pair from one family sitting in adjacent rows.
+
+### Home hero headline set to 72px — via NEW styles, not by editing the shared H1 (2026-10-13, NEEDS A PUBLISH)
+
+**The headline is not styled inline — it uses two SHARED project text styles, and editing them would have resized 41 headings site-wide.**
+
+| style | tag | size | used by |
+|---|---|---|---|
+| `H1` (`sA1pdkMlu`) | h1 | 44px | **27 text nodes** |
+| `H1 - Style` (`NSHp39t7X`) | p | 44px | **14 text nodes** |
+
+The hero headline is only **6** of those 41 — it is **two text nodes per variant**, `"Measured"` on `H1` (an `h1`) and `"lighting objects."` on `H1 - Style` (a `p`, sensibly, so the page does not carry two `h1`s), across the three variants `Image`, `Image Active`, `Mobile`.
+
+Shak's call was hero-only, so two new styles were created and assigned to those six nodes:
+
+| new style | tag | size | breakpoints |
+|---|---|---|---|
+| **`H1 Hero`** (`f5vNtZkWz`) | h1 | **72px** | `1200 -> 72px`, `810 -> 46px` |
+| **`H1 Hero - Style`** (`Q8aIAfMKm`) | p | **72px** | `1200 -> 72px`, `810 -> 46px` |
+
+`46px` keeps the `0.64` ratio the `H1` style already used (`28/44`), so narrow widths scale by the same proportion rather than jumping to 72. Verified in a separate `exec`: **6 of 6 at 72px**, tags preserved, and `H1` / `H1 - Style` still read `44px` — **the other 35 headings are untouched**.
+
+**FINDING THE HEADLINE IS AWKWARD AND THE OBVIOUS ROUTES ALL FAIL:**
+
+- **Searching by layer name finds nothing** — the layers are still named `"Designing brands today for tomorrow."`, stale Ora text. Add this to the list of template names that lie.
+- **`getText()` throws on these nodes** (`<unreadable>`), so the content cannot be read from the canvas at all.
+- **The text is SPLIT across two nodes**, `"Measured"` and `"lighting objects."`, so a search for the whole phrase would miss it even if text were readable.
+- **What works: read the PUBLISHED page.** Extracting visible strings from the served HTML gave `"Measured"` / `"lighting objects."` as the first two, which identified the pair immediately.
+- A full-project text-node walk to count style usage **exceeded the two-minute `exec` limit** and had to be backgrounded; scoping the walk to the hero component returned instantly.
+
+**`createTextStyle` REJECTS A STRAIGHT COPY OF AN EXISTING STYLE'S FONTS.** Passing `boldFont` / `italicFont` / `boldItalicFont` through from `H1` fails with *"Font 'Inter' is not the same family as the base font 'General Sans'"* — the source style itself holds a mismatched set. **Pass only the base `font` and let the variants default.** Note the first call had already created `H1 Hero` before the second threw, so the retry found it existing; **a partially-applied batch is the normal failure mode here, so make the retry idempotent** (this one reuses by name).
+
+**Watch on a real phone after publishing.** Below 810px the headline goes `28px -> 46px`, and the phone hero's headline stack sits only `30px` from the bottom edge — the clearance that was tuned once already. A real-device check is worth it.
