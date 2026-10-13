@@ -3249,3 +3249,23 @@ Shak reported both Prisma Links reading too dark after the phase 1 publish and a
 **The pair no longer matches each other**: `Prisma Link 1` sits at `142` against `Prisma Link 2`'s `182`, and `Prisma Link 1` is now visibly the darker of the two. Lightening it to match would need **`x0.660`** (`-> 180`), which is in the always-accepted `k < 1` direction. **Raised with Shak rather than applied**, since he asked for a revert and this would be a new change.
 
 Site-wide darkness after the revert: **`135 - 182`** (`1.35x`), against `58 - 182` (`3.14x`) before phase 1. The two values outside the `140 ±12` band are `Vena Corner Mini` at `154` (never changed; a single-pixel extremum that drifts run to run) and `Prisma Link 2` at `182` (deliberately reverted).
+
+### Flow Spine and Flow Straight enlarged to Flow 20's right edge (2026-10-12, NEEDS A PUBLISH)
+
+| | left | right | darkest |
+|---|---|---|---|
+| `Flow 20` (reference) | `35.95%` | **`63.88%`** | 135 |
+| **`Flow Spine`** | **`0.00%`** | **`64.05%`** | 152 |
+| **`Flow Straight`** | **`0.00%`** | **`63.71%`** | 138 |
+
+Both enlarged by **cropping the frame from the RIGHT only** (`Flow Spine 2116 -> 1890` at `x1.1194`, `Flow Straight 1984 -> 1783` at `x1.1128`), which grows the render while holding the left edge flush. Lossless — no resampling. Vertical centres preserved by offsetting the crop against the measured source centre rather than cropping symmetrically.
+
+**ENLARGING DARKENED THEM, AND THAT WAS CORRECTED RATHER THAN SHIPPED.** The frame/scale coupling runs the other way here: a bigger render resolves thin strokes closer to their true value, so `Flow Straight` went `140 -> 120` and `Flow Spine` `150 -> 142`. Left alone, a request for a **size** change would have quietly shipped a **darkening** — which is exactly what Shak had just rejected on `Prisma Link 2`. Corrected with `x0.950` and `x0.900`, both **lightenings**, landing at `152` and `138`.
+
+**Treat this as the rule: when a size change moves tone, restore the tone in the same pass.** The user asked for one axis to change; the other should come back where it was.
+
+**Side benefit, measured not assumed:** the enlargement also pulled both out of the thin end of the stroke-width range, so the site-wide spread improved from `1 - 6 px` to **`2 - 5 px`** and per-stroke ink from `7.71x` to `4.75x`.
+
+Site-wide darkness is now **`135 - 182`** across all 16. The only two outside `140 ±12` are `Vena Corner Mini` at `154` (untouched; the single-pixel extremum drifts run to run) and `Prisma Link 2` at `182` (deliberately reverted).
+
+**A VERIFICATION NEARLY PASSED ON STALE DATA — check that your data file is the one you think it is.** The verification page was derived with `sed 's/audit4\.js/audit5.js/'` from a file that actually referenced `audit3.js`, so the substitution silently did nothing and the page measured the **pre-revert** dataset. It reported `Prisma Link 2` at `140` when the live binding was `182`, and would have confirmed a state that no longer existed. **After generating a derived page, grep it for the data file it loads before trusting its output.**
