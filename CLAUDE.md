@@ -3721,3 +3721,18 @@ Each holds its **own** `ShapeGroupNode`, both at `194 x 35`, and both were set. 
 **Stock Ora content carried across, deliberately and visibly:** main's Follow URLs are still `instagram.com/ena.supply`, `twitter.com/ena_supply` and `linkedin.com/company/ena-supply`. Matching main means ours now carries all three. **These are template handles and need replacing with Alkimi's before launch** — they join the stock-cleanup bundle.
 
 **Consequence to weigh: the CTA is now in the footer on EVERY page.** `Global / Section CTA` (`bDuMp2cg2`) is separately placed on one page across its three breakpoints, so that page will show the CTA twice once this publishes. Either hide that instance or hide `Row Top`.
+
+**!!! LAYER ORDER *CAN* BE CHANGED BY AUTOMATION — CUT THE OTHER LAYER AND PASTE IT BACK (2026-10-13). This supersedes the note above saying reordering cannot be automated. !!!**
+
+The note immediately above concluded that `Row Top` could only be moved above `Row Bottom` by a manual drag, because both a real `left_click_drag` and a synthesised pointer sequence failed. **That conclusion was too quick.** A paste **appends**, and that is the lever: to put A before B, do not move A — **cut B and paste it back, so it lands last.**
+
+```
+Stack = [Row Bottom, Row Top]        select Row Bottom -> Ctrl+X   -> [Row Top]
+                                     select Stack      -> Ctrl+V   -> [Row Top, Row Bottom]
+```
+
+Verified across all three variants in a fresh session. **Everything inside survived**: the three sitemap links with `Careers` still hidden, all three Follow links with their labels and hrefs, the hidden `Contact Column`, and the resized logo.
+
+**The one side effect: the cut-and-pasted node gets a NEW id.** `Row Bottom` went `aP6TEuA8_` -> `ir3AhIDlV`, losing the id it had shared with main. Harmless here — nothing referenced it — but **do not use this trick on a node whose id something else depends on**, and re-read ids afterwards rather than reusing cached ones.
+
+**So the drag is the only thing that cannot be automated; the ORDER it produces can be.** Prefer this over asking for a manual drag, and note it composes with the cross-project paste above: copy a structure in from another project, then cut/paste its sibling to fix the position.
