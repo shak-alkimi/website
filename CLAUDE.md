@@ -338,7 +338,7 @@ Defaults live in **Filters -> the `Sorting Order` pill -> Edit variables**, list
 
 Slot geometry (Desktop): slots 1–3 are a 3-across `Stack`; 4/5 are a `Section - Projects Grid` with wide-left + narrow-right; 6–8 another 3-across `Stack`; 9/10 mirror 4/5 as narrow-left + wide-right.
 
-The **"Case Studies (3)" count is static text**, not a live count. It lives inside the `Projects / Grid - List Toggle` component, is shared across all six of its variants and both pages, and must be edited via Edit component — there is no instance property for it. Update it by hand whenever the Live project count changes.
+The toggle pill's label reads **`Projects`** (changed from `Case Studies` 2026-10-13). The **`(3)` beside it is static text**, not a live count — both live inside the `Projects / Grid - List Toggle` component (`QO5gQ0_vO`), shared across all six variants and both pages. Update the `(3)` by hand whenever the Live project count changes.
 
 ### Hiding unused slots, and how breakpoints inherit it
 
@@ -3917,3 +3917,36 @@ Draft counts verified after the write (News 3/7 unchanged).
 The heading beside it is the text layer named **`News`** — the stale Ora name for "Lighting options", already on the list of template names that lie.
 
 **Note the equivalent link still exists on the news pages**: the `Read more` row carries an `All Articles` link to `/news`. Shak asked only about the projects one, so it was left alone.
+
+### The toggle label "Case Studies" -> "Projects" — and `setText` is ANOTHER API blind spot (2026-10-13, NEEDS A PUBLISH)
+
+The pill on `/projects-grid` and `/projects-list` now reads **`Projects (3)`**. It is the text layer named **`About us`** (`h4V5YagZ9`) inside `Projects / Grid - List Toggle` (`QO5gQ0_vO`); the `(3)` beside it is the separate layer **`Always looking to have conversations with new people`** (`Au214aZLL`) and was left alone.
+
+**!!! `TextNode.setText()` FAILS ON A COMPONENT-INTERNAL NODE — `"Node not found"` !!!** It joins `framer.getNode`, `removeNodes` and `node.remove()` in resolving by id, which component internals do not support. **`getText()` fails too, with a different and misleading message — `"Node is not a text node"`** — on a node whose `__class` is literally `TextNode`. Two different errors, one cause.
+
+**So canvas text is editor-only.** Add it to the blind-spot list beside appear effects, vectors, CMS bindings, conditional visibility, code overrides and paragraph-level styling. Note the asymmetry that keeps catching me out: **`setAttributes` on these same nodes works fine** — mutation through a live handle is supported, resolution by id is not, and `setText` happens to take the second route.
+
+**THE SAFE EDITOR RECIPE FOR CANVAS TEXT, which avoids every recorded hazard:**
+
+1. Deep-link the **component** (`?node=QO5gQ0_vO`), then `shift+0` to zoom to 100% — **`ctrl+=` is blocked** by the browser tool as a page-zoom shortcut.
+2. Layers panel -> filter the tree (inside a component the filtered list *is* flat and stable) -> click the layer row. This selects the exact node, so the next click cannot land on a sibling.
+3. **Double-click the text on the canvas, then screenshot before typing.** The zoom showed one word highlighted blue, which is the proof that edit mode is live.
+4. **`End` then `shift+Home` to select the line — NOT `ctrl+A`.** If the double-click had missed, `ctrl+A` on the canvas opens the "Delete selection for all collaborators" dialog, whereas `End`/`shift+Home` do nothing at all. Zoom again to confirm the whole string is highlighted.
+5. Type, `Escape`, and verify by eye.
+
+**The edit cascaded to all six variants from the primary**, as text content does.
+
+**VERIFYING THE TWO HIDDEN VARIANTS NEEDED A PROXY, AND THE API COULD NOT SUPPLY IT.** `Grid Hide` and `List Hide` render nothing on the canvas, and `node.width` reads **`fit-content`** on all six — the *stored* value, not the computed one. The editor's Size panel shows the **computed** width as grey placeholder text, and that is the measurable thing: `99` for "Case Studies", **`62`** for "Projects", confirmed on both Hide variants. **Use the panel's placeholder width as a read-out for text length when the text itself is unreadable.**
+
+### `/products` and `/elements` ARE SERVING AN OLDER BUILD — Framer publishes per page (found 2026-10-13)
+
+Checking for stray "Case Studies" across the site turned up something unrelated and more important: **seven of the nine published pages carry the new footer sitemap and two do not.**
+
+```
+/  /about  /careers  /contact  /news  /projects-grid  /projects-list   -> Fixtures/Elements/Projects/About/News/Contact
+/products  /elements                                                   -> About / Case studies / News   (the OLD four-slot sitemap)
+```
+
+So the footer rebuild of 2026-10-13 reached most pages but **those two still serve a build that predates it**, even though `Footer / Footer` is one shared component. The next publish should pick them up; worth re-checking afterwards rather than assuming.
+
+**A grep trap in the same check:** `grep -i "Case Studies"` reported hits on `/products` and `/elements` that looked like a second copy of the toggle. They are **`Case studies`, lowercase `s`** — the old footer sitemap link to `/projects-grid`, a completely different string. **Match case-sensitively when a label's capitalisation is the thing distinguishing two layers**, which is the mirror of the already-recorded advice to grep case-*insensitively* for a brand colour.
