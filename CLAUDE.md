@@ -4469,3 +4469,35 @@ So a condition **is** readable after all, through the DOM — which this file pr
 
 - **`javascript_tool` works on the Framer editor tab again.** This file records it as BLOCKED; that was situational, not permanent. **Assert the document is live first** — `document.querySelectorAll('div').length` returned `3223` here, against the `3` that signals the detached-context trap.
 - **The CMS item picker ignores a real `computer` click on its rows**, exactly like the other popovers — type into its search box, then `Down` + `Return`. Switching the previewed item is what makes per-article conditions checkable at all.
+
+### THE DUPLICATE FLIPPED SLOT 1 FROM STACK TO GRID — and `layout` is NOT writable through the API (2026-10-14, NEEDS A PUBLISH)
+
+Shak published and reported the other two articles rendering their duo wrong: a small image on the left, a large gap, then a big image on the right.
+
+**The duo wrapper itself was PERFECT, which is what made this confusing.** Measured on the live page: `922 x 613`, exactly 2 children (the wide slot correctly absent), each `453 x 613` at `aspect-ratio: 0.739583` with `flex: 1 0 0`. **The conditions were working.** The fault was one level down — slot 1's `<img>` rendered at **`222 x 301` inside its correct `453 x 613` wrapper**, i.e. **49%**, while slot 2's filled properly.
+
+**The tell was in the computed style, not the geometry: the two wrappers had DIFFERENT display modes** — slot 1 `display: grid`, slot 2 `display: flex`. A full attribute diff against the working sibling named it exactly:
+
+```
+layout:            slot1="grid"   slot2="stack"
+stackDirection:    slot1=null     slot2="horizontal"
+gridColumnCount:   slot1=2        slot2=null      (+ 7 more grid* fields)
+```
+
+**Slot 1's Layout Type had been switched from Stack to Grid on all three breakpoints**, almost certainly by a stray `Down`/`Return` landing on the panel's `Type` segmented control after a popover had already committed — arrow keys operate that control, and it sits in the same panel I was driving blind. The `Image` child is `position: absolute; width/height: 100%`, so under `grid` its `100%` resolves against a grid track rather than the frame, giving the 49%.
+
+**!!! `layout` CANNOT BE WRITTEN THROUGH THE AGENT API — IT CRASHES THE RELAY !!!**
+
+`setAttributes({ layout: "stack" })` fails with **`TypeError: Cannot read properties of null (reading 'parentid')`** plus a libuv assertion, killing the session. **It is not a stale session** — a brand-new session failed identically, which is how it was told apart from the usual dropped-relay noise.
+
+**And the stack properties cannot be written around it.** `setAttributes({ stackDirection: "horizontal" })` on a grid frame **returns `ok` and stores nothing** — a fresh read still shows `null`. This is the documented *"positioning attributes are a mode"* trap in a new place: **while `layout` is `grid`, every `stack*` field is inert, and the one attribute that would change the mode is the one that crashes.** So this is editor-only by construction.
+
+**Fixed with one click** on `Layout -> Type -> Stack` in the Style panel, which **cascaded to all three breakpoints**. Afterwards the diff against slot 2 is down to `id` and `centerX` (`25%` vs `75%`), and that `centerX` pair is the original authored pattern, inert for `flex: 1 0 0` children — do not "fix" it.
+
+**The API lagged by one call and nearly produced a false failure.** The first read after the click showed Tablet and Phone as `stack` while **Desktop — the breakpoint actually clicked — still read `grid`**. A second read moments later showed all three correct. That is the recorded ~20s editor-to-API lag, but note it landed in a counterintuitive order, so **do not infer "the cascade worked but the primary did not" from a single read.**
+
+**Verified on the canvas:** previewing debut renders two equal side-by-side images with the wide slot dimmed; the Layout panel reads `Type: Stack`.
+
+**THE METHOD LESSON, AND IT IS THE ONE THAT ACTUALLY FOUND THIS:** the published geometry looked right at every level I checked first — wrapper count, wrapper size, aspect ratio, flex basis, and the conditions. **What exposed it was comparing the two siblings' COMPUTED DISPLAY, then dumping every stored attribute of the broken node beside the working one.** This file already prescribes that diff for a silent write failure; it works just as well for a silent *corruption*, and it should be the first move whenever two nodes that ought to be identical render differently.
+
+**A second-order lesson about driving the panel blind:** every keystroke I send after a popover may have closed lands on whatever control is beneath. The `Type` toggle sits a few rows above `Visible` in the same panel, so an extra `Down` is enough to change a frame's entire layout model. **Prefer one keystroke at a time with a read-back between, and treat an unexplained extra `Down` as potentially destructive rather than a no-op.**
