@@ -4301,3 +4301,21 @@ Shak said he had moved it and it did not move. **The CMS confirmed it never move
 
 - **`cauda` has no `Image Hero`.** Its hero is the video and nothing else, so clearing the video later would leave the hero empty. `Peacock Feather.jpg` sits in the same Drive folder if a still fallback is wanted.
 - **`cauda`'s card video is still the enso orb** (`Thumbnail Video MOV`), so on Home its card plays the orb while its article plays the peacock. That is a separate field driving a **Fill**, not the hero — the two have never been connected.
+
+### The enso orb moved back to `kimi` — and `/news/kimi` has NO HERO AT ALL (2026-10-14, NEEDS A PUBLISH)
+
+`Thumbnail Video MOV` moved `cauda` -> `kimi`. Verified by a separate `exec` on the same session and by re-issuing the write, which answered `ALREADY MOVED`. Draft counts unchanged (News 3/7). **Note the field type is `file`, and it takes the same `{ type, value: <url string> }` shape as an image field; `null` clears it.**
+
+**State of the three live articles after this and the peacock move:**
+
+| slug | title | CARD (`Thumbnail` / `Thumbnail Video MOV`) | HERO (`Image Hero` / `Hero Video URL`) |
+|---|---|---|---|
+| `cauda` | A depth of color brought to light | `yEZOA4lf3M…jpeg` still | **peacock video + poster** |
+| `kimi` | Kimi is next gen optimization | **enso orb video** | **NOTHING** |
+| `debut` | Debuting our name at the Lumen Gala | `1eVieFUpP0…jpg` still | `y41mQneNuZ…jpg` |
+
+**!!! `/news/kimi` RENDERS FRAMER'S STRIPED PLACEHOLDER WHERE ITS HERO SHOULD BE, AND HAS DONE ALL ALONG !!!** Its `Image Hero` and `Hero Video URL` are both empty, so the hero `Thumbnail` layer falls through to the diagonal tile — confirmed on the **live** page, which emits `background-image:url('data:image/svg+xml,…'); background-size:64px auto` inside `Image Wrapper > Thumbnail`. **This predates today's moves and neither of them caused or fixed it.** It needs an `Image Hero` still or a `Hero Video URL`.
+
+**THE CARD AND THE HERO ARE DIFFERENT FIELDS AND THIS IS THE THIRD TIME THAT HAS MATTERED.** `Thumbnail Video MOV` drives a **Fill** on the article *card* (Home newsroom, `/news` listing); `Hero Video URL` drives the `Video` layer on the article *page*. Moving the orb fixes kimi's card and does nothing for its hero. **When someone says a video should be "on" an article, establish which of the two they mean before moving anything.**
+
+**The Drive folders name the articles better than the slugs do**, and that is worth using as the mapping of record: `…/Framer/News/` holds **`Cauda`** (the peacock), **`Opus`** (`opus_enso_orb.mov` / `.mp4`, the 1.7 GB and 442 MB masters behind the 4,280,052-byte web encode) and **`Launch - Lumen Gala`** (`debut`). So the orb's source folder is `Opus` while its article's slug is now `kimi` — the slugs have churned (`lumens` -> `debut`, `opus` -> `kimi`) and **the folder names are the stable handle.** Neither folder holds a hero still, so kimi's missing hero needs new artwork or a decision to use the orb there too.
