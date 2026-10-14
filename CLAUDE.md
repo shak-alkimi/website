@@ -4598,3 +4598,36 @@ Section Testimonials  3534 .. 4360   padT  0   padB 120
 **The general test, now that this stack shape has appeared four times:** read every section's `padT`/`padB` and the rendered gaps *before* hiding. **A section with `padT 0 / padB 0` is spacing-neutral and can be hidden freely; a section carrying padding is load-bearing and its value must be moved to a neighbour.** Approach was the first kind, Testimonials was the second but was rescued by its predecessor carrying the same value.
 
 **Consequence worth knowing: CMS groundwork seeded earlier is now largely orphaned.** The `Testimonials` collection (`Sy_edh8S4`, 4 items) drives nothing at all, and of the `About` collection's 19 fields, `Approach Heading`, `Value 1-3 Number/Title/Text/Image` and `Testimonials Heading` — **13 of 19** — now have no surface. Nothing breaks; the recorded plan to wire `/about` through a Collection List just got considerably smaller. **The `Clients` collection (8 items) is unaffected** since that section stays.
+
+### ALL FIVE CHANGES PUBLISHED AND VERIFIED LIVE 2026-10-14 (build `Last-Modified 19:15:51 GMT`)
+
+| change | verified on the served site |
+|---|---|
+| Projects out of the nav menu | menu opens with **5 rows** — `Fixtures 01, Elements 02, About 04, News 05, Contact 06`, no `projects-list` |
+| Projects out of the footer sitemap | **`projects-list` = 0 on every page** (was 3 each) |
+| `/about` Approach + Testimonials | both `Section` names **0**; `Experimentation`, `Implementation`, `absolute delight`, `Managing Partner` all **0**; Intro/Services/Clients still 1 each. Page `427,412 -> 318,760` bytes |
+| `/news/debut` hero | new asset **x10**, orphan master **0**, old gala hero **0** |
+| per-article duo + the Grid fix | cauda `Image Wrapper Wide` **1**; debut and kimi **0** |
+
+**THE DIVIDER QUESTION IS ANSWERED BY MEASUREMENT, NOT BY ARITHMETIC THIS TIME.** With the menu open on the live site:
+
+```
+row pitch      60  60  60  60
+divider pitch  60  60  60  60
+divider tops   386.67  446.67  506.67  566.67  626.67   CSS
+               580     670     760     850     940      DEVICE px at dpr 1.5
+```
+
+**Every divider lands on a whole device pixel**, so all five share one sub-pixel phase and render identically — the alternating thick/thin defect cannot occur. That is the same property the six-row menu had (493/583/673/763/853/943), preserved because the row and its divider were hidden as a pair.
+
+**THE GRID FIX IS CONFIRMED NUMERICALLY.** debut's duo measures `922 x 613` with two children at `453 x 613`, both `display: flex`, and **both images filling 100%** — slot 1 was rendering at 49% before.
+
+**Both flagged consequences are live exactly as predicted, and neither is a surprise:** the menu reads `01, 02, 04, 05, 06`, and the surviving dividers are variants **1, 2, 4, 5, 6**, so the stagger between the 2nd and 3rd line is 300ms rather than 150ms. Both remain editor-only and were deliberately left for Shak.
+
+**!!! "RE-FETCH UNTIL TWO READS AGREE" IS NOT ENOUGH WHEN THE VALUE MATCHES A KNOWN-BAD SIGNATURE !!!**
+
+`/news/kimi` returned **29,843 bytes on BOTH of the first two fetches** — stable, agreeing, and completely wrong. `29,843` is the exact truncation figure this file has recorded twice before. Two further fetches returned **246,413**, stable across four reads.
+
+**So the rule needs sharpening: agreement between two reads is evidence only when the value is not already known to be a failure mode.** Keep a list of the bad signatures — `29,843` and `28,683` for this project — and treat a match as a failed read no matter how many times it repeats. The general form: **a reproducible result is not a correct one; reproducibility only rules out noise, never a systematic fault.**
+
+Full Home regression sweep passes: 8x `aspect-ratio:1.17458` (the correct post-wide-card baseline), 0 stale `1.180xx`, both Elements ratios, 2 hero overlays, `#f7f6f2` with 0 `#f6f4f0`, brand green, 0 stale `View Case Study`, `lossless=1` 0, badge 0, 58 Gellix refs, footer CTA on 6 nodes, orb byte-exact at `4,280,052` and hero video at `4,009,893`.
