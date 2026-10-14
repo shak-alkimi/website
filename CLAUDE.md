@@ -4072,3 +4072,33 @@ while (n && n !== document.body) { const nm = n.getAttribute?.('data-framer-name
 **Done entirely by script**, using the `data:` URI route: a **564 KB** base64 payload marshalled across the relay without trouble, confirming again that the practical ceiling is well above a normal photograph. `uploadImage` returns a **live `ImageAsset`**, so it was assigned to `backgroundImage` **in the same `exec`** — a serialised copy or a bare URL fails silently there.
 
 **Verified on the HOSTED copy, not the upload call:** `1785x2040`, matching the source exactly. Note the served bytes drop `422 KB -> 221 KB` and `pix_fmt` goes `yuvj444p -> yuv420p`, which is Framer's ordinary delivery re-encode and not a loss of framing — **check dimensions on the CDN copy; do not read the byte count as damage.**
+
+### `/products` AND `/elements` USE A REMOTE, PINNED COPY OF THE FOOTER — not a publish problem (diagnosed 2026-10-13)
+
+Those two pages ignored three consecutive publishes of footer edits. **They were never stale builds.** `Last-Modified` on both is minutes old after each publish, and a cache-busted fetch returns the same bytes — they rebuild fine, they just rebuild a **different footer**:
+
+```
+/ /about /contact /careers /news /404 /terms /privacy
+/projects-grid /projects-list /projects/:slug /news/:slug   local-module:canvasComponent/CPt2kErNr:default
+/products  /elements                                        module:aHT9jU1ktPM5hfBOlJvS/VEaXX23LNlR7v2fDmujT/CPt2kErNr.js:default
+```
+
+**36 local instances, 6 remote** (3 breakpoints x 2 pages). The remote one comes from **`ena — Workspace`** — the Ora template author's own workspace, the same `ena.supply` that owns the stock Instagram link. This is the documented `module:` versus `local-module:` distinction (the `Valide/Scroll_Progress` trap) showing up on a *design* component rather than a code one.
+
+**`componentIdentifier` IS NOT WRITABLE — it joins the silent-failure family.** `setAttributes({ componentIdentifier: "local-module:…" })` returns without error and a fresh read shows the value unchanged. So this cannot be scripted.
+
+**THE PIN IS A SNAPSHOT AT ONE PUBLISH, which is why the symptom looked incoherent.** The remote copy carries everything from the footer rebuild — the pasted `Row Top` CTA, the `80px` column gap, the three social links — but nothing after it. Lining the diff up against the day's publishes dates the pin exactly: **after** the rebuild, **before** the Twitter/LinkedIn hide and the Sitemap rewrite. A frozen dependency looks like a flaky build until you notice the cut-off is a point in time, not a set of properties.
+
+**What those two pages are actually missing today** (`/products` and `/elements` are identical to each other):
+
+| | local (`/about`) | remote (`/products`, `/elements`) |
+|---|---|---|
+| Sitemap | Fixtures, Elements, Projects, About, News, Contact | **Case studies -> `/projects-grid`, About, News** |
+| Follow | Instagram | **Instagram, Twitter (X), LinkedIn** |
+| footer height | `756px` | **`675px`** |
+
+**Everything else already matches** and needs nothing: the `Row Top` CTA, the `Details` bottom bar (`© Alkimi 2026 · Made in The Shire · Back to top`), `Right Content` gaps `18 / 80 / 10`, and the Sitemap/Follow column positions (`x 527` / `x 691`, same as local to within a pixel).
+
+**Two consequences worth naming.** The stock **`twitter.com/ena_supply` and `linkedin.com/company/ena-supply`** links are live and clickable on two public pages — the template author's handles, not Alkimi's. And the `Show CTA` boolean added to the local footer **does not exist** on these instances, so the CTA cannot be switched off there the way it now can on `/contact`.
+
+**The fix is one editor action, located but NOT run** (Shak asked for the diagnosis first): right-click the footer layer -> **`Replace all instances with` -> `Project` -> `Footer / Footer`**. "All instances" is exactly the 6. **The risk to watch is that the swap may reset each instance's `variant`** (Desktop/Tablet/Mobile) and its `XOac4bt7c` path control; the path is API-writable, **`variant` is not**, so if it resets, all six have to be re-picked by hand through the Variant dropdown.
