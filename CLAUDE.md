@@ -4346,3 +4346,35 @@ Article      /news/cauda  1 <video>, peacock x2      <- the peacock hero, correc
 **A reading worth keeping: `debut`'s CARD image (`1eVieFUpP0…jpg`) is NOT the gala hero.** Card and hero are separate fields — `Thumbnail` against `Image Hero` — so "the debut image" means two different files depending on which surface is being looked at. That is the same card/hero split that has now caused confusion three times in one day.
 
 **`javascript_tool` IS BLOCKED ON THE PUBLISHED SITE TOO, not just the editor tab.** A script containing `fetch` and `currentSrc` returned `BLOCKED: Cookie/query string data`; the identical geometry read with those two removed ran fine. **Keep browser scripts to plain DOM reads** and do any asset fetching from the shell.
+
+### The news article image DUO collapsed to ONE full-width image (2026-10-14, NEEDS A PUBLISH)
+
+Shak pointed at a two-up block — a marbled-paint image beside a sprinkles "8" — and asked for one image spanning the same area.
+
+**Locating it was the first job, and the images named the page.** Both `/news/:slug` and `/projects/:slug` carry an `Image Duo Wrapper`, so the name alone is ambiguous; the project one holds `Image Wrapper 3x4` and the news one holds plain `Image Wrapper`. Downloading the four candidate assets and **looking at them** settled it: the pair is `Uvdfbb2L1…jpeg` + `XUqsxdLr…jpeg` on **`/news/cauda`**, `Section Article > Container`.
+
+**The structure, per breakpoint:** `Image Duo Wrapper` (`0.6fr` wide, `fit-content`, **`gap: 15px`**, row flex) holding two `Image Wrapper`s at `1fr / 480px` with `aspectRatio 0.74`.
+
+| | Desktop | Tablet | Phone |
+|---|---|---|---|
+| wrapper | `JHVO0UGCU` | `zFsVhGRayJHVO0UGCU` | `P7DaU3y8EJHVO0UGCU` |
+| **kept** | `hqTB_y00j` | `zFsVhGRayhqTB_y00j` | `P7DaU3y8EhqTB_y00j` |
+| **hidden** | `ibk_0bT44` | `zFsVhGRayibk_0bT44` | `P7DaU3y8Eibk_0bT44` |
+
+**`height: 480px` is stored and INERT — the aspect ratio drives the height.** Measured live at 1536: the duo is `921.594 x 612.906` and each child `453.292 x 612.896`, which is `453.292 / 0.739583`. Another instance of *stored value is intent, the published rule is the authority*.
+
+**So the change is two attributes, not a rebuild:** hide the second wrapper (the survivor is `flex: 1 0 0`, so it takes the whole row once its sibling and the gap are gone) and **re-aspect the survivor from `0.74` to `1.503671`**, which is `921.594 / 612.896` — the duo's full width over the existing height, so the block keeps its exact footprint.
+
+**ONE ASPECT CANNOT HOLD THE HEIGHT AT EVERY BREAKPOINT, and the reason is worth knowing.** The needed ratio is `0.739583 x (2 + 15/Wc)` — the **gap is a fixed 15px while the widths are fluid**, so the correction term grows as the column narrows. `1.503671` is exact at Desktop; at Tablet and Phone the single image lands slightly *taller* than the old pair. Measure after publishing if it matters.
+
+**!!! THIS IS THE SHARED `/news/:slug` TEMPLATE, SO IT CHANGES ALL THREE ARTICLES !!!** Slot 1 binds `Image 1` and slot 2 binds `Image 2`, confirmed against the rendered order:
+
+| article | `Image 1` — survives | `Image 2` — hidden |
+|---|---|---|
+| `cauda` | `Uvdfbb2L1…jpeg` the marbled paint | `XUqsxdLr…jpeg` the sprinkles 8 |
+| `debut` | `ZSHsZMv5…jpg` | `UvEN4OWy…jpg` |
+| **`kimi`** | **null** | **null** |
+
+**`kimi` has no article images either**, on top of having no hero — so its duo renders placeholders today and one placeholder after this. That article is empty of imagery end to end.
+
+Hidden rather than deleted, so it is one attribute to restore, and the CMS keeps both images. Verified in a separate `exec` on the same session and by re-issuing the write, which answered `already hidden` / `aspect already 1.504` on all six nodes. **Note the API rounds `aspectRatio` to 3 dp on read (`1.504`) while storage keeps full precision — confirm the real value in the published CSS.**
