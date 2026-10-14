@@ -4062,3 +4062,13 @@ while (n && n !== document.body) { const nm = n.getAttribute?.('data-framer-name
 **Current state: the address and link are now correct on the tooltip's primary variant and cascaded to the rest. NEEDS A PUBLISH.** The map component's dormant copy was also updated and left that way; it is harmless either way.
 
 **`/products` AND `/elements` HAVE NOW MISSED TWO CONSECUTIVE PUBLISHES.** Both still serve the old four-slot footer sitemap (`About / Case studies / News`) while the other seven pages carry `Fixtures / Elements / Projects / About / News / Contact`, even though `Footer / Footer` is a single shared component. **This is not propagation delay** — it has survived two publishes and repeated byte-stable re-fetches. Worth opening those two pages in the editor and republishing, or checking whether something excludes them from the build.
+
+### Contact page photo replaced (2026-10-13, NEEDS A PUBLISH)
+
+`Section Location > Content Left > Image Wrapper > Image` on `/contact` now carries **`CZuHwF9vzf909zLxLuzu7Lp4IlA.jpg`** (from `G:\My Drive\Marketing\Website\Framer\Contact\nomad-nearby-portrait-alt-lamps.jpg`), on all three breakpoints (`GG86XZh6i`, `lc_ppdu3JGG86XZh6i`, `sRIHrtJLmGG86XZh6i`), `resolution: auto`.
+
+**The folder held three candidates and only two fit.** The slot's outgoing asset was `1601x1733` (aspect 0.924); the two portraits are `1785x2040` (0.875) and drop in with no crop, while `nomad-nearby.jpg` is `2478x2040` (1.215) and `object-fit: cover` would have thrown away ~28% of its width. The two portraits are identical in size and framing and differ only in lighting, so that was Shak's call — he chose the alt-lamps version.
+
+**Done entirely by script**, using the `data:` URI route: a **564 KB** base64 payload marshalled across the relay without trouble, confirming again that the practical ceiling is well above a normal photograph. `uploadImage` returns a **live `ImageAsset`**, so it was assigned to `backgroundImage` **in the same `exec`** — a serialised copy or a bare URL fails silently there.
+
+**Verified on the HOSTED copy, not the upload call:** `1785x2040`, matching the source exactly. Note the served bytes drop `422 KB -> 221 KB` and `pix_fmt` goes `yuvj444p -> yuv420p`, which is Framer's ordinary delivery re-encode and not a loss of framing — **check dimensions on the CDN copy; do not read the byte count as damage.**
