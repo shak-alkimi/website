@@ -4419,3 +4419,53 @@ Shak sent a screenshot of a gallery interior with a large fibre-art wall hanging
 **PER-ARTICLE LAYOUT IS POSSIBLE BUT IT IS EDITOR WORK, AND ONE ATTRIBUTE IS NOT ENOUGH.** Binding the second wrapper's `Visible` to a `Condition` on `Image 2 Is set` would give a one-image article and a two-image article from the same template — but **`aspectRatio` is a layer attribute and cannot be conditional**, so the survivor would still be a portrait box. A genuine per-article choice needs **two sibling sections with complementary conditions**: the existing portrait duo on `Image 2 Is set`, and a second wide single-image section on `Image 2 Isn't set`. That is the only shape that gives both layouts without touching the other articles.
 
 **Also noted in passing: `kimi` has gained a `Thumbnail`** (`xJKC6Ayx1mtMsv93fR1GtUgibcI.png`) since the last read. Its `Image Hero`, `Hero Video URL`, `Image 1` and `Image 2` are all still empty, so the hero placeholder and the empty duo on that article are unchanged.
+
+### PER-ARTICLE IMAGE LAYOUT — a dedicated switch field, so the other articles are genuinely untouched (2026-10-14, NEEDS A PUBLISH)
+
+Shak asked whether cauda could be one wide image *without touching the others*. **Yes, and the design that achieves it is not the one sketched an hour earlier.**
+
+**FIRST, THE CHEAP ROUTE WAS TESTED AND RULED OUT.** The `/projects/:slug` template omits an image container entirely when its field is empty, so the obvious hope was that `/news/:slug` does the same and a condition would be unnecessary. **`kimi` disproves it in one query**: it has `Image 1` and `Image 2` both empty and still renders **the same 6 `Image Wrapper` elements as `debut`**, which has both set. **This template does not auto-omit; conditions must be explicit.** Check this per template — it is not a Framer-wide behaviour.
+
+**THE SWITCH IS A NEW CMS FIELD, NOT `Image 2`.** The earlier sketch proposed conditioning on `Image 2 Is set` / `Isn't set`. That works for cauda and debut but **drags `kimi` along** — it has `Image 2` empty, so it would have flipped to the wide layout too. A dedicated **`Image Wide` [image] field (`dItn5Ww5P`)** avoids that completely:
+
+| article | `Image Wide` | renders |
+|---|---|---|
+| **cauda** | the landscape 8 | **one wide image** |
+| debut | empty | the two-up duo — **unchanged** |
+| kimi | empty | the two-up duo — **unchanged** |
+
+It is also self-documenting, reversible by clearing one field, and **destroys nothing**: cauda keeps the marble in `Image 1` and the portrait 8 in `Image 2`, they simply stop rendering.
+
+**Structure: a third slot inside the existing `Image Duo Wrapper`, not a second section.** `Image Wrapper Wide` (`c8OwI_6XZ`) is a `Ctrl+D` duplicate of slot 1, so **it kept slot 1's `Image 1` Fill binding** — a duplicate *within the same template* preserves bindings, unlike the cross-project paste that lost them. Only the field had to be repointed. The duplicate **propagated to all three breakpoints by itself**, and `setAttributes({ name, aspectRatio })` then cascaded from Desktop.
+
+```
+Image Duo Wrapper
+  Image Wrapper        ar 355/480   Fill: Image 1      Visible: Image Wide Isn't set
+  Image Wrapper Wide   ar 1.503671  Fill: Image Wide   Visible: Image Wide Is set
+  Image Wrapper        ar 355/480   Fill: Image 2      Visible: Image Wide Isn't set
+```
+
+**The copy sits BETWEEN the two originals and that is harmless** — a condition-hidden layer emits no markup, so when the duo shows, slots 1 and 2 are adjacent. Confirmed on the canvas.
+
+**!!! THE KEYBOARD PICKED THE WRONG PREDICATE AND ONLY THE CANVAS CAUGHT IT !!!**
+
+The documented menu recipe is *open the menu, press Down, press Return*. Applied to the wide slot's predicate submenu it selected **`Isn't set`** instead of `Is set` — so all three slots were hidden for cauda and the duo rendered **completely empty**. **The initial highlight in these submenus is not reliably "nothing", so a fixed number of Downs is a guess, not a selection.**
+
+**What exposed it was scrolling the canvas and seeing no image at all** — the article went hero straight to body text. I nearly dismissed that as a canvas quirk and published. **Reading the setting back is what settled it**, and the reusable part is that **a Framer Condition popover is built from a native `<select>`**:
+
+```js
+[...document.querySelectorAll('select')].filter(s => s.getBoundingClientRect().width>0)
+  .filter(s => [...s.options].some(o => /Is set/.test(o.text)))
+  .map(s => (s.selectedOptions[0]||{}).text)      // -> "Is set" | "Isn’t set"
+```
+
+So a condition **is** readable after all, through the DOM — which this file previously recorded as impossible through any route. It is still invisible to the node API; the editor's own popover is the oracle. **Note the apostrophe in `Isn’t set` is U+2019**, so match loosely.
+
+**Fixing it used the native-setter route, and the stale-read warning is real.** `Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value').set.call(sel, v)` plus `input` + `change` worked, but a read immediately afterwards cannot be trusted — and screenshots were frozen by the documented canvas freeze. **Closing the popover with `Escape` and re-opening it gives a trustworthy fresh read**, which is the workaround when a screenshot is unavailable.
+
+**Verified in BOTH directions on the canvas, which is the only pre-publish oracle for a condition:** previewing **cauda** renders the sprinkles 8 full-width with slot 1 dimmed; previewing **debut** renders its two portrait images side by side with the wide slot dashed-hidden. All three conditions then read back correctly (`Image Wide` with `Isn't set` / `Is set` / `Isn't set`). Draft counts clean.
+
+**Two smaller editor facts worth keeping:**
+
+- **`javascript_tool` works on the Framer editor tab again.** This file records it as BLOCKED; that was situational, not permanent. **Assert the document is live first** — `document.querySelectorAll('div').length` returned `3223` here, against the `3` that signals the detached-context trap.
+- **The CMS item picker ignores a real `computer` click on its rows**, exactly like the other popovers — type into its search box, then `Down` + `Return`. Switching the previewed item is what makes per-article conditions checkable at all.
