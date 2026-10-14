@@ -4205,3 +4205,47 @@ Both wide cards are in the markup with the button — desktop/tablet inside `ssr
 2. **sweeping every `pointer-events:none` rule on the page** leaves only that base rule able to reach this chain — the others are `GlobalScrollbarHider`, the `[data-border=true]:after` pseudo-element, and the unused `.framer-pointer-events-none` / `[data-is-present=false]` utilities.
 
 **Reading the SSR markup needs the file split first.** It is one ~280 KB line, and `grep -o 'framer-v-fo45vv.\{0,9000\}'` backtracks badly enough to blow a two-minute timeout. `tr '<' '\n<'` gives 1,876 lines, after which an `awk` pass that tracks the nearest preceding `ssr-variant` wrapper and card variant attributes every anchor in one go. **Key that pass on the CARD variant, not the button's own** — both buttons render `framer-v-fqf7wf` (`Button White to Outline - Hover`), so keying on it makes the two breakpoints indistinguishable and produced a false "the phone button is not in the markup".
+
+### The Home wide card hidden (2026-10-14, NEEDS A PUBLISH)
+
+Shak asked for the full-width card under the Fixtures/Elements pair to go. **`Va7s_G1cn` -> `visible: false`** — the page instance of `Home - Projects Row 2`, variant `Home Project Single - Wide`.
+
+**IT IS ONE INSTANCE, ON DESKTOP ONLY — there are no per-breakpoint copies.** `getNodesWithAttributeSet("componentIdentifier")` returns exactly two hits for `local-module:canvasComponent/QOhH3GYAD:default`: the page instance (`Main < Desktop < WebPageNode`) and the component itself. **Contrast the footer, where each breakpoint carried its own prefixed copy** (`MYmvwmubc` -> `jeBJOTditMYmvwmubc`). Tablet and Phone inherit here, so one write covers all three. **Do not assume either shape — count the instances first.**
+
+**NO SPACING COMPENSATION WAS NEEDED, and that was checked rather than assumed** — three hides on the project pages each took a sibling's spacing with them. Measured on the published page first:
+
+```
+Main (gap 0)
+  Section Hero       855
+  Section Projects   791   two-up row, its own padding: 15px
+  wide card          774   its own padding: 0 15px 15px
+Section News         904   padding: 75px 15px 90px   <- supplies its own top gap
+```
+
+`Section News` carries **75px of top padding**, so nothing collapses. The gap above the Newsroom goes `15 + 15 + 75` -> `15 + 75` = **90px**, which is the gap the wide card already had beneath it. **The project-page rule — "every section supplies its own padding and `Section Images` supplies none" — is a property of `Container Relative`, not a site-wide law.** On Home's `Main` the sections do pad themselves, so a hide is safe. Read the neighbours' padding either way.
+
+Verified three ways: a separate `exec` on the same session, a **re-issued write reporting `already hidden`** (evidence from the live document rather than a snapshot), and a fresh session with its first read discarded. Row 1's four instances remain `visible: true`, and `getUnpublishedPageChanges()` is **1**.
+
+**The card's picture had already changed and Shak's screenshot was a stale build.** He reported it showing Belmont Park's racecourse; the live page serves `AUFOIxWFIZd7ja2alFYyitRsg.jpg`, a spa. Same card either way, so it did not change what to hide — but **trace the rendered asset before reasoning from a screenshot**, which is the handset-cache trap arriving by desktop.
+
+### FRAMER HAD A PLATFORM-WIDE OUTAGE, AND MY RECOVERY CHECK WAS WRONG (2026-10-14)
+
+For ~25 minutes every route was blocked. **The three symptoms look like three different faults and are one:**
+
+| route | symptom |
+|---|---|
+| `session new` | `Framer is very busy`, `Connection timeout after 90000ms`, **`Vekter stalled after "showUI"`** |
+| editor in Chrome | blank canvas, endless loading bar on a fresh load of the project root |
+| `framer.com/projects/` in the browser | redirects to **`framer.com/busy`** — *"Our servers are busy"* |
+
+**The decisive, cheap check is the browser hitting `framer.com/projects/`.** `Vekter stalled` is their canvas renderer timing out and reads like a project-specific corruption; it is not. **Confirm with a control project before suspecting the one you are working on** — `Alkimi (teaser)` failed identically, which settled it in one call.
+
+**The published site was unaffected throughout** (200 in 0.3s). An editor outage is not a site outage; say so rather than letting it read as one.
+
+**!!! A `curl` POLL FOR RECOVERY IS WORTHLESS — IT IS UNAUTHENTICATED, SO IT NEVER SEES `/busy` !!!** A watcher polling `curl -L https://framer.com/projects/` reported **"recovered"** on its first try while the browser was still plainly on `/busy`, and I relayed that to Shak before checking. `curl` has no session cookie, so it is redirected to `/login` instead — visible in the log as `poll 3: recovered -> .../login/?origin=framer-web`. **The redirect to `/busy` is auth-dependent and client-side.**
+
+**The rule this breaks is already in this file in other forms: validate a check against the real client before trusting it.** The only honest signal for "is Framer back" is an actual `session new`, or the browser. The broken poll did degrade into a usable retry loop — because curl always said "recovered", it simply attempted a session every ~2 minutes — but that was luck, not design.
+
+**A session id is a SHORT INTEGER** (`1`, `2`, `3`), which looks like truncated output and is not. Do not discard it as a parse failure.
+
+**`javascript_tool` ON THE FRAMER EDITOR TAB CAN EVALUATE IN A DETACHED CONTEXT.** Mid-session it began returning `document.querySelectorAll('div').length === 3`, empty `body.innerText` and **zero iframes**, while a screenshot showed the full UI. Earlier in the same session the same calls read the layer tree correctly. **Before driving the panel through the DOM, assert that the document actually contains the tree** — a low `div` count is the tell — and fall back to coordinates from a screenshot when it does not.
