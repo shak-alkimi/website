@@ -4378,3 +4378,15 @@ Shak pointed at a two-up block — a marbled-paint image beside a sprinkles "8" 
 **`kimi` has no article images either**, on top of having no hero — so its duo renders placeholders today and one placeholder after this. That article is empty of imagery end to end.
 
 Hidden rather than deleted, so it is one attribute to restore, and the CMS keeps both images. Verified in a separate `exec` on the same session and by re-issuing the write, which answered `already hidden` / `aspect already 1.504` on all six nodes. **Note the API rounds `aspectRatio` to 3 dp on read (`1.504`) while storage keeps full precision — confirm the real value in the published CSS.**
+
+### The sprinkles "8" replaced with its LANDSCAPE original to fit the new wide slot (2026-10-14, NEEDS A PUBLISH)
+
+After the duo collapsed to one wide image, `cauda`'s surviving slot held the marbled paint. Shak sent the **landscape** 8 and asked for it to fit properly. `Image 1` on `cauda` is now `aasebpMrigbE2oGKVbYvqlvc0k.jpg`, uploaded from `…/Framer/News/Cauda/eight.jpeg`, **verified on the CDN at `1687 x 1126`, matching the source exactly** (content, never the id).
+
+**WHY IT DID NOT FIT, MEASURED: the asset that had been bound was a PORTRAIT CROP of this very picture.** `XUqsxdLrQRr28Z3hWdncVkmKRI.jpeg` is **`901 x 1126`** — same height, width cut — i.e. a `0.80` crop made for the old `0.74` duo box. Dropped into the new `1.503671` box it would have lost about a third of its height under `object-fit: cover`. **The landscape original is `1687 x 1126` = `1.498224`, against the box's `1.503671` — a 0.36% crop, which is nothing**, and at `1382` device px of rendered width it is `1.22x` oversampled. **When a slot's aspect changes, check whether the bound asset is a crop of a wider original before re-cropping or replacing anything.**
+
+**I ASSUMED `cauda`, AND THE FILE PLACEMENT POINTED THE OTHER WAY.** A byte-count-identical copy, `AdobeStock_177044881_number8.jpeg`, was filed into **`…/News/Launch - Lumen Gala/`** (i.e. `debut`) at 13:18 the same day. Three things settled it for `cauda`: the 8 had been `cauda`'s `Image 2` for months (`Cauda/eight.jpeg`, there since August), the screenshot Shak had sent was `cauda`'s duo, and the Gala copy predates the duo change by four hours so it cannot be a response to it. **The two files are the same shot at the same size with DIFFERENT md5s** — different encodings, so do not treat equal byte counts as identity; hash them.
+
+**Consequence flagged rather than silently fixed: the marbled paint (`Uvdfbb2L1…jpeg`) is no longer referenced on `cauda`.** `Image 2` still holds the old portrait 8 and is hidden. Parking the marble in `Image 2` would preserve it invisibly, but that is a second change Shak did not ask for.
+
+**Publishing behaviour, observed twice today and worth stating plainly: a CMS write does NOT reach the site on its own.** `getUnpublishedPageChanges()` reads `[]` — it only ever covered the *page* change — while the live page still serves the old image. **Both kinds of change need a publish; that counter simply cannot see the CMS half.**
