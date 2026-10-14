@@ -4573,3 +4573,28 @@ Verified by re-issuing both writes (**7/7 `ALREADY HIDDEN`**) and a separate-`ex
 **There is no way to remove a row without one of these two**, because the numbers are hard-coded per row and the delays are hard-coded per divider variant. **Any future menu row change inherits the same two chores.**
 
 **The pages themselves are untouched and still reachable by direct URL** — `/projects-list`, `/projects-grid` and `/projects/:slug` all still publish. Hiding the navigation orphans them rather than removing them, which is reversible; drafting the pages would make those URLs 404 and is a separate decision.
+
+### `/about` — Approach and Testimonials removed, and for once NO spacing compensation was needed (2026-10-14, NEEDS A PUBLISH)
+
+Both were stock Ora content: the three-up **Research / Experimentation / Implementation** cards, and the **Testimonial Slider**. Hidden on all three breakpoints — `ug0DLqf9I` / `fFtRsaTQr` plus their `JWlDAB7wN` (Tablet) and `AwhOnpHay` (Phone) copies. The Desktop write **cascaded**; verified by re-issuing (6/6 `ALREADY HIDDEN`) and a separate-`exec` read-back, with Intro / Services / Clients confirmed untouched.
+
+**`/about`'s `Main` is the same hazard shape as the project pages' `Container Relative` — a `gap: 0` vertical stack where each section supplies its own padding.** Three previous hides in that shape each silently took a sibling's spacing with them, so this was measured before writing anything rather than reasoned about afterwards.
+
+**Measured live, every inter-section gap is `0`** — all spacing is each section's own padding plus its internal content:
+
+```
+Section Intro          856 .. 1253   padT 45   padB 120
+Section Approach      1253 .. 2159   padT  0   padB   0
+Section Services      2159 .. 2598   padT  0   padB   0
+Section Clients       2598 .. 3534   padT  0   padB 120
+Section Testimonials  3534 .. 4360   padT  0   padB 120
+```
+
+**That layout is what makes both removals free, and the reason is specific to each:**
+
+- **Testimonials is last**, and the section before it (`Clients`) already carries `padB 120`. That 120 was the gap *between* them; with Testimonials gone the same 120 becomes the gap to the footer — the value Testimonials' own `padB 120` used to provide. Identical either way.
+- **Approach carries no vertical padding at all** on Desktop and Tablet. The gap above it was `Intro`'s `padB 120`; with Approach gone that same 120 sits above `Services`. The page's standard section gap is 120, so it lands on the house value rather than an accident. (Phone's Approach does carry `padB 120`, and the arithmetic still resolves to 120 because Intro's `padB` takes over.)
+
+**The general test, now that this stack shape has appeared four times:** read every section's `padT`/`padB` and the rendered gaps *before* hiding. **A section with `padT 0 / padB 0` is spacing-neutral and can be hidden freely; a section carrying padding is load-bearing and its value must be moved to a neighbour.** Approach was the first kind, Testimonials was the second but was rescued by its predecessor carrying the same value.
+
+**Consequence worth knowing: CMS groundwork seeded earlier is now largely orphaned.** The `Testimonials` collection (`Sy_edh8S4`, 4 items) drives nothing at all, and of the `About` collection's 19 fields, `Approach Heading`, `Value 1-3 Number/Title/Text/Image` and `Testimonials Heading` — **13 of 19** — now have no surface. Nothing breaks; the recorded plan to wire `/about` through a Collection List just got considerably smaller. **The `Clients` collection (8 items) is unaffected** since that section stays.
