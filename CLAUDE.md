@@ -4143,3 +4143,34 @@ Rendered footer on `/products` measures **756px**, the predicted tell (was 675),
 Full Home regression sweep passes: 11x `1.17458`, 0 stale `1.180xx`, both Elements ratios, 2 hero overlays, `#f7f6f2` with 0 `#f6f4f0`, brand green, `Project Portfolio` x2, 0 stale `View Case Study`, `lossless=1` 0, badge 0, orb byte-exact at `4,280,052`. `/contact` still holds the new address and photo.
 
 **The remote-module trap is now fully closed for the footer.** Worth remembering that it was invisible to every normal check — three publishes, byte-stable fetches and a recent `Last-Modified` all said "fine". **Only comparing `componentIdentifier` across instances found it**, which makes that scan worth running whenever a component edit fails to appear on some pages but not others.
+
+### The "Project Portfolio" button was NEVER CLICKABLE — `pointer-events: none` (fixed 2026-10-13, NEEDS A PUBLISH)
+
+Shak reported the Home wide card's button should link to the projects list. **It already did** — the published markup carries `href="./projects-list"` on the anchor, and that was verified twice. **The link was fine; the button could not be clicked.**
+
+```
+P    .framer-text                           pe=none
+DIV  .framer-kjk2pd                         pe=none
+DIV  .framer-15h3ucm                        pe=none
+A    "Button White to Outline - Hover"      pe=none   href="./projects-list"
+DIV  .framer-h6av0r-container               pe=none   opacity 0
+DIV  "CTA"                                  pe=auto
+```
+
+**The emitted rule is on the BASE and nothing overrides it**, so it applied in every state including hover:
+
+```css
+.framer-bkLXd .framer-h6av0r-container{pointer-events:none;…}
+.framer-bkLXd.framer-v-r3zqm7 .framer-h6av0r-container{…bottom:-60px…}   /* only position */
+.framer-bkLXd.framer-v-r3zqm7.hover .framer-h6av0r-container{…bottom:0}  /* only position */
+```
+
+**The grid card's identical button proves it was a setting, not a necessity:** its container `.framer-4kl6gm-container` is `pointer-events: auto` with the same `opacity: 0` at rest, and its links work. **So `opacity: 0` on these containers is normal — the button reveals on hover — and the pointer value was the only difference.**
+
+**Cause: `Pointer: None` on the instance**, inherited from the Ora template. Fixed by setting **`Pointer: Auto`** in the editor on the wide card's button; **the base change cascaded** to the hover state and the mobile variant (both read `Auto` with a non-purple label, i.e. inheriting).
+
+**`pointer` IS NOT EXPOSED ON THE NODE THROUGH THE API.** A full key dump of the button instance returns `__class, aspectRatio, bottom, centerX, centerY, componentIdentifier, componentName, controls, height, id, insertURL, left, locked, max/min*, name, opacity, originalId, position, right, rotation, top, visible, width` — no pointer, cursor or interaction key, on either the broken button or a working grid one. Add it to the editor-only list beside appear effects, vectors, CMS bindings and conditional visibility.
+
+**THIS WAS FLAGGED AND NEVER CHECKED, AND THAT IS THE REAL LESSON.** The 2026-10-07 note on this button said, in as many words: *"`pointer-events: none` was on the old published container rule, and the grid card's equivalent does not have it. If it survives the change the button will be visible but unclickable. Verify a real click reaches `/projects/:slug`."* That verification was never done, so a known risk sat live for six days until Shak hit it. **A "verify this after publishing" note is worth nothing unless it is actually run — either do the check in the same session or carry it as an explicit open item, not as a sentence buried in a paragraph.**
+
+**Method, worth generalising: an `href` in the markup does not mean a working link.** Confirming a link needs the computed `pointer-events` walked up the ancestor chain, not just the anchor's presence. The same applies to anything a visitor must click.
