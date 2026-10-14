@@ -4144,7 +4144,7 @@ Full Home regression sweep passes: 11x `1.17458`, 0 stale `1.180xx`, both Elemen
 
 **The remote-module trap is now fully closed for the footer.** Worth remembering that it was invisible to every normal check — three publishes, byte-stable fetches and a recent `Last-Modified` all said "fine". **Only comparing `componentIdentifier` across instances found it**, which makes that scan worth running whenever a component edit fails to appear on some pages but not others.
 
-### The "Project Portfolio" button was NEVER CLICKABLE — `pointer-events: none` (fixed 2026-10-13, NEEDS A PUBLISH)
+### The "Project Portfolio" button was NEVER CLICKABLE — `pointer-events: none` (fixed, PUBLISHED AND VERIFIED LIVE 2026-10-13)
 
 Shak reported the Home wide card's button should link to the projects list. **It already did** — the published markup carries `href="./projects-list"` on the anchor, and that was verified twice. **The link was fine; the button could not be clicked.**
 
@@ -4188,3 +4188,20 @@ Desktop was confirmed by a **real click** — hover the card, click the button, 
 **THIS WAS FLAGGED AND NEVER CHECKED, AND THAT IS THE REAL LESSON.** The 2026-10-07 note on this button said, in as many words: *"`pointer-events: none` was on the old published container rule, and the grid card's equivalent does not have it. If it survives the change the button will be visible but unclickable. Verify a real click reaches `/projects/:slug`."* That verification was never done, so a known risk sat live for six days until Shak hit it. **A "verify this after publishing" note is worth nothing unless it is actually run — either do the check in the same session or carry it as an explicit open item, not as a sentence buried in a paragraph.**
 
 **Method, worth generalising: an `href` in the markup does not mean a working link.** Confirming a link needs the computed `pointer-events` walked up the ancestor chain, not just the anchor's presence. The same applies to anything a visitor must click.
+
+**VERIFIED LIVE 2026-10-13, both branches.** Two byte-stable fetches, then the emitted rules:
+
+```css
+.framer-09RQ4 .framer-h6av0r-container            {pointer-events:none …}   /* base */
+.framer-09RQ4.framer-v-r3zqm7 .framer-h6av0r-…    {pointer-events:auto …}   /* desktop/tablet wide */
+.framer-09RQ4.framer-v-fo45vv .framer-h6av0r-…    {pointer-events:auto …}   /* phone wide */
+```
+
+Both wide cards are in the markup with the button — desktop/tablet inside `ssr-variant hidden-wpowcz`, phone inside `hidden-1veez17 hidden-72rtr7` — each carrying `href="./projects-list"` and the label `Project Portfolio` (2 on the page, 0 stale `View Case Study`). Desktop was additionally proven by a **real click** that landed on `/projects-list`.
+
+**THE PHONE BRANCH CANNOT BE CLICK-TESTED HERE, so the proof is the CSS plus a `none`-rule sweep.** Viewport emulation still does not work (`resize_window` to 390x844 left the page reporting `1536`), and **Framer does not hydrate an inactive breakpoint's variant**, so a `querySelectorAll` at desktop width finds only two `./projects-list` anchors — the desktop button and a footer link — and the phone button is simply absent from the live DOM. The decisive checks instead:
+
+1. the `.framer-v-fo45vv` rule above outranks the base on specificity (`0,3,0` against `0,2,0`);
+2. **sweeping every `pointer-events:none` rule on the page** leaves only that base rule able to reach this chain — the others are `GlobalScrollbarHider`, the `[data-border=true]:after` pseudo-element, and the unused `.framer-pointer-events-none` / `[data-is-present=false]` utilities.
+
+**Reading the SSR markup needs the file split first.** It is one ~280 KB line, and `grep -o 'framer-v-fo45vv.\{0,9000\}'` backtracks badly enough to blow a two-minute timeout. `tr '<' '\n<'` gives 1,876 lines, after which an `awk` pass that tracks the nearest preceding `ssr-variant` wrapper and card variant attributes every anchor in one go. **Key that pass on the CARD variant, not the button's own** — both buttons render `framer-v-fqf7wf` (`Button White to Outline - Hover`), so keying on it makes the two breakpoints indistinguishable and produced a false "the phone button is not in the markup".
