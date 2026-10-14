@@ -4249,3 +4249,30 @@ For ~25 minutes every route was blocked. **The three symptoms look like three di
 **A session id is a SHORT INTEGER** (`1`, `2`, `3`), which looks like truncated output and is not. Do not discard it as a parse failure.
 
 **`javascript_tool` ON THE FRAMER EDITOR TAB CAN EVALUATE IN A DETACHED CONTEXT.** Mid-session it began returning `document.querySelectorAll('div').length === 3`, empty `body.innerText` and **zero iframes**, while a screenshot showed the full UI. Earlier in the same session the same calls read the layer tree correctly. **Before driving the panel through the DOM, assert that the document actually contains the tree** — a low `div` count is the tell — and fall back to coordinates from a screenshot when it does not.
+
+### THE HOME WIDE CARD IS GONE — PUBLISHED AND VERIFIED LIVE 2026-10-14, AND THE 90px GAP LANDED EXACTLY
+
+Two byte-stable fetches (`261,529`), then the markup: **0** of `Home Project Single - Wide`, `Home Project Single Wide - Mobile`, `framer-v-r3zqm7`, `framer-v-fo45vv`, `Project Portfolio`, and **0** references to the card's asset. The three remaining `./projects-list` hrefs are the **footer sitemap**, one per breakpoint — confirmed by tracking the enclosing `ssr-variant` wrapper, not by assuming.
+
+**The spacing prediction was confirmed by measurement, not left as arithmetic** — rendered at 1521 wide:
+
+```
+Section Projects   828 .. 1611.6   padding 0        (the row supplies its own 15px)
+  Product Card         .. 1596.6
+Section News      1611.6 .. 2510.7 padding 75px 15px 90px
+GAP card -> first Newsroom element  =  90.0px
+```
+
+Exactly the 90px the card used to have beneath it, so nothing moved but the card.
+
+**`aspect-ratio:1.17458` went 11 -> 8, and 8 IS THE CORRECT NEW BASELINE.** The verified-baseline section above lists Row 1's eight rules by name (4 base + 3 on `v-1rizoid` + 1 on `v-3q8m7a`); the three that disappeared were Row 2's. **A regression count that drops after a deliberate removal is only a regression if you cannot name the rules that went** — enumerate them before treating the number as a failure. Everything else in the sweep passes: 0 stale `1.180xx`, both Elements ratios, 2 hero overlays, `#f7f6f2` with 0 `#f6f4f0`, brand green, 0 `View Case Study`, `lossless=1` 0, badge 0, 58 Gellix refs, orb byte-exact at `4,280,052`, hero video `4,009,893`.
+
+**`getUnpublishedPageChanges()` RETURNS AN ARRAY, NOT A COUNT** — it now reads `[]`, and `Va7s_G1cn` reads `visible: false` in a separate read on the same session. An earlier note in this file recorded the value as "1", which was an array of length 1. **So every remaining `NEEDS A PUBLISH` marker above this line is SPENT.** Spot-checked rather than inferred from the counter, because that counter covers *page* changes and would not necessarily see a CMS write: the contact address is live (`387 Park Ave S`, 0 of `209 Hudson`), the project duo ratio is live (`aspect-ratio:1.33333`), `All Projects` is hidden (0), and the news rotation works — `/news/debut` renders `./cauda` and `./kimi`, the `3 -> 1,2` rotation.
+
+**THREE READING ERRORS IN ONE VERIFICATION PASS, ALL CAUGHT, ALL ALREADY DOCUMENTED HERE:**
+
+1. **A grep for `Let's start a conversation` returned 0 on Home and read as the footer CTA having vanished.** The page uses a **typographic apostrophe**. `Row Top` counts 3 on Home and 3 on `/about`, identical. **Grep a distinctive word, never a string containing an apostrophe or a dash.**
+2. **`/news/kimi` came back at 29,843 bytes against the real 246,046** — the documented post-publish truncation, on its first fetch. Three re-fetches agreed. **Re-fetch until two reads agree before diagnosing anything on a page just published.**
+3. **The Read more cards use `./cauda`, not `./news/cauda`** — relative to the article, not to the site root. A grep for `./news/` found nothing and looked like the row was empty on all three articles, which was the exact defect being checked for. **Read the hydrated DOM and print the hrefs you actually find rather than grepping for the shape you expect** — and scroll to the bottom first, because the Collection List hydrates late.
+
+**The built-in browser pane is STILL degenerate for this project** — `innerWidth: 0`, so every rect is meaningless, exactly as recorded in 2026-10-05. It was re-tested in one call rather than assumed; **Claude in Chrome reported a real `1521` viewport and is the only way to measure this site.**
