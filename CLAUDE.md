@@ -4167,7 +4167,21 @@ DIV  "CTA"                                  pe=auto
 
 **The grid card's identical button proves it was a setting, not a necessity:** its container `.framer-4kl6gm-container` is `pointer-events: auto` with the same `opacity: 0` at rest, and its links work. **So `opacity: 0` on these containers is normal — the button reveals on hover — and the pointer value was the only difference.**
 
-**Cause: `Pointer: None` on the instance**, inherited from the Ora template. Fixed by setting **`Pointer: Auto`** in the editor on the wide card's button; **the base change cascaded** to the hover state and the mobile variant (both read `Auto` with a non-purple label, i.e. inheriting).
+**Cause: `Pointer: None` on the instance**, inherited from the Ora template. Fixed by setting **`Pointer: Auto`** in the editor on the wide card's button.
+
+**!!! IT DID NOT CASCADE, AND THE FIRST PUBLISH SHIPPED ONLY HALF THE FIX !!!** An earlier version of this note claimed the base change cascaded to the hover state and the mobile variant, on the strength of both reading `Auto` with a non-purple label. **That reading was wrong.** The published CSS after that publish settles it:
+
+```css
+.framer-rEOd2 .framer-h6av0r-container{pointer-events:none;…}                                 /* base */
+.framer-rEOd2.framer-v-r3zqm7 .framer-h6av0r-container{…pointer-events:auto;…bottom:-60px…}   /* desktop wide, FIXED */
+.framer-rEOd2.framer-v-fo45vv .framer-h6av0r-container{…bottom:0…}                            /* MOBILE wide, NO override */
+```
+
+Desktop was confirmed by a **real click** — hover the card, click the button, land on `/projects-list` with `h1: "Projects"` — while **mobile still inherited `none`** and was still unclickable. A second editor pass set `Pointer: Auto` on `Home Project Single Wide - Mobile`'s button, which now shows `Auto` selected with a **purple** label.
+
+**A GREY `Auto` MEANS NOTHING HERE — only a purple label proves an override.** The panel displays the inherited base value as `Auto` even while the emitted CSS is `pointer-events: none`, so "it already reads Auto" is not evidence the variant is fixed; it is evidence that nothing is set on it. Same family as reading an input's `value` back after a failed write: the panel will show a value it never stored.
+
+**Finding the right button, now that all three share a title.** Filter Layers for `Primary Button`; each variant row is followed by its `Project Left` button and then a `Home Project Right` one. The wide-card buttons are the ones carrying **Title `Project Portfolio` + Link `/projects-list`**; of those, the desktop base is the one at `Opacity 0`, and the remaining two are told apart only by which still reads `Pointer: None`. Layer rows respond to synthetic `pointerdown/mousedown/pointerup/mouseup/click`, but the **Styles-panel toggles need a real `computer left_click`** — the same split already recorded for the Appear-effect chips.
 
 **`pointer` IS NOT EXPOSED ON THE NODE THROUGH THE API.** A full key dump of the button instance returns `__class, aspectRatio, bottom, centerX, centerY, componentIdentifier, componentName, controls, height, id, insertURL, left, locked, max/min*, name, opacity, originalId, position, right, rotation, top, visible, width` — no pointer, cursor or interaction key, on either the broken button or a working grid one. Add it to the editor-only list beside appear effects, vectors, CMS bindings and conditional visibility.
 
