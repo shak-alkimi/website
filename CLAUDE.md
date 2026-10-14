@@ -4319,3 +4319,30 @@ Shak said he had moved it and it did not move. **The CMS confirmed it never move
 **THE CARD AND THE HERO ARE DIFFERENT FIELDS AND THIS IS THE THIRD TIME THAT HAS MATTERED.** `Thumbnail Video MOV` drives a **Fill** on the article *card* (Home newsroom, `/news` listing); `Hero Video URL` drives the `Video` layer on the article *page*. Moving the orb fixes kimi's card and does nothing for its hero. **When someone says a video should be "on" an article, establish which of the two they mean before moving anything.**
 
 **The Drive folders name the articles better than the slugs do**, and that is worth using as the mapping of record: `…/Framer/News/` holds **`Cauda`** (the peacock), **`Opus`** (`opus_enso_orb.mov` / `.mp4`, the 1.7 GB and 442 MB masters behind the 4,280,052-byte web encode) and **`Launch - Lumen Gala`** (`debut`). So the orb's source folder is `Opus` while its article's slug is now `kimi` — the slugs have churned (`lumens` -> `debut`, `opus` -> `kimi`) and **the folder names are the stable handle.** Neither folder holds a hero still, so kimi's missing hero needs new artwork or a decision to use the orb there too.
+
+### `debut`'s hero was ALREADY `hero-debut-gala.jpg` — the upload deduplicated and proved it (2026-10-14)
+
+Shak asked to set `/news/debut`'s hero to `hero-debut-gala - Copy.jpg`. **It was already that exact file.** `framer.uploadImage` returned **`y41mQneNuZycXD8hJ06MX5wiA.jpg` — the id already in `Image Hero`** — and the hosted asset measures `2700 x 1203`, matching the local file. So nothing changed and, importantly, **no new permanent asset was created.**
+
+**THE DEDUP IS A FREE IDENTITY CHECK AND THIS IS ITS SECOND USE** (the first was `Vena`'s unchanged drawing). **An upload that returns the id already bound is proof the bytes are identical** — stronger than comparing dimensions, and it costs nothing because there is no asset-delete in this API. **Try the upload before concluding an asset needs replacing.**
+
+Note `hero-debut-gala.jpg` and `hero-debut-gala - Copy.jpg` are byte-identical (`cmp` clean, both `820,698`), so the " - Copy" carries no new content.
+
+**The crop is right and was measured rather than assumed:** the News hero `Image Wrapper` renders **`1446 x 644`, aspect `2.245`**, against the image's `2700 x 1203`, aspect **`2.244`** — essentially zero crop under `object-fit: cover`, and `1.24x` oversampled at `dpr 1.5`. Shak had already cropped it to the box.
+
+**EVERYTHING FROM TODAY'S CMS MOVES IS PUBLISHED AND LIVE** (build `Last-Modified 16:58:57 GMT`), verified on the hydrated DOM rather than the SSR markup:
+
+```
+Home cards   cauda -> yEZOA4lf3M…jpeg still
+             kimi  -> 4cCuy9y2…mp4  THE ORB          <- moved back, correct
+             debut -> 1eVieFUpP0…jpg still
+Article      /news/cauda  1 <video>, peacock x2      <- the peacock hero, correct
+             /news/debut  0 videos, y41mQ… x10       <- the gala still, correct
+             /news/kimi   no hero at all             <- STILL OPEN
+```
+
+**`/news/kimi` remains the one real gap** — `Image Hero` and `Hero Video URL` both empty, so it renders the striped placeholder. Neither Drive folder (`Opus`, which holds the orb masters) carries a hero still for it.
+
+**A reading worth keeping: `debut`'s CARD image (`1eVieFUpP0…jpg`) is NOT the gala hero.** Card and hero are separate fields — `Thumbnail` against `Image Hero` — so "the debut image" means two different files depending on which surface is being looked at. That is the same card/hero split that has now caused confusion three times in one day.
+
+**`javascript_tool` IS BLOCKED ON THE PUBLISHED SITE TOO, not just the editor tab.** A script containing `fetch` and `currentSrc` returned `BLOCKED: Cookie/query string data`; the identical geometry read with those two removed ran fine. **Keep browser scripts to plain DOM reads** and do any asset fetching from the shell.
