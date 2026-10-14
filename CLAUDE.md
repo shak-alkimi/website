@@ -4102,3 +4102,23 @@ Those two pages ignored three consecutive publishes of footer edits. **They were
 **Two consequences worth naming.** The stock **`twitter.com/ena_supply` and `linkedin.com/company/ena-supply`** links are live and clickable on two public pages — the template author's handles, not Alkimi's. And the `Show CTA` boolean added to the local footer **does not exist** on these instances, so the CTA cannot be switched off there the way it now can on `/contact`.
 
 **The fix is one editor action, located but NOT run** (Shak asked for the diagnosis first): right-click the footer layer -> **`Replace all instances with` -> `Project` -> `Footer / Footer`**. "All instances" is exactly the 6. **The risk to watch is that the swap may reset each instance's `variant`** (Desktop/Tablet/Mobile) and its `XOac4bt7c` path control; the path is API-writable, **`variant` is not**, so if it resets, all six have to be re-picked by hand through the Variant dropdown.
+
+### THE SWAP IS DONE — `/products` and `/elements` are on the local footer (2026-10-13, NEEDS A PUBLISH)
+
+Ran `Replace all instances with -> Project -> Footer / Footer` on the `/products` footer. **All 42 footer instances across the site now read `local-module:canvasComponent/CPt2kErNr:default`; zero remote.**
+
+**The confirmation dialog said "all 2 instances", not 6, and that is correct.** Framer counts the **page-level** instance and treats the breakpoint copies as derived — their ids are the parent's with a prefix (`MYmvwmubc` -> `jeBJOTditMYmvwmubc`). So "2" meant `/products` + `/elements`, which is the whole job. **Do not read a low count in that dialog as the command having missed the breakpoints.**
+
+**THE PREDICTED RESET HAPPENED, AND IT HIT EXACTLY ONE CONTROL.** After the swap:
+
+| control | survived? |
+|---|---|
+| `XOac4bt7c` (scroll-to-top path) | **yes** — `/products` and `/elements` intact |
+| `tDzMcZtyR` (`Show CTA`) | **yes** — inherited `true`, which is right for these pages |
+| **`variant`** | **NO — all six reset to `Desktop`** |
+
+So the Tablet and Phone instances on both pages would have rendered the desktop footer. Fixed by hand through the Variant dropdown, using the recorded technique — **click the select to focus (no menu opens), then one key**: `Down` for Tablet, and **`End` for Mobile**, which jumps straight to the last of the three options in a single step rather than two `Down`s.
+
+**Verified by diffing the full 42-instance state against the record taken before the swap** ([repair/footer-instances-prestate.json](repair/footer-instances-prestate.json)): **36 unchanged, 6 changed, and the only difference on those 6 is `REMOTE -> LOCAL`** — variant, path, visibility, position and width all byte-identical to before. That diff is the check worth keeping for any component swap: capture every instance first, then prove that nothing outside the intended set moved.
+
+**What this fixes once published:** `/products` and `/elements` get the six-link Sitemap, lose the stock `twitter.com/ena_supply` and `linkedin.com/company/ena-supply` links, and gain the `Show CTA` switch. Their footer height should go `675px -> 756px`, which is the quickest single tell that the swap shipped.
