@@ -4276,3 +4276,28 @@ Exactly the 90px the card used to have beneath it, so nothing moved but the card
 3. **The Read more cards use `./cauda`, not `./news/cauda`** — relative to the article, not to the site root. A grep for `./news/` found nothing and looked like the row was empty on all three articles, which was the exact defect being checked for. **Read the hydrated DOM and print the hrefs you actually find rather than grepping for the shape you expect** — and scroll to the bottom first, because the Collection List hydrates late.
 
 **The built-in browser pane is STILL degenerate for this project** — `innerWidth: 0`, so every rect is meaningless, exactly as recorded in 2026-10-05. It was re-tested in one call rather than assumed; **Claude in Chrome reported a real `1521` viewport and is the only way to measure this site.**
+
+### The peacock video moved from `debut` to `cauda` — the edit had never persisted (2026-10-14, NEEDS A PUBLISH)
+
+Shak said he had moved it and it did not move. **The CMS confirmed it never moved**: `Hero Video URL` and `Hero Video - Poster` were still on `debut`, and `cauda` had neither.
+
+**IDENTIFYING "THE PEACOCK VIDEO" WAS THE WHOLE JOB, AND BYTE SIZE SETTLED IT.** Nothing in Framer is named, so a scan of **every** CMS field across every collection plus every canvas `controls` value returned exactly three videos site-wide:
+
+| asset | bytes | where |
+|---|---|---|
+| `DxLxD5Vg….mp4` | **4,612,681** | `News/debut/Hero Video URL` |
+| `4cCuy9y2….mp4` | 4,280,052 | `News/cauda/Thumbnail Video MOV` — the enso orb |
+| `ege1ICH4….mp4` | 4,009,893 | Home hero |
+
+`AdobeStock_1389333519_peacock feather_1080_60fps_web.mp4` in Shak's Drive is **4,612,681 bytes — exact**. So the peacock is `DxLxD5Vg`, and it was heroing *"Debuting our name in New York at the Lumen Gala"* while **`cauda` is literally "A depth of color brought to light"**. The title confirmed what the byte match had already proven. **A byte-size match against the source file is the cheapest identity check in this project and it has now worked three times** (the orb, the hero poster, this).
+
+**Moved the video AND its poster together.** The poster was built from this encode's frame 0, so they are a pair — and a video hero with no poster is a blank hero for as long as the network takes, which is the documented defect from the first use of this mechanism. `debut` keeps its `Image Hero` (`y41mQ…jpg`), so its `Thumbnail` layer's `Hero Video URL Isn't set` condition now resolves to a real still rather than nothing.
+
+**Cleared the string with `""` and the image with `null`**, and passed `draft` explicitly on both items — `addItems` resets `draft` to `false` otherwise. Draft counts re-verified unchanged (Home 3/3, Fixtures 11/11, Elements 5/5, Projects 3/10, News 3/7).
+
+**!!! "DISCARD THE FIRST READ OF A FRESH SESSION" WAS NOT ENOUGH — the SECOND read was stale too !!!** A brand-new session's first *and* second reads both returned the pre-write state (poster still on `debut`, absent from `cauda`). Three later fresh sessions all returned the correct state. **What told the truth immediately, as always, was a separate `exec` on the SAME session plus re-issuing the write, which answered `ALREADY MOVED`.** Treat the same-session read-back and the idempotent re-write as the primary evidence and a fresh session as the laggard, not the authority.
+
+**Two things left as they are, both worth a decision:**
+
+- **`cauda` has no `Image Hero`.** Its hero is the video and nothing else, so clearing the video later would leave the hero empty. `Peacock Feather.jpg` sits in the same Drive folder if a still fallback is wanted.
+- **`cauda`'s card video is still the enso orb** (`Thumbnail Video MOV`), so on Home its card plays the orb while its article plays the peacock. That is a separate field driving a **Fill**, not the hero — the two have never been connected.
