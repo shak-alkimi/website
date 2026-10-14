@@ -4527,3 +4527,49 @@ gridColumnCount:   slot1=2        slot2=null      (+ 7 more grid* fields)
 **The full-frame upload from twenty minutes earlier (`lius7UflLjswhyfovfjx5yzznDE.jpg`, 4000 x 2666) is now a permanent orphan.** It was not avoidable by waiting — at the time of that upload the folder held only the raw stock file (`AdobeStock_…_nyc.jpeg`, 14:29); the `hero-debut-soho-facade.jpg` export appeared at 14:36, after. **But the naming convention was already visible in that folder** (`hero-debut-gala.jpg`, and the same `- Copy` duplicate pattern), which is a reliable signal that Shak prepares his own `hero-<slug>-<subject>.jpg` crops. **When a Drive folder already contains a purpose-named export for a slot, ask whether one is coming before uploading a self-made master** — every upload is permanent and there is no delete.
 
 **So the standing guidance for this slot is: prefer Shak's `hero-debut-*.jpg` export when one exists; fall back to cropping the stock original only when it does not.**
+
+### Projects hidden from site navigation — and WHY the divider pair must move together (2026-10-14, NEEDS A PUBLISH)
+
+Shak asked to hide the Projects page from the whole site, remove it from the menu, and not reintroduce the divider defect.
+
+**The link surface is smaller than it looks, and that was measured rather than assumed.** Sweeping all nine published pages for `projects-grid` / `projects-list` / `./projects/<slug>`:
+
+| | every page | the projects pages themselves |
+|---|---|---|
+| `projects-list` | **3** — the footer sitemap, one per breakpoint | 4-5 |
+| `projects-grid` | **0** | 1-2 |
+| `./projects/<slug>` | **0** | 9 |
+
+So site-wide there were exactly **two** surfaces: the **nav menu** and the **footer sitemap**. The Home wide card that used to link there is already hidden.
+
+**THE MENU IS NOT IN THE SSR MARKUP AT ALL** — no row labels, no row numbers, no `Line Mobile Menu` names. It is injected when opened, so the only way to read it is a **real `computer` click on the hamburger** in Claude in Chrome, then query the DOM. That gave the whole table in one shot:
+
+```
+305 Fixtures 01 -> ./products       357 Line Mobile Menu 1 Active
+365 Elements 02 -> ./elements       417 Line Mobile Menu 2 Active
+425 Projects 03 -> ./projects-list  477 Line Mobile Menu 3 Active
+485 About    04 -> ./about          537 Line Mobile Menu 4 Active
+545 News     05 -> ./news           597 Line Mobile Menu 5 Active
+605 Contact  06 -> ./contact        657 Line Mobile Menu 6 Active
+```
+
+Row pitch **60**, each divider exactly **52** below its row, divider *N* under row *N*.
+
+**!!! THE DIVIDER RULE: HIDE THE ROW AND ITS ADJACENT `Line` TOGETHER, NEVER THE ROW ALONE !!!**
+
+`Link Wrapper` holds 13 children **alternating row / line**, and pitch is `row 45 + line 1 + 2 x gap 7 = 60` — even, which is the whole reason every divider renders the same weight at `dpr 1.5`. Hiding **the pair** removes exactly one 60px unit and leaves the alternation and the phase intact. Hiding **the row only** would leave two `Line`s adjacent at a pitch of `1 + 14 = 15` — **odd**, which is precisely the condition that brings back the alternating thick/thin rendering this file documents at length. A hidden layer emits no markup, so no gap is left behind either way.
+
+Hidden on **both** variants (`Variant 1` and `Desktop Full Menu`): row `htXrIA7vZ` + line `MwmLuv22d`, and their `Ys3TDsYHm`-prefixed copies. The component has **81 instances**, so this reaches every page.
+
+**Footer sitemap: hide the wrapping `Stack`, not the link instance.** `Link Wrapper GRfAXJ4j0` is a **vertical stack with `gap: 5px`** whose six children are each a `Stack` holding one link. Hiding the link would have left an empty wrapper still consuming a 5px gap; hiding `aD0CBCXS4` removes the row cleanly. The Desktop write **cascaded** to Tablet and Mobile.
+
+Verified by re-issuing both writes (**7/7 `ALREADY HIDDEN`**) and a separate-`exec` read-back.
+
+**TWO CONSEQUENCES LEFT DELIBERATELY FOR SHAK, BOTH EDITOR-ONLY:**
+
+1. **The row numbers now read `01, 02, 04, 05, 06`.** They are static text per row, not a control — the row frame has **no `controls`**, and `getText()` on the number layer fails with **`"Node is not a text node"` on a node whose `__class` is literally `TextNode`**, the documented component-internal limit. So renumbering `04/05/06 -> 03/04/05` is three canvas text edits. **It was NOT done because "hide" reads as reversible** — if Projects returns, the renumbering has to be undone too.
+2. **The divider cascade now has a hole.** The surviving dividers are variants **1, 2, 4, 5, 6**, whose delays are `0.2 / 0.35 / 0.65 / 0.8 / 0.95` — so the measured-and-confirmed **150ms stagger becomes 300ms between the 2nd and 3rd line**. Fixing it means either re-pointing each divider's `variant` control (**not writable** — documented silent failure) or editing `Delay` on `Line Mobile Menu 4/5/6 Active` to `0.5 / 0.65 / 0.8`. Those three variants serve the menu only — the Home Newsroom divider uses `Line Animation` / `Line Animation Active` — so that edit is safe to scope.
+
+**There is no way to remove a row without one of these two**, because the numbers are hard-coded per row and the delays are hard-coded per divider variant. **Any future menu row change inherits the same two chores.**
+
+**The pages themselves are untouched and still reachable by direct URL** — `/projects-list`, `/projects-grid` and `/projects/:slug` all still publish. Hiding the navigation orphans them rather than removing them, which is reversible; drafting the pages would make those URLs 404 and is a separate decision.
