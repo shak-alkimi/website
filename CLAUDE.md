@@ -4517,3 +4517,13 @@ gridColumnCount:   slot1=2        slot2=null      (+ 7 more grid* fields)
 **Uploading the whole frame is better here because the News hero's `Thumbnail` layer binds its Fill with a FOCAL POINT**, not a plain fill. A centred cover-crop and a centred hard crop render identically today, but the full frame leaves the focal point adjustable in the editor and survives any future change to the box aspect. **A hard crop throws that away permanently, and assets cannot be deleted.** Reach for a pre-crop only when the subject must be framed somewhere a focal point cannot reach.
 
 **Showing the crop beats describing it.** The band was rendered locally (`crop=4000:1782:0:442`) and sent to Shak as a file, so the framing decision is made against the actual output rather than against a percentage. **Do this whenever a cover-crop removes a significant fraction** — it costs one ffmpeg call and no permanent asset.
+
+**SUPERSEDED SAME DAY — Shak supplied a web-friendly crop, and `Image Hero` on `debut` is now `KN9kANcj5KB5iLZY5fenBdrhY.jpg` (2026-10-14).**
+
+`hero-debut-soho-facade.jpg` is **`2700 x 1203`, aspect `2.2444`, 998 KB** — pre-cropped to the hero box exactly, and **the identical dimensions as the outgoing gala hero**, which is clearly the convention for this slot. Verified on the CDN at `2700 x 1203` matching the source, by a separate `exec`, and by **re-issuing the write, which answered `ALREADY BOUND`** — and because the re-upload returned the *same asset id*, that doubles as proof of byte identity (the documented dedup check).
+
+**His crop and my centred band are the same framing** — PSNR **34.2 dB** between them, i.e. differing only by encoding and resampling. So the preview sent earlier is what ships, and the focal-point argument turned out moot.
+
+**The full-frame upload from twenty minutes earlier (`lius7UflLjswhyfovfjx5yzznDE.jpg`, 4000 x 2666) is now a permanent orphan.** It was not avoidable by waiting — at the time of that upload the folder held only the raw stock file (`AdobeStock_…_nyc.jpeg`, 14:29); the `hero-debut-soho-facade.jpg` export appeared at 14:36, after. **But the naming convention was already visible in that folder** (`hero-debut-gala.jpg`, and the same `- Copy` duplicate pattern), which is a reliable signal that Shak prepares his own `hero-<slug>-<subject>.jpg` crops. **When a Drive folder already contains a purpose-named export for a slot, ask whether one is coming before uploading a self-made master** — every upload is permanent and there is no delete.
+
+**So the standing guidance for this slot is: prefer Shak's `hero-debut-*.jpg` export when one exists; fall back to cropping the stock original only when it does not.**
