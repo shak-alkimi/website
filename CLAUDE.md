@@ -4122,3 +4122,24 @@ So the Tablet and Phone instances on both pages would have rendered the desktop 
 **Verified by diffing the full 42-instance state against the record taken before the swap** ([repair/footer-instances-prestate.json](repair/footer-instances-prestate.json)): **36 unchanged, 6 changed, and the only difference on those 6 is `REMOTE -> LOCAL`** — variant, path, visibility, position and width all byte-identical to before. That diff is the check worth keeping for any component swap: capture every instance first, then prove that nothing outside the intended set moved.
 
 **What this fixes once published:** `/products` and `/elements` get the six-link Sitemap, lose the stock `twitter.com/ena_supply` and `linkedin.com/company/ena-supply` links, and gain the `Show CTA` switch. Their footer height should go `675px -> 756px`, which is the quickest single tell that the swap shipped.
+
+### FOOTER SWAP PUBLISHED AND VERIFIED LIVE — the site-wide footer is finally uniform (2026-10-13)
+
+`/products` and `/elements` both grew by **exactly 681 bytes** and now serve the local footer. Checked across all nine published pages:
+
+```
+                Fixtures  Case studies  twitter  linkedin  Row Top
+/ /about /careers /elements /news
+/products /projects-grid /projects-list     3        0        0        0        3
+/contact                                    3        0        0        0        0   <- Show CTA off, as designed
+```
+
+**The variant repair held, and the markup proves it without needing viewport emulation:** every page emits exactly **one `data-framer-name="Desktop"`, one `"Tablet"`, one `"Mobile"`** footer. Had the reset survived, `/products` and `/elements` would read `Desktop: 3, Tablet: 0, Mobile: 0`. **That count is the cheap, decisive check for a per-breakpoint variant across a build** — far quicker than trying to emulate three widths.
+
+Rendered footer on `/products` measures **756px**, the predicted tell (was 675), with six sitemap links, Instagram alone, and Sitemap/Follow at `x 527` / `x 666`.
+
+**A COMPARISON ACROSS TWO BUILDS IS NOT A COMPARISON.** The Follow column read `690.7` on `/about` before the swap and `666` on `/products` after, which looked like a 25px regression. Re-measuring `/about` **in the same build** gave `666` too — identical on both pages. The number had moved for everyone when the sitemap content changed. **Re-measure the reference in the current build before calling a difference a defect**, the same discipline as re-fetching a page before diagnosing it.
+
+Full Home regression sweep passes: 11x `1.17458`, 0 stale `1.180xx`, both Elements ratios, 2 hero overlays, `#f7f6f2` with 0 `#f6f4f0`, brand green, `Project Portfolio` x2, 0 stale `View Case Study`, `lossless=1` 0, badge 0, orb byte-exact at `4,280,052`. `/contact` still holds the new address and photo.
+
+**The remote-module trap is now fully closed for the footer.** Worth remembering that it was invisible to every normal check — three publishes, byte-stable fetches and a recent `Last-Modified` all said "fine". **Only comparing `componentIdentifier` across instances found it**, which makes that scan worth running whenever a component edit fails to appear on some pages but not others.
