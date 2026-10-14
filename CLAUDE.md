@@ -4390,3 +4390,32 @@ After the duo collapsed to one wide image, `cauda`'s surviving slot held the mar
 **Consequence flagged rather than silently fixed: the marbled paint (`Uvdfbb2L1…jpeg`) is no longer referenced on `cauda`.** `Image 2` still holds the old portrait 8 and is hidden. Parking the marble in `Image 2` would preserve it invisibly, but that is a second change Shak did not ask for.
 
 **Publishing behaviour, observed twice today and worth stating plainly: a CMS write does NOT reach the site on its own.** `getUnpublishedPageChanges()` reads `[]` — it only ever covered the *page* change — while the live page still serves the old image. **Both kinds of change need a publish; that counter simply cannot see the CMS half.**
+
+### THE DUO COLLAPSE WAS REVERTED — a shared-template change is a SCOPE QUESTION, not a footnote (2026-10-14, NEEDS A PUBLISH)
+
+Shak sent a screenshot of a gallery interior with a large fibre-art wall hanging, cut off top and bottom, and said *"i did not want this page to change to one image - should stay"*.
+
+**The page was `/news/debut`, not `cauda`.** Identified by downloading the surviving duo asset and looking at it: `ZSHsZMv5OraqaxZns5mllnsA8oU.jpg` is debut's `Image 1`, and it is **portrait** — so the new `1.503671` wide box was cropping a third of its height away. **When a user sends a screenshot of a defect, download the rendered asset and view it rather than reasoning from which page you last touched.**
+
+**It was already live.** `aspect-ratio:1.50367` was emitted on both `/news/cauda` and `/news/debut`, so the collapse had been published and all three articles had gone one-wide.
+
+**THE REAL MISTAKE WAS MINE AND IT WAS NOT A VERIFICATION FAILURE.** When the collapse was applied, this file recorded, in bold caps, *"THIS IS THE SHARED `/news/:slug` TEMPLATE, SO IT CHANGES ALL THREE ARTICLES"*, along with the table showing exactly which assets each article would lose. Everything was known and nothing was wrong with the execution. **The error was treating a consequence that reaches beyond the requested scope as something to DOCUMENT rather than something to ASK ABOUT.** Shak pointed at one article's duo and asked for one image; satisfying that necessarily changed two other articles he had not mentioned. **When the only way to do what was asked is to change things that were not asked about, raise it before applying — a note written after the fact does not give the user the choice.**
+
+**THE PRISTINE ASPECT RATIO WAS RECOVERABLE BY ARITHMETIC, WHICH IS WORTH KNOWING BECAUSE THE API CANNOT RETURN IT.** The hidden sibling `ibk_0bT44` had never been written to, so it still held the original — but the API rounds `aspectRatio` to 3 dp and returns `0.74`, which is anything in `[0.7395, 0.7405]`. The published CSS carrying the exact value was gone, overwritten by the publish.
+
+**The stored `height: 480px` is the key.** `355 / 480 = 0.7395833…`, which matches the `0.739583` measured live before the change (`453.292 / 612.896`) to six decimals. The layer was authored `355 x 480` on the canvas and the aspect lock stored `width / height`. **So when an exact ratio is needed and the API rounds it, look for the stored pixel height it was derived from** — the inert `height` value this file already calls "inert" is what reconstructs it.
+
+| | restored |
+|---|---|
+| `hqTB_y00j` + both breakpoint copies | `aspectRatio` `1.503671` -> **`355/480`** |
+| `ibk_0bT44` + both breakpoint copies | `visible: false` -> **`true`** |
+
+**The Desktop write cascaded to Tablet and Phone within the same `exec`** — the loop reported `ALREADY` for the other two before reaching them. Verified by a separate `exec` (6/6 visible, 6/6 at `0.74`) and by re-issuing the write, which answered **`ALREADY` on all six**.
+
+**`cauda`'s `Image 1` was put back to the marble** (`Uvdfbb2L1wCz6hyr28C9gc5hz4.jpeg`), because with portrait slots restored it would otherwise have rendered **two 8s side by side** — the landscape 8 crammed into a portrait box beside the portrait crop of the same picture. The marble measures **`2701 x 3376`, aspect `0.800`**, a 7.5% crop in the `0.7396` slot, which confirms it was made for it. Verified by a separate `exec` and an idempotent re-write (`ALREADY MARBLE`); draft counts clean (Home 3, Fixtures 11, Elements 5, Projects 3, News 3).
+
+**The landscape 8 (`aasebpMrigbE2oGKVbYvqlvc0k.jpg`) is now unreferenced but permanently hosted**, so re-applying it is one rebind — no upload, no re-encode. This is the fifth time an earlier state has been restored by rebinding rather than regenerating.
+
+**PER-ARTICLE LAYOUT IS POSSIBLE BUT IT IS EDITOR WORK, AND ONE ATTRIBUTE IS NOT ENOUGH.** Binding the second wrapper's `Visible` to a `Condition` on `Image 2 Is set` would give a one-image article and a two-image article from the same template — but **`aspectRatio` is a layer attribute and cannot be conditional**, so the survivor would still be a portrait box. A genuine per-article choice needs **two sibling sections with complementary conditions**: the existing portrait duo on `Image 2 Is set`, and a second wide single-image section on `Image 2 Isn't set`. That is the only shape that gives both layouts without touching the other articles.
+
+**Also noted in passing: `kimi` has gained a `Thumbnail`** (`xJKC6Ayx1mtMsv93fR1GtUgibcI.png`) since the last read. Its `Image Hero`, `Hero Video URL`, `Image 1` and `Image 2` are all still empty, so the hero placeholder and the empty duo on that article are unchanged.
