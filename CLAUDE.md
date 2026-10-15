@@ -5073,3 +5073,18 @@ Verified by a separate `exec` on the same session and by re-issuing the write (`
 - **`Clients Heading` / `Testimonials Heading`** — still present and still orphaned. Left alone: removing a field is destructive and was not asked for.
 
 **Note `Hero Title` holds the DESKTOP wording.** The phone variant renders *"We partner with founders who are ready **for** a change"* — genuinely different copy per breakpoint, not a truncation. A single CMS string cannot express both, so if this is ever bound, one breakpoint's wording will change.
+
+**PUBLISHED 2026-10-15 (build `17:56:27 GMT`) — AND IT WAS A NO-OP FOR THE RENDERED SITE, WHICH IS THE CORRECT RESULT.** The `About` collection is bound to nothing, so correcting its values cannot change a page. Proven rather than asserted:
+
+| check | result |
+|---|---|
+| `/about` rendered text runs, before vs after | **79 / 79, zero added, zero removed** |
+| About field ids (`yctOqdCxu`, `mYNLwz8k3`, `Qh4oUqlTV`, `fMEPPeaSo`) on `/about` | **0 occurrences each** |
+| sections | Hero / Intro / Approach / Services 1 each; Clients and Testimonials 0 (still hidden) |
+| Home | byte-identical at `279,404`, phone footer override intact, 2 solid-white fills, 11x `1.17458`, badge 0 |
+
+**THE FIELD-ID CHECK IS THE DECISIVE ONE FOR "DID A CMS CHANGE SHIP".** Framer serialises a collection's payload into a page only when that page uses it, so **grepping for the field ids answers whether the collection reaches the page at all** — far better than grepping for a value, which can coincide with the page's own copy. Here the Intro body text appears on `/about` as the section's own content while the collection's payload is absent entirely; searching for the string would have been meaningless.
+
+**`/about` grew 11 bytes and that is build metadata, not content.** Chasing it is worth recording because the obvious diff fails: a naive common-prefix comparison stops at **byte 86**, inside the `<!-- Published … -->` comment, making the whole document look different. **Normalise the publish comment out first.** After that, the first real difference is the `searchIndex-*.json` name — the old primary becomes the new fallback on every publish — and the `.mjs` chunk hashes rotate, with **total URL length unchanged (delta 0)**. So nothing of substance moved.
+
+**The reusable comparison is at text-run level**, not byte level: extract every `>text<` run from both builds and diff the sets. That ignores hash churn, attribute reordering and whitespace entirely, and answers the only question that matters — did the page's content change.
