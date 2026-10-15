@@ -4651,3 +4651,23 @@ Verified three ways: a separate `exec` on the same session (`visible=true`), a *
 | `tDcw55E8QbeNpOjgIR` | `Home Project Single Wide - Mobile` |
 
 All three read `XqpXZUGU6: "Project Portfolio"` / `NhREodF7M: "/projects-list"`, and the other 17 buttons on the component correctly read `View Case Study` / `/projects/:slug`. **Both controls ARE API-writable** — they are not `variant` — so the repoint is one scripted write across the three, and that is the safer route than three editor passes where the gesture state is easy to miss.
+
+### The Home wide card's image — the slot takes a PRE-CROPPED 1.983, and that was measured not assumed (2026-10-15, NEEDS A PUBLISH)
+
+`Thumbnail Image - Wide` on Home `Sorting Order 3` is now **`XN0uVlxC3Qaamdtbb7GSIdVjIY.jpg`**, `2560x1291`, a centred band of the SoHo facade original.
+
+**THE SLOT'S CONVENTION WAS READ OFF THE ASSET ALREADY IN IT, which is quicker and safer than reasoning about the layout.** The outgoing `AUFOIxWFIZd7ja2alFYyitRsg.jpg` measures **`2560x1291` = aspect `1.9830`**, and the card's `Image` layer stores **`aspectRatio: 1.983`** with `width: 100%`. The two agree exactly, so this slot is **pre-cropped to the card's own aspect at ~2560 wide** — not a full frame left to `object-fit: cover`. **Measure the incumbent asset before deciding how to prepare a replacement**; it encodes the convention without needing the layout read at all.
+
+**Note the other two Home items are NOT this slot** — `G9BZgzpc` is `772x772` and `X4rVDH7X` is `2000x1800`, the square-ish Fixtures and Elements cards. Only SO 3 feeds the wide card, so only its dimensions are evidence.
+
+**The attachment-is-a-downscale trap, confirmed for the second day running.** The conversation image was `2000x1333 / 432 KB`; the Drive original `AdobeStock_561774009_nyc.jpeg` is **`6480x4320 / 9.8 MB / yuvj444p`**. Same photograph as the `/news/debut` hero.
+
+Built as a single crop-and-scale pass from the original — `crop=6480:3268:0:526,scale=2560:1291:flags=lanczos`, `-q:v 2 -pix_fmt yuvj444p` — so there is no generation stacking. Reaching `1.983` from the original's `1.5` **cuts 24% of the height**, which is enough to be worth looking at rather than trusting: the band was rendered and inspected before upload, and it keeps the full row of arched windows, both warm lamps and the lit corner, with the dark left side where the card's `Overlay` and button sit.
+
+**!!! THE SLOT HAD CHANGED BETWEEN THE READ AND THE WRITE — Shak had put his own `hero-debut-soho-facade` crop there !!!** The opening read returned `AUFOIxWFI…` (the spa); the write minutes later reported the prior value as **`KN9kANcj5KB5iLZY5fenBdrhY.jpg`** — the 2700x1203 news-hero crop of this same photograph. He is editing live, so **a read taken at the start of a task is not the state at the moment you write**; the write's own prior-value report is what caught it.
+
+**Replacing it was still the right call, and the arithmetic is why.** That crop is **`2.2444`** in a **`1.983`** box, so `object-fit: cover` was cutting **11.6% of its width** — and the subject sits right of centre, so the loss lands on the lit corner and fire escape. The new asset is the card's exact aspect, so nothing is cover-cropped at all. **This is what "web friendly" means for this slot: the right aspect, not merely a smaller file.**
+
+**Verified three ways:** a separate `exec` read-back (`resolution: auto`), a **re-issued write answering `ALREADY BOUND`** — and because that re-upload returned **the same asset id**, the dedup doubles as proof of byte identity — plus the hosted file re-measured at `2560x1291`, `610 KB`. Draft counts clean (Home 3/3, Fixtures 11/11, Elements 5/5, Projects 3/10, News 3/7).
+
+**Both superseded assets stay hosted** — `KN9kANcj5…` (Shak's 2.244 crop) and `AUFOIxWFI…` (the spa) — so either is one rebind away, with no upload and no re-encode.
