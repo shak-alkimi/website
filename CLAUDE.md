@@ -4915,3 +4915,32 @@ Geometry is identical on both (`fit-content`, `padding 11px 18px`, `gap 10px`, `
 **Unrelated, spotted in the editor's right panel and worth knowing before the next publish:** Framer's own AI agent has an applied, un-reverted change sitting in the project — *"Changed the selected 'lighting objects.' text to Gellix as well"* against **`Home/Hero Header`, 1 layer**, with an `Undo` still offered. It was not touched. It will ship with the next publish unless reverted.
 
 `getUnpublishedPageChanges()` returns `[]`, as expected — the edit is component-internal and that counter tracks page-level changes only. **It is not evidence this is published.**
+
+### PUBLISHED AND VERIFIED LIVE 2026-10-15 (build `16:47:26 GMT`) — the hover proven with a REAL POINTER
+
+Three byte-stable fetches at `279,223`, no known-bad signature. `Button White to Outline` **2** in the markup (desktop + phone card buttons), `- Hover` **0** as a resting name, `The Method` **2**, `href="./about"` **5**, `Project Portfolio` and `projects-list` both **0**.
+
+**Both rest-state values are emitted inline, exactly as stored:**
+
+```
+background-color:rgb(255, 255, 255);  --border-color:rgba(255, 255, 255, 0);  --border-*-width:1px
+```
+
+**THE HOVER CANNOT BE READ FROM THE CSS AT ALL — a variant Interaction swaps the class at runtime.** There is no `.hover` rule and no second fill in the stylesheet; Framer emits the resting variant and changes `framer-v-*` in JS. **So a CSS grep can never confirm this class of change** — the same blind spot already recorded for variant-scoped `border-radius`. A real pointer is the only static-free proof, and it works even in a backgrounded tab (hover and variant switching run; only `requestAnimationFrame` is frozen).
+
+Measured on the published page by hovering the button and reading the live DOM:
+
+| | at rest | hovered |
+|---|---|---|
+| `data-framer-name` | `Button White to Outline` | **`Button White to Outline - Hover`** |
+| variant class | `framer-v-8l8yzt` | **`framer-v-fqf7wf`** |
+| `background-color` | `rgb(255, 255, 255)` | **`rgba(255, 255, 255, 0)`** |
+| `--border-color` | `rgba(255,255,255,0)` invisible | **`rgb(255, 255, 255)`** |
+
+**The round trip was checked too** — moving the pointer away returns it to `Button White to Outline` / solid white, so the interaction is symmetric rather than a one-way latch. Worth doing: a hover that does not reverse is a different defect from one that never fires.
+
+**The `pointer-events` fix survived the variant swap**, checked because it is a past defect on this exact button: base `none`, with `.framer-v-r3zqm7` and `.framer-v-fo45vv` both overriding to `auto`.
+
+**THE FRAMER-AGENT CHANGE FLAGGED BEFORE THE PUBLISH LANDED, AND IT WAS A GOOD ONE.** The hero headline's two paragraphs now carry `data-styles-preset="f5vNtZkWz"` (`H1 Hero`) and `"Q8aIAfMKm"` (`H1 Hero - Style`) — i.e. the **direct inline formatting has been replaced by the two presets**, which is precisely the outstanding editor step recorded on 2026-10-13 (*"select 'Measured' and apply `H1 Hero`; select 'lighting objects.' and apply `H1 Hero - Style`"*). So that item is now closed, and the `<p>` no longer carries breakpoint-less hard-coded type. **Flagging a pending third-party edit before a publish was worth it even though it turned out benign** — the check cost one grep and it could equally have been drift.
+
+Full Home sweep clean: 11x `aspect-ratio:1.17458` with 0 stale `1.180xx`, both Elements ratios (`.975765` / `.925714`), 2 hero overlays at `rgb(8, 2, 0)`, `#f7f6f2` with 0 of the wrong `#f6f4f0`, brand green 5, 0 stale `View Case Study`, `lossless=1` 0, badge 0, 58 Gellix refs, 2x `--framer-font-size:72px`.
