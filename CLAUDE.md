@@ -5049,3 +5049,27 @@ So **three of the captured values are layer names, not content** — `Hero Title
 **The published page is the reliable source for what each section actually says**, since `getText()` fails and the names lie. Extracting the text runs between consecutive `data-framer-name="Section …"` markers gives the real content in one pass — that is how all five were checked here.
 
 **UNRELATED FINDING, for the stock-cleanup bundle: the `/about` hero video is on the template author's CDN.** `About / About Header` carries `twBEjiRp1 = "https://ena-supply.b-cdn.net/Ora/740047_Woman%20Model%20Projection…mp4"`. **Only `/careers` was recorded as using `ena-supply.b-cdn.net`; this is a second instance**, on a more prominent page, and it breaks the day they stop serving it.
+
+**THE THREE CORRUPTED VALUES ARE FIXED (2026-10-15).** `Hero Title`, `Services Heading` and `Intro Body` now hold what the page actually renders:
+
+| field | was | now |
+|---|---|---|
+| `Hero Title` `yctOqdCxu` | `"About"` (a layer name) | **"We partner with founders who are ready to make a change"** |
+| `Services Heading` `mYNLwz8k3` | `"Introduction"` (a layer name) | **"Our Services"** |
+| `Intro Body` `Qh4oUqlTV` | empty rich text | **two paragraphs, 1,056 chars** |
+
+Verified by a separate `exec` on the same session and by re-issuing the write (`ALREADY` on all three), with `repair/verify-draft-status.js` clean afterwards (Home 3/3, Fixtures 11/11, Elements 5/5, Projects 3/10, News 3/7). **The collection is bound to nothing, so this changes no rendered page** — it only makes the groundwork truthful.
+
+**THE VALUES WERE EXTRACTED FROM THE PUBLISHED PAGE AND THE WRITE SCRIPT WAS GENERATED FROM THAT EXTRACTION**, so no string was retyped — transcription is precisely what produced the original corruption. The pattern is worth reusing: a local node script reads the served HTML, slices between consecutive `data-framer-name="Section …"` markers, pulls the text runs, and then **emits the `exec` script with the values embedded via `JSON.stringify`**. The machine copies the strings; I never touch them.
+
+**A NESTED ESCAPE DID NOT SURVIVE INTO THE GENERATOR, AND IT CRASHED THE RELAY.** The generator was meant to emit `changes.join("\n")` as an escape sequence; one backslash was lost between the heredoc and the file, so the template literal emitted a **real newline inside a string literal**. The generated script was then a syntax error, and `exec` failed with `Invalid or unexpected token` **plus the libuv assertion that kills the session** — the same crash signature as the `layout` write, so it is not specific to that attribute: **any malformed script can take the relay down, and a fresh session is needed afterwards.**
+
+**Two rules from it:** when generating code, **avoid escape sequences entirely** (here `join(" | ")` needs none) rather than reasoning about how many backslashes survive each layer; and **syntax-check the generated file before sending it** — `node --check` works if the file is first wrapped in an `async function`, since top-level `await`/`return` are valid in `exec` but not in a bare module.
+
+**WHAT IS STILL NOT COVERED, and none of it is a value that can simply be written:**
+
+- **Hero** — the CTA label/link (*"More about us"*), the hero video and the hero image have **no fields**. They are instance controls on `About / About Header` (`twBEjiRp1`, `Q9MpMF_yE`).
+- **Services** — the four items are inside the `Accordion` component and need it rebuilt as a Collection List.
+- **`Clients Heading` / `Testimonials Heading`** — still present and still orphaned. Left alone: removing a field is destructive and was not asked for.
+
+**Note `Hero Title` holds the DESKTOP wording.** The phone variant renders *"We partner with founders who are ready **for** a change"* — genuinely different copy per breakpoint, not a truncation. A single CMS string cannot express both, so if this is ever bound, one breakpoint's wording will change.
