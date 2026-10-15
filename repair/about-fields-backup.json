@@ -1,0 +1,176 @@
+{
+ "itemId": "ywjEFfszP",
+ "draft": false,
+ "fields": {
+  "Hero Title": {
+   "id": "yctOqdCxu",
+   "type": "string",
+   "value": "Measured in every way"
+  },
+  "Intro Heading": {
+   "id": "MlKqtsMiY",
+   "type": "string",
+   "value": "Introduction"
+  },
+  "Intro Body": {
+   "id": "Qh4oUqlTV",
+   "type": "formattedText",
+   "value": "<p dir=\"auto\">At Alkimi, we are more than a lighting manufacturer. Based in New York, we bring more than fifty years of combined experience in architectural lighting design, sales, and product development to a single conviction: color quality is not a line on a specification sheet, it is the entire experience of a space. We design and produce Alkiline linear systems and Amalgam architectural fixtures for environments where light is treated as material rather than decoration.</p>"
+  },
+  "Approach Heading": {
+   "id": "fMEPPeaSo",
+   "type": "string",
+   "value": "Method"
+  },
+  "Value 1 Number": {
+   "id": "qpiFYrmyF",
+   "type": "string",
+   "value": "01"
+  },
+  "Value 1 Title": {
+   "id": "wm4h960XZ",
+   "type": "string",
+   "value": "Research"
+  },
+  "Value 1 Text": {
+   "id": "jgAIwjlHD",
+   "type": "formattedText",
+   "value": "<p dir=\"auto\">Color science is the foundation. We measure across six dimensions rather than trusting a single average, and we test against the conditions light actually meets - surfaces, finishes, skin, and the eye of the person standing there.</p>"
+  },
+  "Value 1 Image": {
+   "id": "E0rw4meSe",
+   "type": "image",
+   "value": {
+    "id": "tfYCQCnVouN7STR1kErXX31QraE.jpg",
+    "url": "https://framerusercontent.com/images/tfYCQCnVouN7STR1kErXX31QraE.jpg",
+    "thumbnailUrl": "https://framerusercontent.com/images/tfYCQCnVouN7STR1kErXX31QraE.jpg?scale-down-to=512",
+    "resolution": "auto"
+   }
+  },
+  "Value 2 Number": {
+   "id": "pa20O7MBQ",
+   "type": "string",
+   "value": "02"
+  },
+  "Value 2 Title": {
+   "id": "XPPV2nc7U",
+   "type": "string",
+   "value": "Partnership"
+  },
+  "Value 2 Text": {
+   "id": "XRtK9BboB",
+   "type": "formattedText",
+   "value": "<p dir=\"auto\">We work alongside design practices from concept through installation — samples, photometrics, custom runs as drawings evolve. Long-standing supplier relationships let us build to order rather than to catalog. The specification improves when the manufacturer is in the room.</p>"
+  },
+  "Value 2 Image": {
+   "id": "GhW0bz22W",
+   "type": "image",
+   "value": null
+  },
+  "Value 3 Number": {
+   "id": "QKT81gre4",
+   "type": "string",
+   "value": "03"
+  },
+  "Value 3 Title": {
+   "id": "jLZr1_Git",
+   "type": "string",
+   "value": "System"
+  },
+  "Value 3 Text": {
+   "id": "lZuF7d3Ld",
+   "type": "formattedText",
+   "value": "<p dir=\"auto\">Kimi runs the company end to end: quoting, pricing, fabrication, purchasing, delivery. One system rather than stitched-together tools, because a promise about a date is only as good as what tracks it.</p>"
+  },
+  "Value 3 Image": {
+   "id": "tC6Zw1qUQ",
+   "type": "image",
+   "value": {
+    "id": "HQUPWwGlWCItbnr8y5nk3w8.jpg",
+    "url": "https://framerusercontent.com/images/HQUPWwGlWCItbnr8y5nk3w8.jpg",
+    "thumbnailUrl": "https://framerusercontent.com/images/HQUPWwGlWCItbnr8y5nk3w8.jpg?scale-down-to=512",
+    "resolution": "auto"
+   }
+  },
+  "Services Heading": {
+   "id": "mYNLwz8k3",
+   "type": "string",
+   "value": "Implementation"
+  },
+  "Clients Heading": {
+   "id": "zCRHKlFtx",
+   "type": "string",
+   "value": "Our clients"
+  },
+  "Testimonials Heading": {
+   "id": "hswuInpSw",
+   "type": "string",
+   "value": "What our clients say"
+  },
+  "Service 1 Number": {
+   "id": "WwU7zKdZX",
+   "type": "string",
+   "value": "01"
+  },
+  "Service 1 Title": {
+   "id": "BuYajrRwW",
+   "type": "string",
+   "value": "Specification Support"
+  },
+  "Service 1 Text": {
+   "id": "aKUs4DrQ8",
+   "type": "formattedText",
+   "value": "<p dir=\"auto\">Photometric files, physical samples, and spec documentation delivered while your drawings are still moving. We would rather answer questions during design development than issue a credit after installation.</p>"
+  },
+  "Service 2 Number": {
+   "id": "K8SX6_yMI",
+   "type": "string",
+   "value": "02"
+  },
+  "Service 2 Title": {
+   "id": "sXxUVNtaH",
+   "type": "string",
+   "value": "Configuration"
+  },
+  "Service 2 Text": {
+   "id": "gv89V2I9M",
+   "type": "formattedText",
+   "value": "<p dir=\"auto\">Opus resolves the administrative weight of a specification at once — pricing, lead times, driver sizing, power feeds, part numbers, submittal documents — so the paperwork matches the drawing without reconciliation.</p>"
+  },
+  "Service 3 Number": {
+   "id": "TSvDSWkAb",
+   "type": "string",
+   "value": "03"
+  },
+  "Service 3 Title": {
+   "id": "NJjvzI3fu",
+   "type": "string",
+   "value": "Delivery"
+  },
+  "Service 3 Text": {
+   "id": "waN5_cInO",
+   "type": "formattedText",
+   "value": "<p dir=\"auto\">Every order tracked through Opus from purchase to shipment, with documentation packets, QC photography, and warranty records held against the project rather than scattered across email threads.</p>"
+  },
+  "Service 4 Number": {
+   "id": "VmOsiD6eb",
+   "type": "string",
+   "value": "04"
+  },
+  "Service 4 Title": {
+   "id": "ypllaGUqW",
+   "type": "string",
+   "value": "Installation"
+  },
+  "Service 4 Text": {
+   "id": "Kz_xa_WvK",
+   "type": "formattedText",
+   "value": "<p dir=\"auto\">Every run arrives labeled and mapped to a legend, with drawings and driver schedules the installer can follow without a phone call. Clean installs come from documentation, not improvisation.</p>"
+  },
+  "Intro Body 2": {
+   "id": "GKwnlL4zT",
+   "type": "formattedText",
+   "value": "<p dir=\"auto\">Our name is deliberate — alchemy was transformation through precision. We work the same way across every part of the company: how a fixture is engineered, how color is measured, how a run is cut, how a promise is kept. Every quote and delivery moves through Opus, the system we built because no existing tool held that precision. The result is a company where nothing about light is left to approximation.</p>"
+  }
+ }
+}

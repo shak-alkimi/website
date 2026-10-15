@@ -5278,3 +5278,83 @@ Main
 **Two layer-tree traps, both cost a cycle:** a filter of `/^Abo/` matched **`Abouts`** and **`About`** as well as the card rows and selected the template instead of a card — **match on `Core Value`, not on a prefix of the parent's name**; and selecting the template **collapsed the tree**, so the expand chain (`Section Approach -> Container -> Value Wrapper`) had to be rebuilt before the next card could be picked. **Re-derive row positions after every selection, never reuse coordinates across one.**
 
 **Still unbound (they currently match only because the values were hand-copied):** `Intro Body`, `Approach Heading`, `Services Heading`, and the 12 Core Value / Accordion Row text controls. **Until those are bound the page will diverge again the moment that text is edited in the CMS** — which is the exact failure this whole exercise exists to end.
+
+### EVERYTHING ON `/about` IS NOW BOUND — 37 bindings, and two TYPE MISMATCHES had to be fixed first (2026-10-15, NEEDS A PUBLISH)
+
+Shak: *"bind everything else"*. Done. The page is now genuinely CMS-driven end to end — **the only unbound surface left is the hero, and it is unbindable where it sits** (see below).
+
+| surface | binding | count |
+|---|---|---|
+| `Intro Heading` | text layer Content | 1 (done earlier) |
+| **`Intro Body` / `Intro Body 2`** | the two intro COLUMNS | **2** |
+| `Approach Heading` | text layer Content (layer named `Method`) | 1 |
+| `Services Heading` | text layer Content (layer still named `Introduction`) | 1 |
+| 3x `About / Core Value` | `Number` / `Title` / `Paragraph` instance controls | 9 (+3 images earlier) |
+| **4x `Accordion Row`** | via 12 NEW component variables, two hops | **12 + 12** |
+
+**!!! THE INTRO IS A TWO-COLUMN LAYOUT, NOT TWO STACKED PARAGRAPHS — and one field cannot drive two columns !!!**
+
+`Text Wrapper` is a **horizontal** stack, `gap: 30px`, two text nodes at `1fr` each. `Intro Body` held **both** paragraphs in one `formattedText` value. Binding column 1 to it and hiding column 2 would have collapsed a two-column design into one; binding both columns to it would have rendered the same text twice.
+
+**So the field was split: `Intro Body` keeps paragraph 1, and a new `Intro Body 2` (`GKwnlL4zT`) holds paragraph 2** — one field per column, which is what the design actually is. Nothing was lost; the split is reversible by concatenating.
+
+**Read the WRAPPER's `stackDirection` before assuming two text nodes are stacked.** Here both layers carry the same stale Ora name, so only the layout tells you they sit side by side.
+
+**!!! A COMPONENT's `string` CONTROL CANNOT BIND A `formattedText` FIELD — the submenu shows that field with an ARROW !!!**
+
+This is the most useful signal in the binding menu and it caught a real mismatch: `Value 3 Text` appeared with a `>` arrow, meaning "not type-compatible; I can only offer predicates". Pressing Return there would have built a **Condition**, not a binding — the exact failure already recorded for `Isn't set`. **Escape out; never press through an arrow.**
+
+Both `About / Core Value` and `Accordion / Accordion Row` expose `Paragraph` as a **`string`** variable (`getVariables()` confirms every one is `string`), and Framer canvas components have **no formattedText variable type**. So the CMS had to match the destination, not the reverse.
+
+**Seven fields converted `formattedText` -> `string`** (`Value 1-3 Text`, `Service 1-4 Text`). **Lossless, and that was verified before touching anything** — each was a single `<p>` with no inner tags (`tags={p,/p}`, `paras=1`), so only the wrapper was discarded. Em-dashes survived.
+
+**How to retype a CMS field, since `Field.setAttributes` CANNOT change `type`:**
+
+```js
+// capture the plain text FIRST, then remove, then re-add, then write
+const text = strip(item.fieldData[f.id].value)
+await f.remove()                                   // Field.remove() and Collection.removeFields() both exist
+const [nf] = await c.addFields([{ type: "string", name: f.name }])
+await c.addItems([{ id: item.id, draft: item.draft, fieldData: { [nf.id]: { type: "string", value: text } } }])
+```
+
+**Removing a field destroys its data, so dump every value to a file first.** Done here: **[repair/about-fields-backup.json](repair/about-fields-backup.json)** holds all 32 pre-change field values.
+
+**`CreateField` has NO ordering parameter**, so a re-added field **appends to the end** of the CMS table. The seven `… Text` columns now sit after `Service 4 Title` rather than beside their siblings. Cosmetic, and Shak can drag columns in the CMS UI — but there is no API fix, so expect it whenever a field is retyped.
+
+**THE ACCORDION NEEDED A TWO-HOP CHAIN, AND `ComponentNode.addVariables()` MAKES IT SCRIPTABLE.**
+
+The four service rows are `Accordion Row` instances **inside** `Accordion / Accordion`, and a component has no CMS item context — its binding menu offers only the component's own variables. The working pattern:
+
+```
+CMS field  ->  page instance control  ->  component variable  ->  inner row instance control
+   (editor binding, on /about)              (editor binding, inside the component)
+```
+
+1. **`addVariables` works** (alpha): 12 `string` variables added by script in one call, idempotent by name. The component already carried one leftover, `Question 3`.
+2. Inside the component, bind each row's `Title`/`Paragraph`/`Number` to the matching variable — **12 bindings, and they CASCADE to `FAQ Tablet` and `FAQ Mobile`** (spot-checked both; row 1 of each shows the same pills untouched).
+3. On `/about`, the Accordion instance then exposes all 12 as ordinary controls, bound to the CMS fields like any other.
+
+**Note what step 2 does in isolation: the rows render BLANK on the component canvas**, because the new variables have no defaults. Expected and harmless — the page instance supplies the values — **but it means steps 2 and 3 must ship together.** A publish between them would have emptied the services list.
+
+**A bound control DISAPPEARS from `node.controls`.** After binding, the rows read `{"variant":"OUeYHcKWQ"}` with no Title/Paragraph/Number — the literals are gone because the binding replaced them. So **the CMS is now the only copy of that text**, which is the point, and also why a lost binding would render empty rather than stale.
+
+**EDITOR-DRIVING LESSONS, each of which cost something this session:**
+
+- **!!! THE BROWSER VIEWPORT CAN RESIZE MID-TASK, INVALIDATING THE CSS->SCREENSHOT FACTOR !!!** It went `1536x855` -> `1536x799` (frame `1459x812` -> `1512x787`), so the documented `0.9499` silently became `0.9844`. A click computed with the stale factor landed on the **Agent tab** and the keystrokes after it went to the canvas. **Derive `F = frameWidth / innerWidth` from the CURRENT screenshot every time; never carry the constant across calls.**
+- **THE PANEL's SCROLL CLAMP SHIFTS EVERY ROW WHEN A MULTI-LINE FIELD COLLAPSES INTO A PILL.** Binding `Paragraph` shortens the panel, so the maximum scrollTop drops and the content slides **down** ~18px — moving rows *above* it, which is counterintuitive. This ate one binding before it was understood. **Re-measure before every click; never batch two bindings on one node from a single measurement.** Cheapest form: end each binding batch with a `javascript_tool` measure.
+- **A stray keystroke switched the editor into COMMENTS mode and silently dropped four bindings.** Typing `Service 4 Tex` with canvas focus fires `c` as the comment-tool shortcut. The tell is the right panel reading "Click anywhere on the canvas to comment" plus a browser-notification toast. **Recover with `Escape` then `v`; do NOT click the toast's `Continue`, which would grant notification permission.** Then **re-verify every binding in that batch** — 8 of 12 had landed.
+- **The count-the-label trick verifies bindings in one query.** A bound control renders its field name twice (label + pill), an unbound one once:
+  ```js
+  c[t] = (c[t]||0)+1   // over leaf elements matching /^Service \d (Number|Title|Text)$/ in the panel
+  // c[name] >= 2  ->  bound
+  ```
+  That caught the four missing ones and confirmed the final **12/12**.
+- **`Intro Body` is a PREFIX of `Intro Body 2`**, so searching "Intro Body" lists both and `Return` takes the first. **A unique search is not always available — zoom the submenu and read which entry is highlighted before committing.**
+- The **canvas-screenshot freeze** hit once (`Page.captureScreenshot` timed out after 30s). Reading the panel text straight from the DOM answered the same question immediately.
+
+**VERIFIED:** node inventory inside `Abouts` **unchanged at 42 before and after** both keyboard mishaps (nothing created, nothing deleted), `Text Wrapper` order/gap/widths byte-identical, Accordion still 3 variants x 4 rows, `repair/verify-draft-status.js` clean, and the **editor canvas renders the whole page from the CMS** — `Introduction` / both intro columns / `Method` / Research-Partnership-System with numbers and images / `Implementation` / 01-04 Specification Support, Configuration, Delivery, Installation, with the `About Service 1 Number` binding badge visible on the accordion.
+
+**STILL UNBOUND, AND IT CANNOT BE BOUND WHERE IT SITS: the hero.** `Section Hero` is a **sibling of `Abouts`**, i.e. **outside** the Collection List, so it has no item context and the menu will not offer About fields at all. `Hero Title` (`"Measured in every way"`), the hero CTA, image and video are therefore still canvas/instance values. Binding them means moving `Section Hero` inside the list — the same cut/paste surgery the other sections went through, and a separate decision. **Note the phone variant carries genuinely different wording** (`ready for a change` against desktop's `to make a change`), so a single CMS string cannot express both breakpoints as they stand.
+
+**Also still unbound and deliberately so:** `Clients Heading` and `Testimonials Heading` — their sections are hidden, so there is nothing to bind them to.
