@@ -5013,3 +5013,39 @@ The base rule is `flex-flow:row`; the Mobile override is **`flex-direction:colum
 **The phone content width is 360px, not the 358 estimated.** The published padding is `60px 15px 15px`, i.e. **15px a side** on a 390px frame. So the 280.6px heading has **79px** of spare rather than 77, and the margin down to a 360px Android is correspondingly a little better than the table above states.
 
 Full Home sweep clean: 11x `aspect-ratio:1.17458` with 0 stale `1.180xx`, both Elements ratios, 2 hero overlays, `#f7f6f2` with 0 `#f6f4f0`, brand green 5, `The Method` 2 with `Project Portfolio` 0, `href="./about"` 5 with `projects-list` 0, 0 stale `View Case Study`, `lossless=1` 0, badge 0, 58 Gellix, and the wide card button still inverted (2 resting-variant buttons, 2 solid-white fills).
+
+### THE `About` COLLECTION DOES NOT COVER THE PAGE — and the seed was corrupted by the stale-layer-name trap (audited 2026-10-15)
+
+Shak asked whether all the `/about` sections are represented in the CMS. **They are not.** Audited against the live page rather than from the seeding note.
+
+**Live `/about` is five sections** (`Clients` and `Testimonials` are hidden):
+
+| section | covered? |
+|---|---|
+| `Section Hero` | **wrong value** — `Hero Title` holds `"About"`, the page renders *"We partner with founders who are ready to make a change"*. The CTA (*"More about us"*), the hero video and the hero image have **no fields at all** |
+| `Section Header - Trigger` | structural, nothing to cover |
+| `Section Intro` | heading correct; **`Intro Body` is EMPTY** (`<p><br class="trailing-break"></p>`) while the page carries a full paragraph |
+| `Section Approach` | **fully covered** — heading + 3x number / title / text / image |
+| `Section Services` | heading exists but **holds `"Introduction"`** where the page renders **"Our Services"**, and the **four service items are entirely absent** |
+
+Plus **2 of the 19 fields are orphaned** — `Clients Heading` and `Testimonials Heading`, whose sections are hidden.
+
+**!!! THE CAUSE IS THE DOCUMENTED STALE-LAYER-NAME TRAP, AND THE SEED WALKED STRAIGHT INTO IT !!!**
+
+The seeding script took each section's heading from **its first text layer's `name`**, because `getText()` returns `<unreadable>` on these nodes. This file already warns that *"layer and field names across this template rarely match their content"*. Read from the canvas:
+
+```
+Section Services > Heading > Text  name = "Introduction"     renders "Our Services"
+Section Intro > Text Wrapper > Text name = "In January 2013 Spring/Summer came to life with a clear idea of how a "
+                                                             renders "At Ora, we are more than just a design studio…"
+```
+
+So **three of the captured values are layer names, not content** — `Hero Title`, `Services Heading`, and the Intro body (which ended up empty rather than wrong). The Approach values are correct only because they came from **component instance controls** (`rFExBnb6h`, `Mz0wvNH6v`, `kB1rNTf7X`, `ZLxZW1prj`), which are real data.
+
+**The general rule this sharpens: a layer name is a usable locator in this project but NEVER a usable value.** It was right to seed from the page rather than transcribe, and right to use names to *find* things — the error was letting a name become a field value. Where the text itself cannot be read, the honest options are to take it from an instance control, from the **published page** (which renders the real string), or to leave the field empty and say so.
+
+**A STRUCTURAL BLOCKER ON SERVICES, the same shape as the Testimonial Slider:** the four items live inside an **`Accordion / Accordion`** component instance whose only control is `{"variant":"xg9ucDTK2"}`. The titles and body copy are canvas text inside the component, exposed through nothing. So making Services CMS-driven means **rebuilding the accordion as a Collection List**, not adding fields — editor work of a different size, and it changes how the section behaves.
+
+**The published page is the reliable source for what each section actually says**, since `getText()` fails and the names lie. Extracting the text runs between consecutive `data-framer-name="Section …"` markers gives the real content in one pass — that is how all five were checked here.
+
+**UNRELATED FINDING, for the stock-cleanup bundle: the `/about` hero video is on the template author's CDN.** `About / About Header` carries `twBEjiRp1 = "https://ena-supply.b-cdn.net/Ora/740047_Woman%20Model%20Projection…mp4"`. **Only `/careers` was recorded as using `ena-supply.b-cdn.net`; this is a second instance**, on a more prominent page, and it breaks the day they stop serving it.
