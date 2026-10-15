@@ -5222,3 +5222,43 @@ Set to **`Measured` / `in every way`**, which echoes the Home hero's `Measured` 
 **A write loop that produces NO log lines is the tell that the selector matched nothing.** The script logged only `CMS WROTE 12 values` and nothing for the instances; an empty section of output is easy to skim past as success. **Log a count of candidates found, not only a line per candidate written.**
 
 Verified by a separate `exec` (12/12 on the new titles), by **re-issuing both writes** (`CMS ALREADY` + all rows `ALREADY`), and by reading the CMS back with tags stripped — the em-dashes in the Configuration copy survived intact. `verify-draft-status.js` clean. The section heading itself is canvas text (layer still named `Introduction`, another stale Ora name) and was changed in the editor to **Implementation**; **its cascade to Tablet and Phone is assumed from the intro-paragraph precedent and should be confirmed on the published page.**
+
+### `/about` IS NOW WRAPPED IN A COLLECTION LIST — the CMS can finally drive the page (2026-10-15, IN PROGRESS, NEEDS A PUBLISH)
+
+Shak: *"why aren't the changes i am making in cms taking effect?"* **The decisive answer is a single number: ZERO of the 31 About field ids appear anywhere in the published page.** Framer serialises a collection into a page only when something there is bound to it, and nothing was. The 25 values that *did* appear were there because **I had copied them across by hand** — a transcription, not a connection, which is why it diverged again the moment he added two images (`tfYCQCnVouN7STR1kErXX31QraE.jpg`, `HQUPWwGlWCItbnr8y5nk3w8.jpg`). **A CMS-vs-page table built from the live page is the way to show this**; "it is not bound" as an assertion had not landed across three separate explanations.
+
+**!!! THE INSERT PANEL'S COLLECTION TILES RESPOND TO A PLAIN CLICK — DRAGGING THEM DOES NOT WORK !!!** `Insert -> CMS -> Collections -> About` dragged onto the canvas does **nothing** (consistent with Framer's drag interactions not automating). A plain **`left_click` on the tile inserts the Collection List immediately**, correctly scoped (`Source: About`). This is the single unlock for the whole job and it is worth trying click-to-insert on any Framer insert tile before concluding it needs a drag.
+
+**The list lands at the CANVAS ROOT, not in the page** (`parent = NULL`), and `getNodesWithType("CollectionListNode")` is **not a valid type** — it comes back as a `FrameNode`. Find it by name at the canvas root.
+
+**REPARENTING BY CUT/PASTE WORKS, AND IT MOVES THINGS *INTO* A NEW PARENT, not just between siblings.** The recorded trick was for reordering; it generalises. Select the node in the **layer tree**, `Ctrl+X`, select the target parent, `Ctrl+V` — it lands as the **last child**. Used four times here without a failure.
+
+**!!! `Ctrl+X` WENT INTO A PANEL NUMBER FIELD AND CUT ITS VALUE, NOT THE LAYER !!!** Straight after typing `1` into `Limit to`, focus was still in that input, so the cut blanked the limit and moved no layer. Same family as the recorded `Ctrl+Z`-goes-to-focus trap. **Always click the layer's row in the tree before any cut — selection on the canvas is not the same as focus in the tree.**
+
+**Final structure, identical on all three breakpoints (the paste propagated by itself):**
+
+```
+Main
+  Section Hero
+  Section Header - Trigger
+  (Section Clients)        hidden
+  (Section Testimonials)   hidden
+  Abouts   1fr / vertical / gap 0     <- Collection List, Source About, Limit 1
+    About  1fr / vertical / gap 0
+      (Image) (Hero Title)  hidden - Framer's default template layers
+      Section Intro 1fr | Section Approach 1fr | Section Services 1fr
+```
+
+**NO REORDERING WAS NEEDED, because the two hidden sections emit no markup** — so leaving `Abouts` last still renders `Hero -> Trigger -> Intro -> Approach -> Services`. **Check what is hidden before spending cut/paste moves on order.**
+
+**A PASTE INHERITS THE TARGET'S LAYOUT AND WILL WRECK SIZING.** The template frame was `fit-content / horizontal / gap 10px`, so the first section pasted in became **`100px` wide with its text running vertically**. Fixing the list and template to `1fr / vertical / gap 0` *first* made every later paste land correctly at `1fr`. **Set the container's layout before moving content in, not after.**
+
+**`remove()` SILENTLY FAILS INSIDE A COLLECTION LIST TEMPLATE** — it reported `ok` for Framer's default `Image` and `Hero Title` layers across two passes and both survived. So a list template behaves like component internals for deletion. **Hidden instead**, which worked first time — the standing asymmetry that mutating works where deleting does not.
+
+**BINDING IS PROVEN END TO END.** With the layer selected, the **`Text -> Content`** row carries the circle-plus; its menu offers `Set variable >` and the submenu lists the About fields **arrow-less** (type-compatible). `Intro Heading` is now bound, confirmed by reading the panel.
+
+**!!! THE SUBMENU'S FIRST ITEM IS ALREADY HIGHLIGHTED, SO `Down` SELECTS THE SECOND !!!** The recorded recipe "open the menu, press Down, press Return" **bound `Intro Body` where `Intro Heading` was wanted**. The reliable form is to **type into the search box until exactly one match remains, then `Down`+`Return` to open `Set variable`, then `Return` alone** to take the pre-highlighted entry. Verify every binding by reading the pill back.
+
+**Two automation notes from this pass:** typing while the canvas rather than a menu has focus fires **shortcuts** (it opened the Insert panel mid-sequence) — so **confirm the menu is open by screenshot before typing into it**; and when `Page.captureScreenshot` froze repeatedly, **reading the right panel's text straight from the DOM** gave the binding state when no screenshot could.
+
+**STILL TO DO:** bind the remaining ~15 page-level values (Intro Body, Approach Heading, the 12 Core Value controls, Services Heading), then settle whether layers **inside** `About / About Header` and `Accordion / Accordion` can bind to the collection from within a Collection List — the Projects detail template does exactly that, so it is likely, but it is unproven here and decides whether the hero title and the four service entries need component properties instead. **The page is publish-safe as it stands:** structure verified on all three breakpoints, the one bound field resolves to the same text that was already rendering.

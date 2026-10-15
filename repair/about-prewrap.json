@@ -1,0 +1,323 @@
+{
+ "path": "/about",
+ "captured": "2026-10-15",
+ "breakpoints": [
+  {
+   "name": "Desktop",
+   "id": "aklxOWTlU",
+   "children": [
+    {
+     "id": "SwVjGceLR",
+     "name": "Section Hero",
+     "visible": true,
+     "padding": "0px",
+     "width": null,
+     "height": "fit-content",
+     "position": "absolute",
+     "layout": "stack",
+     "stackDirection": "horizontal",
+     "gap": "10px"
+    },
+    {
+     "id": "WpGM4Tu3O",
+     "name": "Section Header - Trigger",
+     "visible": true,
+     "padding": "0px",
+     "width": "1fr",
+     "height": "1px",
+     "position": "absolute",
+     "layout": null,
+     "stackDirection": null,
+     "gap": "0px"
+    },
+    {
+     "id": "mbYwiomDX",
+     "name": "Section Intro",
+     "visible": true,
+     "padding": "45px 15px 120px 15px",
+     "width": "1fr",
+     "height": "fit-content",
+     "position": "absolute",
+     "layout": "stack",
+     "stackDirection": "vertical",
+     "gap": "15px"
+    },
+    {
+     "id": "ug0DLqf9I",
+     "name": "Section Approach",
+     "visible": true,
+     "padding": "0px 15px 0px 15px",
+     "width": "1fr",
+     "height": "fit-content",
+     "position": "absolute",
+     "layout": "stack",
+     "stackDirection": "horizontal",
+     "gap": "0px"
+    },
+    {
+     "id": "wr7mX5sBi",
+     "name": "Section Services",
+     "visible": true,
+     "padding": "0px 15px 120px 15px",
+     "width": "1fr",
+     "height": "fit-content",
+     "position": "absolute",
+     "layout": "stack",
+     "stackDirection": "vertical",
+     "gap": "0px"
+    },
+    {
+     "id": "eRcnry0jc",
+     "name": "Section Clients",
+     "visible": false,
+     "padding": "0px 15px 120px 15px",
+     "width": "1fr",
+     "height": "fit-content",
+     "position": "absolute",
+     "layout": "stack",
+     "stackDirection": "vertical",
+     "gap": "45px"
+    },
+    {
+     "id": "fFtRsaTQr",
+     "name": "Section Testimonials",
+     "visible": false,
+     "padding": "0px 15px 120px 15px",
+     "width": "1fr",
+     "height": "fit-content",
+     "position": "absolute",
+     "layout": "stack",
+     "stackDirection": "vertical",
+     "gap": "45px"
+    }
+   ],
+   "mainId": "CNXVVkm55",
+   "mainAttrs": {
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "gap": "0px",
+    "padding": "0px",
+    "width": "1fr",
+    "height": "fit-content"
+   }
+  },
+  {
+   "name": "Tablet",
+   "id": "JWlDAB7wN",
+   "children": [
+    {
+     "id": "JWlDAB7wNSwVjGceLR",
+     "name": "Section Hero",
+     "visible": true,
+     "padding": "0px",
+     "width": null,
+     "height": "fit-content",
+     "position": "absolute",
+     "layout": "stack",
+     "stackDirection": "horizontal",
+     "gap": "10px"
+    },
+    {
+     "id": "JWlDAB7wNWpGM4Tu3O",
+     "name": "Section Header - Trigger",
+     "visible": true,
+     "padding": "0px",
+     "width": "1fr",
+     "height": "1px",
+     "position": "absolute",
+     "layout": null,
+     "stackDirection": null,
+     "gap": "0px"
+    },
+    {
+     "id": "JWlDAB7wNmbYwiomDX",
+     "name": "Section Intro",
+     "visible": true,
+     "padding": "45px 15px 120px 15px",
+     "width": "1fr",
+     "height": "fit-content",
+     "position": "absolute",
+     "layout": "stack",
+     "stackDirection": "vertical",
+     "gap": "15px"
+    },
+    {
+     "id": "JWlDAB7wNug0DLqf9I",
+     "name": "Section Approach",
+     "visible": true,
+     "padding": "0px 15px 0px 15px",
+     "width": "1fr",
+     "height": "fit-content",
+     "position": "absolute",
+     "layout": "stack",
+     "stackDirection": "horizontal",
+     "gap": "0px"
+    },
+    {
+     "id": "JWlDAB7wNwr7mX5sBi",
+     "name": "Section Services",
+     "visible": true,
+     "padding": "0px 15px 120px 15px",
+     "width": "1fr",
+     "height": "fit-content",
+     "position": "absolute",
+     "layout": "stack",
+     "stackDirection": "vertical",
+     "gap": "0px"
+    },
+    {
+     "id": "JWlDAB7wNeRcnry0jc",
+     "name": "Section Clients",
+     "visible": false,
+     "padding": "0px 15px 120px 15px",
+     "width": "1fr",
+     "height": "fit-content",
+     "position": "absolute",
+     "layout": "stack",
+     "stackDirection": "vertical",
+     "gap": "45px"
+    },
+    {
+     "id": "JWlDAB7wNfFtRsaTQr",
+     "name": "Section Testimonials",
+     "visible": false,
+     "padding": "0px 15px 120px 15px",
+     "width": "1fr",
+     "height": "fit-content",
+     "position": "absolute",
+     "layout": "stack",
+     "stackDirection": "vertical",
+     "gap": "45px"
+    }
+   ],
+   "mainId": "JWlDAB7wNCNXVVkm55",
+   "mainAttrs": {
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "gap": "0px",
+    "padding": "0px",
+    "width": "1fr",
+    "height": "fit-content"
+   }
+  },
+  {
+   "name": "Phone",
+   "id": "AwhOnpHay",
+   "children": [
+    {
+     "id": "AwhOnpHaySwVjGceLR",
+     "name": "Section Hero",
+     "visible": true,
+     "padding": "0px",
+     "width": null,
+     "height": "fit-content",
+     "position": "absolute",
+     "layout": "stack",
+     "stackDirection": "horizontal",
+     "gap": "10px"
+    },
+    {
+     "id": "AwhOnpHayWpGM4Tu3O",
+     "name": "Section Header - Trigger",
+     "visible": true,
+     "padding": "0px",
+     "width": "1fr",
+     "height": "fit-content",
+     "position": "absolute",
+     "layout": null,
+     "stackDirection": null,
+     "gap": "0px"
+    },
+    {
+     "id": "AwhOnpHaymbYwiomDX",
+     "name": "Section Intro",
+     "visible": true,
+     "padding": "45px 15px 120px 15px",
+     "width": "1fr",
+     "height": "fit-content",
+     "position": "absolute",
+     "layout": "stack",
+     "stackDirection": "vertical",
+     "gap": "15px"
+    },
+    {
+     "id": "AwhOnpHayug0DLqf9I",
+     "name": "Section Approach",
+     "visible": true,
+     "padding": "0px 15px 120px 15px",
+     "width": "1fr",
+     "height": "fit-content",
+     "position": "absolute",
+     "layout": "stack",
+     "stackDirection": "horizontal",
+     "gap": "0px"
+    },
+    {
+     "id": "AwhOnpHaywr7mX5sBi",
+     "name": "Section Services",
+     "visible": true,
+     "padding": "0px 15px 120px 15px",
+     "width": "1fr",
+     "height": "fit-content",
+     "position": "absolute",
+     "layout": "stack",
+     "stackDirection": "vertical",
+     "gap": "30px"
+    },
+    {
+     "id": "AwhOnpHayeRcnry0jc",
+     "name": "Section Clients",
+     "visible": false,
+     "padding": "0px 15px 120px 15px",
+     "width": "1fr",
+     "height": "fit-content",
+     "position": "absolute",
+     "layout": "stack",
+     "stackDirection": "vertical",
+     "gap": "45px"
+    },
+    {
+     "id": "AwhOnpHayfFtRsaTQr",
+     "name": "Section Testimonials",
+     "visible": false,
+     "padding": "0px 15px 120px 15px",
+     "width": "1fr",
+     "height": "fit-content",
+     "position": "absolute",
+     "layout": "stack",
+     "stackDirection": "vertical",
+     "gap": "45px"
+    }
+   ],
+   "mainId": "AwhOnpHayCNXVVkm55",
+   "mainAttrs": {
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "gap": "0px",
+    "padding": "0px",
+    "width": "1fr",
+    "height": "fit-content"
+   }
+  },
+  {
+   "name": "Testimonial Mobile 1",
+   "id": "RLVQRzhrx",
+   "children": []
+  },
+  {
+   "name": "Testimonial Mobile 2",
+   "id": "lsU8bdgav",
+   "children": []
+  },
+  {
+   "name": "Testimonial Mobile 3",
+   "id": "VXm6zvbGM",
+   "children": []
+  },
+  {
+   "name": "Testimonial Mobile 4",
+   "id": "MAH9ixdk8",
+   "children": []
+  }
+ ]
+}
