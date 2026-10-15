@@ -4671,3 +4671,31 @@ Built as a single crop-and-scale pass from the original — `crop=6480:3268:0:52
 **Verified three ways:** a separate `exec` read-back (`resolution: auto`), a **re-issued write answering `ALREADY BOUND`** — and because that re-upload returned **the same asset id**, the dedup doubles as proof of byte identity — plus the hosted file re-measured at `2560x1291`, `610 KB`. Draft counts clean (Home 3/3, Fixtures 11/11, Elements 5/5, Projects 3/10, News 3/7).
 
 **Both superseded assets stay hosted** — `KN9kANcj5…` (Shak's 2.244 crop) and `AUFOIxWFI…` (the spa) — so either is one rebind away, with no upload and no re-encode.
+
+### PUBLISHED AND VERIFIED LIVE 2026-10-15 (build `Last-Modified 14:21:51 GMT`) — but the button blocker SHIPPED
+
+Three byte-stable fetches at `279,293`, no known-bad truncation signature.
+
+| | live |
+|---|---|
+| wide card restored | `Home Project Single - Wide` 1, `… Wide - Mobile` 1, `framer-v-r3zqm7` 9, `framer-v-fo45vv` 7 |
+| its new image | `XN0uVlxC3Qaamdtbb7GSIdVjIY` **15 srcset refs** |
+| both superseded assets | `KN9kANcj5…` **0**, `AUFOIxWFI…` **0** |
+
+**`aspect-ratio:1.17458` went 8 -> 11, and that CONFIRMS yesterday's enumeration rather than being a new number.** When the card was hidden the count dropped `11 -> 8` and the note named the three that went as Row 2's. Restoring it brought back exactly three. **A count that returns to its old value after a reversal is the cheapest possible check that the earlier explanation was right** — worth doing whenever a removal is undone.
+
+**The spacing needed no compensation and that is now measured, not predicted** (1536 wide):
+
+```
+Section Projects   855 .. 1646   two-up cards 870..1631, both 761 (parity holds)
+wide card         1646 .. 2421   padB 15px, its Product Card 1646..2406
+Section News      2421 .. 3325   padT 75px
+```
+
+Gap below the card = `15 (its own padB) + 75 (Section News padT)` = **90px**, the same 90 that existed while it was hidden. Nothing moved but the card.
+
+**The `pointer-events` fix survived the hide/restore cycle**, checked because it is a past defect on this exact button: the base rule is `pointer-events:none` and **both** `.framer-v-r3zqm7` and `.framer-v-fo45vv` override it to `auto`. The hydrated DOM confirms one `./projects-list` anchor at desktop width with `pointer-events: auto` and **nothing blocking it up the ancestor chain** (the phone copy is not hydrated at that width, as documented).
+
+**!!! SO THE BLOCKER IS LIVE: the card's button works, and it is the ONLY route from Home to the orphaned projects pages !!!** `./projects-list` appears **2x** in the markup (desktop + phone) and **0x** `./projects-grid`; the footer sitemap no longer carries either, so those two are the card's own buttons. This was flagged as publishable-wrong before the publish and shipped anyway — **a flagged blocker is not a blocker unless the publish waits for it**, which is the same failure mode as the 2026-10-07 `pointer-events` note that sat unverified for six days. The repoint remains one scripted write across `Q__AVxo4PbeNpOjgIR`, `uR6T4xhGKbeNpOjgIR` and `tDcw55E8QbeNpOjgIR`.
+
+Full regression sweep otherwise clean: 0 stale `1.180xx`, both Elements ratios, 2 hero overlays, `#f7f6f2` with 0 `#f6f4f0`, brand green, 0 stale `View Case Study`, `lossless=1` 0, badge 0, 58 Gellix refs, footer CTA 3, orb byte-exact at `4,280,052`, hero video at `4,009,893`.
