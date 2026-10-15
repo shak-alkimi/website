@@ -4699,3 +4699,21 @@ Gap below the card = `15 (its own padB) + 75 (Section News padT)` = **90px**, th
 **!!! SO THE BLOCKER IS LIVE: the card's button works, and it is the ONLY route from Home to the orphaned projects pages !!!** `./projects-list` appears **2x** in the markup (desktop + phone) and **0x** `./projects-grid`; the footer sitemap no longer carries either, so those two are the card's own buttons. This was flagged as publishable-wrong before the publish and shipped anyway — **a flagged blocker is not a blocker unless the publish waits for it**, which is the same failure mode as the 2026-10-07 `pointer-events` note that sat unverified for six days. The repoint remains one scripted write across `Q__AVxo4PbeNpOjgIR`, `uR6T4xhGKbeNpOjgIR` and `tDcw55E8QbeNpOjgIR`.
 
 Full regression sweep otherwise clean: 0 stale `1.180xx`, both Elements ratios, 2 hero overlays, `#f7f6f2` with 0 `#f6f4f0`, brand green, 0 stale `View Case Study`, `lossless=1` 0, badge 0, 58 Gellix refs, footer CTA 3, orb byte-exact at `4,280,052`, hero video at `4,009,893`.
+
+### The Home wide card's button now points at `/about` (2026-10-15, NEEDS A PUBLISH)
+
+Shak's call. All three nodes set to `XqpXZUGU6: "About"` / `NhREodF7M: "/about"` in **one `setAttributes` per node** (both controls in a single call, which is the documented safe shape):
+
+```
+Q__AVxo4PbeNpOjgIR   Home Project Single - Wide          desktop base
+uR6T4xhGKbeNpOjgIR   Home Project Single - Wide          hover gesture
+tDcw55E8QbeNpOjgIR   Home Project Single Wide - Mobile   phone
+```
+
+**The label was NOT specified and was chosen rather than left wrong.** `Project Portfolio` pointing at `/about` is a visible defect, so it became **`About`** — matching what the nav menu row and the footer sitemap already call that destination, rather than inventing new copy for the home page. One control to change if different wording is wanted.
+
+**Verified:** a separate `exec` read-back showing all three at `About` / `/about` with **`variant: "eI_njgAoy"` preserved** (so the transparent + white-border treatment survives), a re-issued write answering **`ALREADY` on all three**, and **17 other buttons on the component still reading `View Case Study -> /projects/:slug`** — the expected count, which is what proves a partial `controls` write did not clobber its siblings. `/about` returns **200**.
+
+**!!! `getUnpublishedPageChanges()` RETURNS `[]` FOR A COMPONENT-INTERNAL CHANGE — it does not see this either !!!** The known limitation was recorded as "that counter covers *page* changes and cannot see a CMS write". **It is wider than that.** The wide card's *page instance* visibility toggle on 2026-10-14 did register (one entry); this change to *component-internal* control values registers nothing. So the counter tracks page-level edits only, and **a `[]` from it is not evidence that the document is fully published** — it is evidence that no *page* edit is pending. Confirm a component or CMS change against the served page instead.
+
+**The live page is the control for that claim:** immediately after the write it still serves `./projects-list` x2 and `Project Portfolio` x2, with `./about` x3 (the nav row and footer sitemap, one per breakpoint). **After publishing, expect `./about` to go 3 -> 5 and both `projects-list` and `Project Portfolio` to go to 0** — which also settles the 2026-10-14 removal, since the card was the last route from Home to the orphaned projects pages.
