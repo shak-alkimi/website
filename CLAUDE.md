@@ -5355,6 +5355,33 @@ CMS field  ->  page instance control  ->  component variable  ->  inner row inst
 
 **VERIFIED:** node inventory inside `Abouts` **unchanged at 42 before and after** both keyboard mishaps (nothing created, nothing deleted), `Text Wrapper` order/gap/widths byte-identical, Accordion still 3 variants x 4 rows, `repair/verify-draft-status.js` clean, and the **editor canvas renders the whole page from the CMS** — `Introduction` / both intro columns / `Method` / Research-Partnership-System with numbers and images / `Implementation` / 01-04 Specification Support, Configuration, Delivery, Installation, with the `About Service 1 Number` binding badge visible on the accordion.
 
-**STILL UNBOUND, AND IT CANNOT BE BOUND WHERE IT SITS: the hero.** `Section Hero` is a **sibling of `Abouts`**, i.e. **outside** the Collection List, so it has no item context and the menu will not offer About fields at all. `Hero Title` (`"Measured in every way"`), the hero CTA, image and video are therefore still canvas/instance values. Binding them means moving `Section Hero` inside the list — the same cut/paste surgery the other sections went through, and a separate decision. **Note the phone variant carries genuinely different wording** (`ready for a change` against desktop's `to make a change`), so a single CMS string cannot express both breakpoints as they stand.
+**STILL UNBOUND, AND IT CANNOT BE BOUND WHERE IT SITS: the hero.** `Section Hero` is a **sibling of `Abouts`**, i.e. **outside** the Collection List, so it has no item context and the menu will not offer About fields at all. `Hero Title` (`"Measured in every way"`), the hero CTA, image and video are therefore still canvas/instance values. **SUPERSEDED BY THE HERO SECTION BELOW — read that instead.** Two things in this paragraph were wrong: the fix is NOT to move `Section Hero` into the existing list (that would strand the 1px `Section Header - Trigger` ahead of it and fire the nav at page load) but to give the hero **its own** Collection List; and the phone-wording claim quoted here was **stale** — all three breakpoints now read `Measured` / `in every way`. The real obstacle is that the phone uses a **different hero video and poster**.
 
 **Also still unbound and deliberately so:** `Clients Heading` and `Testimonials Heading` — their sections are hidden, so there is nothing to bind them to.
+
+### THE HERO STAYS ON THE CANVAS, AND `Hero Title` WAS DELETED (Shak, 2026-10-15)
+
+Asked what to do about the one surface the binding pass could not reach. **His call: leave the hero alone and remove the orphaned field**, so the CMS stops advertising something that drives nothing — which is exactly the trap that started the whole exercise (*"the cms information is not matching the published site"*).
+
+**`Hero Title` (`yctOqdCxu`, string, "Measured in every way") removed.** Collection goes 32 -> 31 fields. Verified by a separate `exec`, by re-issuing the delete (`ALREADY GONE`), with `repair/verify-draft-status.js` clean and the `/about` node inventory unchanged at **42 before and after**. **Field deletion is irreversible through the API, so the value was confirmed present in [repair/about-fields-backup.json](repair/about-fields-backup.json) first** — it is recoverable from there if the hero is ever wired up.
+
+**!!! CORRECTION — THE PHONE HERO NO LONGER CARRIES DIFFERENT WORDING. An earlier note in this file and on the dispatch board said it did, and that was STALE. !!!** The claim (`ready for a change` on phone against `ready to make a change` on desktop) described the **pre-edit Ora copy**; the hero was rewritten to `Measured` / `in every way` earlier the same day, Mobile included, and the **published page confirms all three breakpoints read the same**. Checked by tracking the enclosing `ssr-variant` wrapper rather than by assuming — `shown-on:desktop+tablet+phone` on both lines. **It was quoted to Shak as a live constraint on the decision before being re-checked; the re-check is what caught it.** Do not repeat the different-wording claim.
+
+**WHAT THE HERO ACTUALLY CONTAINS, measured properly this time** — worth recording because the earlier dump reported `ctrl={}` on a stale read and the real controls only showed on a second pass:
+
+`About / About Header` (`GyKJqP2Z6`) exposes exactly three variables — **`Link` [link] `aJwTgiMYu`, `URL` [string] `twBEjiRp1`, `Poster` [image] `Q9MpMF_yE`** — so the **title and the CTA label are component-internal canvas text** with no control at all. Four page-level instances.
+
+**!!! THE PHONE USES A DIFFERENT VIDEO *AND* A DIFFERENT POSTER FROM DESKTOP/TABLET !!!**
+
+| breakpoint | variant | video | poster |
+|---|---|---|---|
+| Desktop + Tablet | `UhIJ8NjKA` | `ena-supply.b-cdn.net/Ora/740047_Woman Model Projection…mp4` | `QIFjJ6vV46DsKJ5xoib0Przzs.jpg` |
+| **Phone** | `CY1W0rQc5` | **`ena-supply.b-cdn.net/Ora/about mobile .mp4`** | **`w8ju9tTJ0Q4vfPaScC7IhZC8wRM.jpg`** |
+
+**That pair is the real argument against binding the hero**, and it is why the full-bind option was recommended against. A CMS field holds **one value per item**, so binding `URL`/`Poster` would either flatten the phone to the landscape desktop asset or require separate `Hero Video Phone` / `Hero Poster Phone` fields. **Both hero videos are on the template author's CDN** and already sit on the pre-launch stock-cleanup list — that swap is an editor job either way.
+
+**IF THE HERO IS EVER WIRED UP, DO NOT MOVE IT INTO THE EXISTING COLLECTION LIST — GIVE IT ITS OWN.** The blocker is only position: `Section Hero` (`SwVjGceLR`) is a **sibling** of `Abouts`, so it has no item context. The obvious fix — moving it inside `Abouts` — **would break the nav**, because **`Section Header - Trigger` (`WpGM4Tu3O`) is a 1px section sitting immediately after the hero** and is the scroll trigger; pulling the hero into the list would leave the trigger rendering *before* it, firing at page load. Wrapping `Section Hero` in **its own** Collection List (same collection, `Limit to: 1`) gives it item context while leaving every sibling's order untouched, and avoids the cut/paste reordering entirely. **Order under `Main` is: `Section Hero`, `Section Header - Trigger`, (`Section Clients` hidden), (`Section Testimonials` hidden), `Abouts`.**
+
+Note the headline would still need **two fields**, not one — it is two text nodes with different styles (`h1` "Measured" + `p` "in every way"), the same shape as the intro columns.
+
+**Still orphaned and deliberately left:** `Clients Heading` and `Testimonials Heading`. Their sections are hidden rather than deleted, so those fields are dormant rather than wrong — and deleting them would be destructive beyond what was asked. Revisit only if those sections are abandoned for good.
