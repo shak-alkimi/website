@@ -4631,3 +4631,23 @@ divider tops   386.67  446.67  506.67  566.67  626.67   CSS
 **So the rule needs sharpening: agreement between two reads is evidence only when the value is not already known to be a failure mode.** Keep a list of the bad signatures — `29,843` and `28,683` for this project — and treat a match as a failed read no matter how many times it repeats. The general form: **a reproducible result is not a correct one; reproducibility only rules out noise, never a systematic fault.**
 
 Full Home regression sweep passes: 8x `aspect-ratio:1.17458` (the correct post-wide-card baseline), 0 stale `1.180xx`, both Elements ratios, 2 hero overlays, `#f7f6f2` with 0 `#f6f4f0`, brand green, 0 stale `View Case Study`, `lossless=1` 0, badge 0, 58 Gellix refs, footer CTA on 6 nodes, orb byte-exact at `4,280,052` and hero video at `4,009,893`.
+
+### The Home wide card RESTORED — and its button now points at an orphaned page (2026-10-15, NEEDS A PUBLISH)
+
+Shak asked for the full-width card under the Fixtures/Elements pair back, to link to `/about`. **`Va7s_G1cn` -> `visible: true`** — the page instance of `Home - Projects Row 2`, variant `Home Project Single - Wide`, hidden the previous day.
+
+**NOTHING HAD TO BE REVERTED WITH IT, and that is the mirror of the standing rule rather than an exception to it.** The rule says *"whenever a hidden section is restored, revert whatever was added to compensate for hiding it"* — here nothing was added, because the hide itself needed no compensation: `Section News` carries its own `75px` top padding, so the gap above the Newsroom went `15 + 15 + 75` -> `15 + 75` = 90px, exactly what the card already had beneath it. Restoring the card puts that 90px back where it was. **Check the hide's own record before reverting anything — a compensation that was never applied must not be "undone".**
+
+Verified three ways: a separate `exec` on the same session (`visible=true`), a **re-issued write reporting `ALREADY VISIBLE`** (evidence from the live document, not a snapshot), and `getUnpublishedPageChanges()` showing exactly one queued page change.
+
+**!!! THE CARD'S BUTTON STILL READS `Project Portfolio` AND LINKS TO `/projects-list`, WHICH IS NOW HIDDEN FROM EVERY NAVIGATION SURFACE !!!** Publishing the restore as it stands makes this card the **only** route from Home to the orphaned projects pages — directly undoing part of the 2026-10-14 removal. Shak said he would repoint it at `/about`; until that happens the restore is **publishable-wrong**, which is the documented sequencing hazard.
+
+**It is THREE nodes, not one** — the hover gesture variant and the mobile variant each carry their own copy of both controls:
+
+| node | variant |
+|---|---|
+| `Q__AVxo4PbeNpOjgIR` | `Home Project Single - Wide` (desktop base) |
+| `uR6T4xhGKbeNpOjgIR` | the hover gesture state |
+| `tDcw55E8QbeNpOjgIR` | `Home Project Single Wide - Mobile` |
+
+All three read `XqpXZUGU6: "Project Portfolio"` / `NhREodF7M: "/projects-list"`, and the other 17 buttons on the component correctly read `View Case Study` / `/projects/:slug`. **Both controls ARE API-writable** — they are not `variant` — so the repoint is one scripted write across the three, and that is the safer route than three editor passes where the gesture state is easy to miss.
