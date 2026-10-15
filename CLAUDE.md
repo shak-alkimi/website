@@ -4792,3 +4792,36 @@ The footer begins at `3534`, *equal to* `Section Clients`' bottom — because th
 **No content cost, and arguably a liability removed.** The eight logos are stock Ora — `INFINITE`, `OV`, `ena`, `STUDIO 34`, `Sensa`, `Techno Fest`, `A14` and one more — and **`ena` is the template author's own brand**, the same `ena.supply` behind the footer Instagram and the `/careers` CDN video. A page headed "Our clients" showing invented clients on a real business site is worth being rid of regardless of the design question.
 
 **`/about` now reads `Hero -> Header-Trigger -> Intro -> Approach -> Services -> footer`.** The CMS groundwork orphaned by it: the **`Clients` collection (`jEgaeZaMN`, 8 items) now drives nothing**, joining `Testimonials` (`Sy_edh8S4`, 4 items), and the `About` collection's orphaned fields are now `Clients Heading` + `Testimonials Heading`. Nothing breaks; the recorded plan to wire `/about` through a Collection List keeps shrinking.
+
+### Menu renumbered `01-05` — one of the two Projects-removal leftovers is closed (2026-10-15, NEEDS A PUBLISH)
+
+The menu read `01, 02, 04, 05, 06` since Projects was hidden. Now `01, 02, 03, 04, 05`, confirmed by zoomed capture on **both** `Variant 1` and `Desktop Full Menu`.
+
+**`setText` AND `getText` WERE RE-PROBED RATHER THAN ASSUMED, and both still fail** — `setText` throws `"Node not found"`, `getText` throws `"Node is not a text node"`, on a live handle obtained by traversal. So this is genuinely editor-only, as recorded. **Re-probing cost one `exec` and was worth it**: if it had worked, the whole job was a one-line script.
+
+**!!! CORRECTION — ALL SIX NUMBER LAYERS ARE NAMED `01`. The layer name does NOT identify the row. !!!** This file leans on "Framer names a text layer after its content", which is how the hero headline and the read-time layers were found. **It fails here**, because these rows were duplicated and every copy kept the first one's name. A scan for a layer named `04` returns nothing.
+
+**The reliable key is the row's own `link`**, the same technique used for the footer sitemap — walk for nodes carrying a `link`, then find the 2-digit text layer beneath each:
+
+| row | node (shared by both variants) |
+|---|---|
+| `/about` | `L8I_77lop` |
+| `/news` | `oRKlkoaQL` |
+| `/contact` | `Om4RQKgzZ` |
+
+**Three edits covered all six layers** — text content is shared between `Variant 1` and `Desktop Full Menu`, confirmed by reading the numbers off both artboards afterwards rather than trusting the note.
+
+**The editor sequence that worked, and the extra step the recorded recipe was missing:**
+
+1. Deep-link the **component** (`?node=uL6YOTdAZ`).
+2. **Single click selects the ROW, not the number** — the panel shows a `Link` section, which is the tell. **Double-click then drills in and enters text edit mode in one action.** The recipe said "double-click the text"; from a deselected state that only reaches the row.
+3. Move the pointer away, then `End` + `shift+Home`, then zoom to confirm the highlight.
+4. Type, `Escape`, `Escape`, click empty canvas, re-zoom.
+
+**!!! A SCALED SCREENSHOT MISREAD THE TWO-DIGIT NUMBER TWICE — it showed `06` where a fresh `zoom` showed `05`. !!!** Both times the scaled jpeg was simply a stale or over-compressed render. The file already says "verify by zoomed screenshot"; **this is the concrete failure behind that rule, and it would have produced a false "the edit did not take" followed by a wasted re-edit.** Never read a value off a `scale: 0.5-0.6` screenshot; take the `zoom`.
+
+**The canvas freeze hit twice** (`Page.captureScreenshot` timed out after 30s). Waiting ~6s and retrying with a smaller capture recovered both times — consistent with "JavaScript keeps running while capture is frozen".
+
+**Checked for collateral damage afterwards, because every click landed on a node carrying a `Link`:** all **12** row links re-read intact (`/products`, `/elements`, `/projects-list`, `/about`, `/news`, `/contact` on both variants), two agreeing reads on a fresh session. **Worth doing whenever canvas edits are driven near interactive properties.**
+
+**The caution from the original removal still stands: if Projects ever returns, this renumbering has to be undone.** The remaining leftover is the divider stagger — surviving variants are 1, 2, 4, 5, 6, so there is still a 300ms hole against the measured 150ms, fixed by three `Delay` edits on `Line Mobile Menu 4/5/6 Active` to `0.5 / 0.65 / 0.8`.
