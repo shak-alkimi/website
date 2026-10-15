@@ -4981,3 +4981,35 @@ So it fits down to a 360px Android and **no wrapping change is needed**. **A 50%
 **The subtext is the wider element**, incidentally: *"Join us for a chat to talk about your business"* measures **318.9px** at its 16px phone size. It is a text node at `width: 1fr`, so it wraps on anything narrower than ~351px and never clips.
 
 Tablet and Desktop were never at risk — at 810px the heading column is ~509px for a 26px string of ~304px.
+
+### PUBLISHED AND VERIFIED LIVE 2026-10-15 (build `17:03:12 GMT`) — and a CSS-grep trap that nearly produced a false "it did not ship"
+
+Three byte-stable fetches at `279,404`, no known-bad signature; Home grew **181 bytes**, consistent with one small rule being added.
+
+**The override is live and correctly scoped to Mobile alone:**
+
+```css
+.framer-P0DcS.framer-v-p4t8j6 .framer-1lj7it1{flex-direction:column}
+.framer-P0DcS.framer-v-p4t8j6 .framer-1mkvir4,
+.framer-P0DcS.framer-v-p4t8j6 .framer-15pvhbm{flex:none;width:100%}
+```
+
+| footer variant root | `data-framer-name` | Row Top |
+|---|---|---|
+| `framer-v-12ty59o` | Desktop | no override — stays `flex-flow:row` |
+| `framer-v-4rvzev` | Tablet | no override — stays `flex-flow:row` |
+| **`framer-v-p4t8j6`** | **Mobile** | **`flex-direction:column`** |
+
+Specificity `(0,3,0)` against the base rule's `(0,2,0)`, so it wins regardless of source order. The shared footer carries it on `/about`, `/products` and `/news` too, so every page's phone footer is fixed by the one change.
+
+**!!! A VARIANT OVERRIDE CAN BE EMITTED AS THE LONGHAND WHERE THE BASE RULE USED THE SHORTHAND — grepping for the base's property name finds NOTHING !!!**
+
+The base rule is `flex-flow:row`; the Mobile override is **`flex-direction:column`**. A sweep for `flex-flow` across every rule mentioning the class therefore returned only the unchanged base, and **I reported the fix as absent from the published page before re-reading the raw CSS**. Two separate mistakes compounded it: filtering declarations on `flex-flow` only, and taking `head -1` of the matching rules so the second rule was discarded anyway.
+
+**The rule: when checking whether a CSS change shipped, print every rule whose selector mentions the class and read the raw text** — do not filter on the property name you expect, because the shorthand/longhand pair is a different string. The same applies to `padding` vs `padding-top`, `background` vs `background-color`, `inset` vs `top/left`. This sits alongside the already-recorded normalisation trap (`0px` -> `0`, redundant fourth value dropped): **both are cases where the published text is not the text you wrote.**
+
+**A better check than any grep, and it was available the whole time: identify the variant root and read ITS override block.** Finding `framer-v-p4t8j6` from `data-framer-name="Mobile"` and dumping every rule starting with it shows the breakpoint's complete set of overrides in one place — here the Row Top direction, the two child widths, the `90px` stack gap and the `60px 15px 15px` padding, all together and unambiguous.
+
+**The phone content width is 360px, not the 358 estimated.** The published padding is `60px 15px 15px`, i.e. **15px a side** on a 390px frame. So the 280.6px heading has **79px** of spare rather than 77, and the margin down to a 360px Android is correspondingly a little better than the table above states.
+
+Full Home sweep clean: 11x `aspect-ratio:1.17458` with 0 stale `1.180xx`, both Elements ratios, 2 hero overlays, `#f7f6f2` with 0 `#f6f4f0`, brand green 5, `The Method` 2 with `Project Portfolio` 0, `href="./about"` 5 with `projects-list` 0, 0 stale `View Case Study`, `lossless=1` 0, badge 0, 58 Gellix, and the wide card button still inverted (2 resting-variant buttons, 2 solid-white fills).
