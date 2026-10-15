@@ -4944,3 +4944,40 @@ Measured on the published page by hovering the button and reading the live DOM:
 **THE FRAMER-AGENT CHANGE FLAGGED BEFORE THE PUBLISH LANDED, AND IT WAS A GOOD ONE.** The hero headline's two paragraphs now carry `data-styles-preset="f5vNtZkWz"` (`H1 Hero`) and `"Q8aIAfMKm"` (`H1 Hero - Style`) — i.e. the **direct inline formatting has been replaced by the two presets**, which is precisely the outstanding editor step recorded on 2026-10-13 (*"select 'Measured' and apply `H1 Hero`; select 'lighting objects.' and apply `H1 Hero - Style`"*). So that item is now closed, and the `<p>` no longer carries breakpoint-less hard-coded type. **Flagging a pending third-party edit before a publish was worth it even though it turned out benign** — the check cost one grep and it could equally have been drift.
 
 Full Home sweep clean: 11x `aspect-ratio:1.17458` with 0 stale `1.180xx`, both Elements ratios (`.975765` / `.925714`), 2 hero overlays at `rgb(8, 2, 0)`, `#f7f6f2` with 0 of the wrong `#f6f4f0`, brand green 5, 0 stale `View Case Study`, `lossless=1` 0, badge 0, 58 Gellix refs, 2x `--framer-font-size:72px`.
+
+### The footer CTA was CLIPPED ON PHONE — an inherited Ora fault, fixed on the Mobile variant only (2026-10-15, NEEDS A PUBLISH)
+
+Shak reported the "Let's start a conversation" block cut off on phone. **It was, and `main` has the identical defect** — so this is template-inherited, not something the 2026-10-13 cross-project paste broke.
+
+**The mechanism is one emitted rule with NO media query, so it applied at every width:**
+
+```css
+.framer-Huwy8 .framer-1lj7it1{flex-flow:row; gap:15px; width:100%; overflow:hidden}   /* Row Top    */
+.framer-Huwy8 .framer-1mkvir4{flex:.4 0 0; width:1px}                                 /* Contact    */
+.framer-Huwy8 .framer-15pvhbm{flex:.8 0 0; width:1px; flex-flow:column}               /* Right Content */
+```
+
+`Row Top` stays a **row** on a 390px phone, so the heading column gets `0.8/1.2` of `(390 - 32 - 15) ≈ 343` = **~230px**, while `Heading Wrapper` is **`fit-content`** and cannot wrap — and `overflow: hidden` then clips the remainder rather than letting it spill. The canvas confirmed all three variants were **byte-identical** (`dir=horizontal`, `0.4fr` / `0.8fr`), i.e. the paste was never adapted for phone.
+
+**`main` emits the same class and the same rule** (`framer-1lj7it1`, `flex-flow:row`, `overflow:hidden`, no media query), so **there was no correct reference to copy** — this had to be designed rather than borrowed. Worth checking main first anyway; it cost one fetch and ruled out the cheap route.
+
+**Fix, on the Mobile variant ONLY** (`In5qJquLm`): `Row Top` -> `stackDirection: "vertical"`, and both children `0.4fr` / `0.8fr` -> **`1fr`**. In a column those `fr` values would otherwise distribute **height**, not width, so they had to change with the direction — **an `fr` width is a main-axis ratio, and flipping a stack's direction silently repurposes it.**
+
+**Do NOT pass `layout` in that write.** `layout` was already `"stack"`, and `setAttributes({ layout })` is the call that **crashes the relay** (`Cannot read properties of null (reading 'parentid')`). Only `stackDirection` was needed, and it writes fine on a node whose layout is already a stack — the recorded inert-`stackDirection` failure was specific to a **grid** node.
+
+**The write did not cascade, which is the whole point:** Desktop and Tablet still read `dir=horizontal` with `0.4fr` / `0.8fr`. Writing a **non-primary variant creates an override scoped to it**, consistent with the tooltip-address finding. Verified by a separate `exec` on the same session and by re-issuing the write (`ALREADY` on all three nodes).
+
+**MEASURING THE TEXT BEAT EYEBALLING THE CANVAS, AND MY EYEball READ WAS WRONG.** After the fix a zoomed canvas screenshot looked as though the heading "filled the content width almost exactly", and I nearly added a second change to force wrapping on narrower phones. Measured properly — `canvas.measureText` on the published page with the real font loaded (`document.fonts.ready`, then `500 24px "General Sans"`) — the string is **280.6px**, not the ~358px the canvas suggested:
+
+| phone | content (`vw - 32`) | heading | spare |
+|---|---|---|---|
+| 360 | 328 | 280.6 | **47px** |
+| 390 | 358 | 280.6 | **77px** |
+
+So it fits down to a 360px Android and **no wrapping change is needed**. **A 50%-zoom canvas is not a measuring instrument** — the same lesson already recorded for scaled screenshots, here costing a nearly-shipped unnecessary edit.
+
+**The same measurement confirms the diagnosis numerically**, which is the part worth keeping: before the fix the heading had ~230px for a 280.6px string, i.e. **~50px of overflow**, and Shak's screenshot shows about four characters clipped (~44px at this size). **Predicting the observed symptom from the stored geometry is stronger evidence than "it looks cut off"** — it proves the rule found is the rule responsible.
+
+**The subtext is the wider element**, incidentally: *"Join us for a chat to talk about your business"* measures **318.9px** at its 16px phone size. It is a text node at `width: 1fr`, so it wraps on anything narrower than ~351px and never clips.
+
+Tablet and Desktop were never at risk — at 810px the heading column is ~509px for a 26px string of ~304px.
