@@ -4876,3 +4876,9 @@ Shak's wording, replacing the `About` placed earlier the same day. Label only �
 Verified by a separate `exec` and a re-issued write answering **`ALREADY` on all three**.
 
 **One consequence worth a decision, not acted on:** the nav menu row and the footer sitemap still call that destination **`About`**. The `About` label on the button was originally chosen *for* that consistency; `The Method` is a deliberate divergence, which is defensible — a card CTA and a nav item do different jobs — but if `The Method` is meant to be the site's name for the page, the menu row and sitemap link should follow. Both are one write each (the sitemap is a control; the menu row is canvas text, so editor-only).
+
+**VERIFIED LIVE 2026-10-15 (build `16:03:35 GMT`)** — three byte-stable fetches, no known-bad signature. `The Method` **2** (desktop + phone card buttons), `>About<` **3** (the nav row and footer sitemap, unchanged), `href="./about"` **5** and `./projects-list` **0**, both unchanged.
+
+**Home grew by exactly 10 bytes — `279,253 -> 279,263` — which is `2 x (len("The Method") - len("About"))`.** For a pure text change that arithmetic is a complete account of the diff: it proves nothing else moved, without reading the markup. **Worth doing whenever a change should be text-only**, and a delta that does *not* reconcile is the signal to go looking.
+
+Full Home sweep clean: 11x `1.17458` with 0 stale `1.180xx`, both Elements ratios, 2 hero overlays, `#f7f6f2` with 0 `#f6f4f0`, brand green, 0 stale `View Case Study`, `lossless=1` 0, badge 0, 58 Gellix, wide-card image 15 refs, orb `4,280,052` and hero video `4,009,893` byte-exact.
