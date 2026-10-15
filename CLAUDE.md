@@ -5110,3 +5110,39 @@ Going `2.000` -> `2.2444` removes **418px of height, 10.9%**. Centred that is 20
 **The superseded SoHo facade stays hosted** (`KN9kANcj5KB5iLZY5fenBdrhY.jpg`), so reverting is one rebind with no upload. **The orphan count for this article is now three** — the 4000px full-frame NYC master, the SoHo facade, and the gala photo it replaced earlier.
 
 **Noted in passing:** `cauda` and `kimi` both have `Image Hero` **empty**. For `cauda` that is correct — it runs the peacock video hero. For `kimi` it is the long-standing gap: no hero image and no `Hero Video URL`, so it renders the striped placeholder.
+
+### Services IS representable after all — my "rebuild the accordion" verdict was WRONG (2026-10-15)
+
+Shak pointed at the Services accordion and said it was not represented in the CMS. It is now: **12 fields added to `About`** (`Service 1-4 Number / Title / Text`, matching the existing `Value 1-3` shape used for Approach) and seeded.
+
+**THE EARLIER VERDICT WAS WRONG, AND THE METHOD ERROR IS THE REUSABLE PART.** I recorded that the four services were *"canvas text inside the component, exposed through nothing"* and that making them CMS-driven meant **rebuilding the accordion as a Collection List**. That was based on reading **the top-level `Accordion` instance's controls** — `{"variant":"xg9ucDTK2"}` — and stopping there. One level down, the four rows are separate **`Accordion / Accordion Row`** instances (`local-module:canvasComponent/eIuM0M4EB:default`) each carrying real data:
+
+```
+W88zB8mIG  Title       "Art Direction" / "Branding" / "Design" / "Development"
+T8rQFvSBR  Paragraph   the body copy
+h1ZthYPRp  Number      "01".."04"
+```
+
+So Services was **exactly as CMS-able as Approach all along** — which I had called "fully covered" in the same audit. **An empty or variant-only `controls` on a wrapper says nothing about its children; walk down before declaring content unreachable.** The tell was there in the first dump: `Services Wraper` had **1 child**, which should have prompted a look inside rather than a conclusion.
+
+Seeded **from those controls**, not from the page text or layer names — structured data at the source, so nothing was inferred. Verified by a separate `exec`, by re-issuing the seed (`ALREADY` on all 12), and `repair/verify-draft-status.js` clean.
+
+**!!! SHAK IS WRITING REAL ALKIMI COPY INTO THIS COLLECTION AND NONE OF IT REACHES THE SITE !!!**
+
+Between the morning audit and now he has rewritten most of the `About` item. The live page shows **none** of it, because the collection is bound to nothing:
+
+| | CMS now holds | live `/about` renders |
+|---|---|---|
+| `Hero Title` | **"Measured in every way"** | "We partner with founders…" (0 hits for the new string) |
+| `Intro Body` | **"At Alkimi, we are more than a lighting manufacture…"** | "At Ora, we are more than just a design studio…" |
+| `Approach Heading` | **"Method"** | "Approach" |
+| `Value 1/2/3 Title` | Research / **Partnership** / **System** | Research / Experimentation / Implementation |
+
+**This is the thing worth raising before any more content work**: the groundwork only becomes real when `/about` is wrapped in a **Collection List** scoped to `About` with `Limit to: 1`, which is editor work and is the single blocker for the entire page. Until then every value typed into this collection is invisible.
+
+**A partial `addItems` does NOT clobber the fields it omits — now confirmed on the CMS side.** The Service seed wrote only its 12 field ids, and Shak's newly-typed values in the other 19 survived untouched. That matches the documented behaviour for component `controls` and is worth relying on.
+
+**Two things to raise rather than fix, because he is mid-edit:**
+
+- **`Services Heading` now holds `"Implementation"`** where the page renders **"Our Services"**. `"Implementation"` was the *old* `Value 3 Title`, so this looks like a stray paste while shifting the Approach copy up. It was "Our Services" when corrected earlier today, so changing it back would revert his own edit — flagged instead.
+- **`Value 1/2/3 Image` are now cleared** — raw `{"type":"image"}` with no `value` key. Not my doing (those ids were never in any write I made), and plausibly deliberate, since one of them was the **Nike swoosh**. Worth confirming it was intended.
