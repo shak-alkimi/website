@@ -4882,3 +4882,36 @@ Verified by a separate `exec` and a re-issued write answering **`ALREADY` on all
 **Home grew by exactly 10 bytes — `279,253 -> 279,263` — which is `2 x (len("The Method") - len("About"))`.** For a pure text change that arithmetic is a complete account of the diff: it proves nothing else moved, without reading the markup. **Worth doing whenever a change should be text-only**, and a delta that does *not* reconcile is the signal to go looking.
 
 Full Home sweep clean: 11x `1.17458` with 0 stale `1.180xx`, both Elements ratios, 2 hero overlays, `#f7f6f2` with 0 `#f6f4f0`, brand green, 0 stale `View Case Study`, `lossless=1` 0, badge 0, 58 Gellix, wide-card image 15 refs, orb `4,280,052` and hero video `4,009,893` byte-exact.
+
+### The wide card button inverted: white filled at rest, transparent on hover (2026-10-15, NEEDS A PUBLISH)
+
+All three wide-card buttons moved from `Button White to Outline - Hover` (`eI_njgAoy`) to **`Button White to Outline` (`ucTfE3rNi`)** — `Q__AVxo4PbeNpOjgIR` (desktop base), `uR6T4xhGKbeNpOjgIR` (hover gesture), `tDcw55E8QbeNpOjgIR` (mobile). Label `The Method` and link `/about` preserved, confirming again that a partial `controls` write does not clobber its siblings.
+
+| variant | fill | border |
+|---|---|---|
+| **`ucTfE3rNi` White to Outline** (now) | **`rgb(255,255,255)` solid** | 1px `rgba(255,255,255,0)` invisible |
+| `eI_njgAoy` White to Outline - Hover (was) | `rgba(255,255,255,0)` | 1px `rgb(255,255,255)` |
+
+Geometry is identical on both (`fit-content`, `padding 11px 18px`, `gap 10px`, `radius 200px`), so nothing shifts inside the card. **The card was the only thing on the site using either variant** — every other instance uses a *resting* variant with Framer's interaction supplying the hover, so this also brings it into line with the other 89 buttons.
+
+**!!! A COMPONENT INSTANCE'S `variant` CONTROL *IS* WRITABLE — the long-standing note above saying it is not is WRONG !!!**
+
+`setAttributes({ controls: { variant: "ucTfE3rNi" } })` worked first time on all three, verified by a separate `exec` on the same session **and** by re-issuing the write, which reported `ALREADY` on all three.
+
+**The most likely explanation reconciles both observations, and it matters.** This file records *two* walls from 2026-10-07: (1) the `variant` control cannot be written, and (2) **an API-created variant is not offered to instances at all**, because the instance enum comes from the component's compiled module which an API write does not recompile. The variant being written that day was `hLYcAEbg2` — **an `addVariant` creation**. So the write almost certainly failed for reason (2), and reason (1) was a misdiagnosis of the same event. The working rule is therefore: **`variant` is writable to any variant that exists in the component's compiled module, and not to one the API created.**
+
+**The cost of that misdiagnosis was large and is worth remembering.** It is what sent the brand-green change down the one-token route — repointing the `Ora Blue` colour style, which turned **9 buttons green site-wide** when the ask was scoped to one — and what made the last variant change a long session of blind panel-driving. **A "not possible" verdict built on a single failed attempt deserves re-testing before it is designed around**, especially when the retest costs one `exec`.
+
+**`getNodesWithAttributeSet("componentIdentifier")` DOES NOT REACH COMPONENT-INTERNAL INSTANCES — it found 16 of 92.** It returns page-level instances only, and a component-internal `ComponentInstanceNode` does not expose `componentIdentifier` through traversal either, so filtering on it hides exactly the nodes nested inside a `ComponentNode`. **Key a button sweep on `controls.variant` against the component's own variant ids instead** — that survives in both places. Two agreeing fresh-session reads said the three buttons did not exist while the published page plainly carried them twice; **the published page is what exposed the instrument, not the session.**
+
+**!!! A DEPTH-CAPPED WALK SHARING A `seen` SET GIVES ORDER-DEPENDENT RESULTS !!!** The same document tallied **92** instances on one run and **89** on the next, losing the three `Get in touch` buttons. Nothing changed between them. The cause: `if (d > 9 || seen.has(n.id)) return` marks a node visited at whatever depth it is *first* reached, so if one path arrives at depth 8 its children are explored one level and a later, shallower path returns immediately. **Drop the depth cap — the `seen` set terminates on its own.** Uncapped, two runs agreed exactly at `4828` nodes / `92` instances. A depth limit is a guard against cycles, and a `seen` set is a strictly better one; combining them silently corrupts the result.
+
+**`inlineTextStyle` ON A COMPONENT'S SHARED TEXT NODE REPORTS THE BASE VALUE FOR EVERY VARIANT.** All twelve variants read `color: rgb(255,255,255)`, including the three with a **white fill** — white-on-white, impossible as a rendered state. Every variant's text node id is the variant id plus the same base id `aNAbgzPM4`: one shared node seen twelve ways, with the per-variant override invisible. **This nearly blocked a correct change on a false reading.** The check that caught it is cheap and general: **find a case where the value you are reading would be impossible, and if the API still reports the base, the read is blind.**
+
+**THE EDITOR CANVAS ANSWERS "WHAT DOES THIS VARIANT LOOK LIKE" WITHOUT PUBLISHING** — and the published page cannot, because Framer emits no CSS for a variant no instance uses. Deep-linking the component (`?node=dzNJ99hkN`, component ids resolve) renders all twelve side by side; a `zoom` showed `White to Outline` as a solid white pill with **dark** text, settling the question the API had got wrong. Note the canvas renders dark here, which conveniently mimics the card.
+
+**Selecting a variant also shows its hover wiring, which is otherwise unreadable.** The Interactions panel listed `Click -> Tap` and `Enter -> Button Whit…` (truncated), and the canvas drew a **purple arrow from the selected variant to its partner** — unambiguous even where the panel truncates. So `White to Outline` carries a Mouse Enter interaction targeting `White to Outline - Hover`: white filled at rest, transparent outline on hover, exactly as asked. **Variant interactions are not gesture variants** — `getChildren()` returns twelve uniquely-named variants with no duplicates, so nothing here was made by `addGestureVariant`.
+
+**Unrelated, spotted in the editor's right panel and worth knowing before the next publish:** Framer's own AI agent has an applied, un-reverted change sitting in the project — *"Changed the selected 'lighting objects.' text to Gellix as well"* against **`Home/Hero Header`, 1 layer**, with an `Undo` still offered. It was not touched. It will ship with the next publish unless reverted.
+
+`getUnpublishedPageChanges()` returns `[]`, as expected — the edit is component-internal and that counter tracks page-level changes only. **It is not evidence this is published.**
