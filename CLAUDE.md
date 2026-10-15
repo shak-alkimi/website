@@ -5088,3 +5088,25 @@ Verified by a separate `exec` on the same session and by re-issuing the write (`
 **`/about` grew 11 bytes and that is build metadata, not content.** Chasing it is worth recording because the obvious diff fails: a naive common-prefix comparison stops at **byte 86**, inside the `<!-- Published … -->` comment, making the whole document look different. **Normalise the publish comment out first.** After that, the first real difference is the `searchIndex-*.json` name — the old primary becomes the new fallback on every publish — and the `.mjs` chunk hashes rotate, with **total URL length unchanged (delta 0)**. So nothing of substance moved.
 
 **The reusable comparison is at text-run level**, not byte level: extract every `>text<` run from both builds and diff the sets. That ignores hash churn, attribute reordering and whitespace entirely, and answers the only question that matters — did the page's content change.
+
+### `/news/debut` hero replaced with the gala table photo — and the CENTRED crop would have clipped the flowers (2026-10-15, NEEDS A PUBLISH)
+
+`Image Hero` on `debut` (`MnhIq8_UX`, field `fzKguB9Z3`) is now **`pypHX68qcyFW3yT3MhTWmVxeBY.jpg`**, `2700 x 1203`, replacing the SoHo facade (`KN9kANcj5…`).
+
+**The attachment was a downscale again, for the third time running** — `2000 x 1000`, 346 KB, against the Drive original `AdobeStock_754550736_gala table.jpeg` at **`7680 x 3840`, 2.4 MB**. Identity confirmed by downscaling the original to the attachment's size and running `psnr`: **35.7 dB**, i.e. differing only by resampling and JPEG noise. **The newest file in the article's Drive folder, by mtime, has been the right original every time** — here written the same afternoon as the request.
+
+**THE SLOT'S CONVENTION WAS READ OFF SHAK'S OWN EXPORTS RATHER THAN DERIVED.** Both previous heroes for this slot (`hero-debut-gala.jpg`, `hero-debut-soho-facade.jpg`) are **`2700 x 1203`, `yuvj444p`** — and the live box emits `aspect-ratio: 2.2449` against `2700/1203 = 2.24439`, so the convention is a **pre-cropped** file matching the box, not a full frame left to `object-fit: cover`. Matching the export settings as well as the dimensions keeps the slot internally consistent.
+
+**!!! THE CENTRED CROP CLIPS THE SUBJECT, AND MEASURING CAUGHT IT BEFORE ANY UPLOAD !!!**
+
+Going `2.000` -> `2.2444` removes **418px of height, 10.9%**. Centred that is 209px off the top — but a column-probe for strongly-warm, high-saturation pixels across the middle third of the frame put the **first floral row at 180px**. So a centred crop cuts the tall stems by ~29px. **Predicted numerically, then confirmed by rendering both and looking**: the centred version plainly severs the stems at the top edge; the top-anchored one keeps them with headroom.
+
+**Anchored at `y = 0`, losing the whole 418px from the bottom** — the out-of-focus foreground table edge, which costs nothing and tightens the composition. `crop=7680:3422:0:0,scale=2700:1203:flags=lanczos`, `-q:v 2 -pix_fmt yuvj444p`, 708 KB.
+
+**The general rule: before a cover-crop of more than a few percent, measure where the subject starts on the axis being cut, and anchor away from it.** "Centre it" is the right default only when the subject is actually centred — here the composition is bottom-weighted (table, candles, glasses) with the delicate part at the very top, so centring was exactly wrong. The probe is cheap: downscale to ~384px wide, raw-decode, and count saturated warm pixels per row.
+
+**Verified:** separate `exec` on the same session shows `debut -> pypHX68qcy…`; `repair/verify-draft-status.js` clean (Home 3/3, Fixtures 11/11, Elements 5/5, Projects 3/10, News 3/7); and the **hosted** asset re-measured off the CDN at `2700 x 1203`, matching the local file — content, never the id.
+
+**The superseded SoHo facade stays hosted** (`KN9kANcj5KB5iLZY5fenBdrhY.jpg`), so reverting is one rebind with no upload. **The orphan count for this article is now three** — the 4000px full-frame NYC master, the SoHo facade, and the gala photo it replaced earlier.
+
+**Noted in passing:** `cauda` and `kimi` both have `Image Hero` **empty**. For `cauda` that is correct — it runs the peacock video hero. For `kimi` it is the long-standing gap: no hero image and no `Hero Video URL`, so it renders the striped placeholder.
