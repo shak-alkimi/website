@@ -4866,3 +4866,13 @@ Clicking what the `find` tool identified as "the hamburger menu button" instead 
 - **After any unintended interaction with the published site while signed in, verify the DOCUMENT, not just the page.** A page reload would have hidden an auto-saved edit; only reading the canvas back proves nothing was written.
 
 Full Home sweep clean: 11x `1.17458`, 0 stale `1.180xx`, both Elements ratios, 2 hero overlays, `#f7f6f2` with 0 `#f6f4f0`, brand green, `./about` 5 with `./projects-list` 0, 0 stale `View Case Study`, `lossless=1` 0, badge 0, 58 Gellix, wide-card image 15 refs, orb `4,280,052` and hero video `4,009,893` byte-exact.
+
+### The Home wide card button reads `The Method` (2026-10-15, NEEDS A PUBLISH)
+
+Shak's wording, replacing the `About` placed earlier the same day. Label only — **`NhREodF7M` stays `/about`** and `variant` stays `eI_njgAoy`, so the destination and the transparent/white-border treatment are untouched.
+
+**Scope was established by scanning every component rather than reusing the three known ids.** Exactly **3** buttons in the whole project carried `About`, and all three were the wide card's (`Q__AVxo4PbeNpOjgIR`, `uR6T4xhGKbeNpOjgIR`, `tDcw55E8QbeNpOjgIR` on `Home / Home - Projects Row 2`). Everything else was untouched and tallies as expected: `View Case Study` 21, `Get in touch` 3, `Apply now` 2. **A project-wide label scan is the cheap way to prove a text change cannot hit anything else** — and note the `View Case Study` count is 21 here against the 17 recorded earlier, because that earlier figure was scoped to Row 2 alone; both are right.
+
+Verified by a separate `exec` and a re-issued write answering **`ALREADY` on all three**.
+
+**One consequence worth a decision, not acted on:** the nav menu row and the footer sitemap still call that destination **`About`**. The `About` label on the button was originally chosen *for* that consistency; `The Method` is a deliberate divergence, which is defensible — a card CTA and a nav item do different jobs — but if `The Method` is meant to be the site's name for the page, the menu row and sitemap link should follow. Both are one write each (the sitemap is a control; the menu row is canvas text, so editor-only).
