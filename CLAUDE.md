@@ -4717,3 +4717,44 @@ tDcw55E8QbeNpOjgIR   Home Project Single Wide - Mobile   phone
 **!!! `getUnpublishedPageChanges()` RETURNS `[]` FOR A COMPONENT-INTERNAL CHANGE — it does not see this either !!!** The known limitation was recorded as "that counter covers *page* changes and cannot see a CMS write". **It is wider than that.** The wide card's *page instance* visibility toggle on 2026-10-14 did register (one entry); this change to *component-internal* control values registers nothing. So the counter tracks page-level edits only, and **a `[]` from it is not evidence that the document is fully published** — it is evidence that no *page* edit is pending. Confirm a component or CMS change against the served page instead.
 
 **The live page is the control for that claim:** immediately after the write it still serves `./projects-list` x2 and `Project Portfolio` x2, with `./about` x3 (the nav row and footer sitemap, one per breakpoint). **After publishing, expect `./about` to go 3 -> 5 and both `projects-list` and `Project Portfolio` to go to 0** — which also settles the 2026-10-14 removal, since the card was the last route from Home to the orphaned projects pages.
+
+### `/about` — the Approach section RESTORED (2026-10-15, NEEDS A PUBLISH)
+
+`ug0DLqf9I` + `JWlDAB7wNug0DLqf9I` + `AwhOnpHayug0DLqf9I` -> `visible: true`. **Testimonials stays hidden** — only Approach was asked for.
+
+**NOTHING HAD TO BE REVERTED, and the padding was re-read rather than assumed.** The hide's own record said this section is spacing-neutral, and that is confirmed unchanged:
+
+```
+Section Intro      45px 15px 120px 15px
+Section Approach    0px 15px   0px 15px   (Desktop/Tablet)   0px 15px 120px 15px (Phone)
+Section Services    0px 15px   0px 15px
+```
+
+So `Intro`'s `padB 120` sets the gap above Approach exactly as it did above Services while Approach was hidden, and Approach's own `padB 0` puts Services straight after it — the original design. **This is the second restore in two days where the right move was to revert nothing; both times the hide's record was the thing that settled it.**
+
+**`framer.getNode(id)` RETURNS NULL FOR THESE SECTION IDS**, even ids read seconds earlier in the same script — the documented limitation, here on ordinary page sections rather than component internals. The first attempt collected plain data from the walk and then tried `getNode` to write, and failed 3/3. **Keep the LIVE handle from the traversal and call `setAttributes` on that**; do not round-trip through an id.
+
+**`getUnpublishedPageChanges()` returns `[{}]` for this**, against `[]` for the component-internal button write minutes earlier. **That corroborates the correction recorded above**: the counter tracks *page-level* edits and genuinely does not see component-internal or CMS changes. A visibility toggle on a page section registers; a control write inside a `ComponentNode` does not.
+
+**WHAT ACTUALLY COMES BACK IS STOCK ORA CONTENT — flagged, not silently shipped.** The three `About / Core Value` cards read:
+
+| | title | image |
+|---|---|---|
+| 01 | Research | `73NiwRgC…jpg` 2048x2048 |
+| 02 | **Experimentation** | `ODPDl4kL…gif` — **the Nike swoosh**, served as WebP |
+| 03 | Implementation | `HXVU9FQg…jpg` 2000x1935 |
+
+with the template's own body copy. **Card 02 puts a third-party trademark on a live commercial site**, which is a different class of problem from the rest of the stock-cleanup list and worth treating as such.
+
+**All three images are `resolution: "full"`, which emits NO `srcset` at all.** This is the gap the 2026-10-09 `auto` pass left — it covered CMS values and canvas nodes, but **component-instance control images were out of its scope**. Measured:
+
+| | at `full` | at the `1024` candidate `auto` would pick |
+|---|---|---|
+| Research | 238,017 | **102,176** |
+| Implementation | 444,766 | **235,448** |
+| Experimentation (gif->WebP) | 77,240 | — |
+| **total** | **742 KB** | **~414 KB** |
+
+The cards render at roughly **720 device px** (3-up at 1536, `dpr 1.5`) against 2000-2048px sources, so `1024` is already ~1.4x oversampled and the change is invisible. **~328 KB, 44% of this section's image weight, for a delivery setting with no visual cost.** Raised rather than applied, since the ask was to restore the section.
+
+**CORRECTION to the 2026-10-14 note: it said "13 of 19 About fields" were orphaned by hiding Approach and Testimonials. The count is 14** — `Approach Heading` (1) + `Value 1-3 Number/Title/Text/Image` (12) + `Testimonials Heading` (1). Restoring Approach returns 13 of those to use, leaving **`Testimonials Heading` as the only orphaned field**.
