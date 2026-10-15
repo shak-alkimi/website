@@ -5146,3 +5146,21 @@ Between the morning audit and now he has rewritten most of the `About` item. The
 
 - **`Services Heading` now holds `"Implementation"`** where the page renders **"Our Services"**. `"Implementation"` was the *old* `Value 3 Title`, so this looks like a stray paste while shifting the Approach copy up. It was "Our Services" when corrected earlier today, so changing it back would revert his own edit — flagged instead.
 - **`Value 1/2/3 Image` are now cleared** — raw `{"type":"image"}` with no `value` key. Not my doing (those ids were never in any write I made), and plausibly deliberate, since one of them was the **Nike swoosh**. Worth confirming it was intended.
+
+**PUBLISHED 2026-10-15 (build `18:25:40 GMT`) — the Services seed was a NO-OP for the rendered site, as designed.** Three byte-stable `/about` fetches at `271,164`.
+
+| check | result |
+|---|---|
+| `About` collection id `b5mBXx5ht` on `/about` | **0** |
+| its field ids (`yctOqdCxu`, `mYNLwz8k3`, `Qh4oUqlTV`, `fMEPPeaSo`) | **0 each** |
+| Shak's new copy (`Measured in every way`, `lighting manufacture`, `Partnership`, `System`) | **0 each** |
+| what the page renders | `Introduction` / `At Ora, we are more than just a design studio…` / `Approach` / Research-Experimentation-Implementation / `Our Services` / Art Direction-Branding-Design-Development |
+| sections | Hero, Intro, Approach, Services 1 each; Clients and Testimonials 0 |
+
+**Every rendered string on `/about` is stock Ora.** Dumping the distinct text runs is the cheapest way to see that at a glance — 42 of them, and the only Alkimi content on the page is the footer's `© Alkimi 2026`. The `<title>` also still reads `Ora® — Agency Framer Template`, and the hero video still pulls from `ena-supply.b-cdn.net` (2 refs).
+
+**So the CMS work is groundwork, not content delivery, and it stays that way until `/about` is wrapped in a Collection List scoped to `About` with `Limit to: 1`.** That remains the single blocker for the whole page.
+
+**`/about` grew 192 bytes and that is NOT attributed.** The recorded build-metadata churn (searchIndex rename, `.mjs` hash rotation) accounted for 11 bytes on the previous no-op publish; 192 is larger. No content changed — the text-run set is unchanged in substance and no About payload appears — so nothing is wrong, but **the previous build was not saved, so a real diff was not possible.** Worth saving the served page before a publish when the next one is expected to be a no-op; a diff is only available if the baseline was kept.
+
+Home is **byte-identical at `279,404`** to the pre-publish build, so this publish did not touch it; full sweep passes anyway (11x `1.17458`, 0 stale `1.180xx`, both Elements ratios, 2 hero overlays, `#f7f6f2` with 0 `#f6f4f0`, brand green, `The Method` 2, `./about` 5 with `projects-list` 0, 0 stale `View Case Study`, `lossless=1` 0, badge 0, 58 Gellix, 2 white-fill buttons, phone footer column override). `/news/debut` re-confirmed on this build: gala hero `pypHX68qcy…` 10 refs, old SoHo and the orphan 4000px master both 0, `Thumbnail` 1 / `Video Hero` 0.
