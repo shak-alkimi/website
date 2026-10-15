@@ -4825,3 +4825,44 @@ The menu read `01, 02, 04, 05, 06` since Projects was hidden. Now `01, 02, 03, 0
 **Checked for collateral damage afterwards, because every click landed on a node carrying a `Link`:** all **12** row links re-read intact (`/products`, `/elements`, `/projects-list`, `/about`, `/news`, `/contact` on both variants), two agreeing reads on a fresh session. **Worth doing whenever canvas edits are driven near interactive properties.**
 
 **The caution from the original removal still stands: if Projects ever returns, this renumbering has to be undone.** The remaining leftover is the divider stagger — surviving variants are 1, 2, 4, 5, 6, so there is still a 300ms hole against the measured 150ms, fixed by three `Delay` edits on `Line Mobile Menu 4/5/6 Active` to `0.5 / 0.65 / 0.8`.
+
+### BOTH SHIPPED AND VERIFIED LIVE 2026-10-15 (build `15:53:17 GMT`)
+
+Three byte-stable `/about` fetches at `270,972`, no known-bad signature.
+
+**`Our clients` is gone and the padding transfer landed exactly** — measured, not inferred:
+
+```
+Section Services   2159 .. 2718    padB 120
+  its last content        .. 2598  <- where the section box used to end
+footer top                   2718
+visual gap content -> footer  120
+```
+
+That is precisely the gap `Section Clients` used to supply. `Section Clients` 0, `Our clients` 0, `Section Testimonials` 0; `/about` now reads `Hero -> Intro -> Approach -> Services -> footer`.
+
+**The transferred value ships as `padding:0 15px 120px`** — Framer normalises `0px` to `0` and drops the redundant fourth value, so **grepping for the literal that was written finds nothing**. Match on the number. (Already recorded for `Section Images`; it recurs every time.)
+
+**The menu renumbering is live on both breakpoints:**
+
+```
+Fixtures 01   Elements 02   About 03   News 04   Contact 05     row pitch 60
+dividers      pitch 60 60 60 60     device tops 580/670/760/850/940  (dpr 1.5)
+```
+
+All five divider tops are **whole device pixels**, so the even-pitch property that prevents the alternating thick/thin rendering is intact — unchanged by the renumbering, as expected, since only text moved.
+
+**Note the divider VARIANTS are still `1, 2, 4, 5, 6`.** The labels now read `03/04/05` while the dividers beneath them are variants `4/5/6`. **That mismatch is harmless to rendering but it is why the stagger hole survives** — the delays are per-variant, so the 300ms gap between the 2nd and 3rd line is untouched by renumbering and still needs its own three `Delay` edits.
+
+**!!! DRIVING THE PUBLISHED SITE IN SHAK'S CHROME CAN OPEN FRAMER'S INLINE EDITOR, WHICH AUTO-SAVES !!!**
+
+Clicking what the `find` tool identified as "the hamburger menu button" instead entered **inline edit mode on the live site** — the tab title became `Editing Page…` and a bar appeared reading **"Click to edit · Changes are auto-saved"**. He is signed in, so the published pages carry an `Edit Content` pencil affordance that a mis-aimed click can trigger.
+
+**This is a genuine hazard, not a nuisance: an auto-saving editor was open on the live site through an unintended click.** Exited with the **`Finish`** button, then confirmed from a fresh session that `/about` was byte-for-byte the intended state on all three breakpoints with `getUnpublishedPageChanges()` returning `[]`. Nothing was changed.
+
+**Two rules from it:**
+
+- **Do not trust `find` for the nav toggle on this site.** It returned a `button` in the nav region that was not the hamburger. The real control is the top-right corner — click it by coordinate from a screenshot.
+- **After any unintended interaction with the published site while signed in, verify the DOCUMENT, not just the page.** A page reload would have hidden an auto-saved edit; only reading the canvas back proves nothing was written.
+
+Full Home sweep clean: 11x `1.17458`, 0 stale `1.180xx`, both Elements ratios, 2 hero overlays, `#f7f6f2` with 0 `#f6f4f0`, brand green, `./about` 5 with `./projects-list` 0, 0 stale `View Case Study`, `lossless=1` 0, badge 0, 58 Gellix, wide-card image 15 refs, orb `4,280,052` and hero video `4,009,893` byte-exact.
