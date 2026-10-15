@@ -4758,3 +4758,37 @@ with the template's own body copy. **Card 02 puts a third-party trademark on a l
 The cards render at roughly **720 device px** (3-up at 1536, `dpr 1.5`) against 2000-2048px sources, so `1024` is already ~1.4x oversampled and the change is invisible. **~328 KB, 44% of this section's image weight, for a delivery setting with no visual cost.** Raised rather than applied, since the ask was to restore the section.
 
 **CORRECTION to the 2026-10-14 note: it said "13 of 19 About fields" were orphaned by hiding Approach and Testimonials. The count is 14** — `Approach Heading` (1) + `Value 1-3 Number/Title/Text/Image` (12) + `Testimonials Heading` (1). Restoring Approach returns 13 of those to use, leaving **`Testimonials Heading` as the only orphaned field**.
+
+### The `/about` button change and Approach restore SHIPPED — verified live (build `15:38:04 GMT`)
+
+Two byte-stable Home fetches at `279,253`. **The prediction landed exactly:**
+
+| | before | now |
+|---|---|---|
+| `./about` on Home | 3 | **5** |
+| `./projects-list` | 2 | **0** |
+| `Project Portfolio` | 2 | **0** |
+
+The existing 3 were the nav row and footer sitemap (one per breakpoint); the card's desktop and phone buttons are the two added, now labelled `About`. **This also finally settles the 2026-10-14 Projects removal** — Home carries no route to the orphaned projects pages. `Section Approach` is live on `/about`, and the Nike swoosh with it.
+
+### `Our clients` REMOVED from `/about` — and this one WAS load-bearing (2026-10-15, NEEDS A PUBLISH)
+
+`Section Clients` (`eRcnry0jc` + the `JWlDAB7wN` / `AwhOnpHay` copies) -> `visible: false`, **and its `120px` transferred to `Section Services`**, which goes `0px 15px 0px 15px` -> **`0px 15px 120px 15px`** on all three breakpoints.
+
+**THE TRANSFER WAS NECESSARY, AND IT IS THE FIRST TIME ON THIS PAGE.** The two `/about` hides on 2026-10-14 were both spacing-neutral, which is why that note concluded "no compensation needed" — **but that was a property of those two sections, not of the page.** `Section Clients` carries `padB 120`, and with `Section Testimonials` already hidden it had become **the last visible section**, so that 120 was the only thing holding the footer off.
+
+**Measured on the live page before touching anything**, which is what made it certain rather than inferred:
+
+```
+Section Services  2159 .. 2598   padB 0
+Section Clients   2598 .. 3534   padB 120
+footer top         3534          <- exactly Clients' box bottom
+```
+
+The footer begins at `3534`, *equal to* `Section Clients`' bottom — because the 120 is **inside** that box, between the last logo and the box edge. Hide it and `Section Services` ends at `2598` with `padB 0`, so the footer would butt straight against the last line of copy. **A zero gap between a section's rendered box and the footer does not mean there is no spacing — read the section's own `padB`, because that is where it lives.**
+
+**Each breakpoint needed an explicit padding write** — none came back as already-correct from a Desktop cascade, consistent with the standing note that the cascade is real but not uniform. Verified by a separate `exec` read-back (all three `Services` at `120`, `Clients` hidden) and a re-issued write answering **`ALREADY` on all six nodes**.
+
+**No content cost, and arguably a liability removed.** The eight logos are stock Ora — `INFINITE`, `OV`, `ena`, `STUDIO 34`, `Sensa`, `Techno Fest`, `A14` and one more — and **`ena` is the template author's own brand**, the same `ena.supply` behind the footer Instagram and the `/careers` CDN video. A page headed "Our clients" showing invented clients on a real business site is worth being rid of regardless of the design question.
+
+**`/about` now reads `Hero -> Header-Trigger -> Intro -> Approach -> Services -> footer`.** The CMS groundwork orphaned by it: the **`Clients` collection (`jEgaeZaMN`, 8 items) now drives nothing**, joining `Testimonials` (`Sy_edh8S4`, 4 items), and the `About` collection's orphaned fields are now `Clients Heading` + `Testimonials Heading`. Nothing breaks; the recorded plan to wire `/about` through a Collection List keeps shrinking.
