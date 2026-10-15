@@ -5164,3 +5164,43 @@ Between the morning audit and now he has rewritten most of the `About` item. The
 **`/about` grew 192 bytes and that is NOT attributed.** The recorded build-metadata churn (searchIndex rename, `.mjs` hash rotation) accounted for 11 bytes on the previous no-op publish; 192 is larger. No content changed — the text-run set is unchanged in substance and no About payload appears — so nothing is wrong, but **the previous build was not saved, so a real diff was not possible.** Worth saving the served page before a publish when the next one is expected to be a no-op; a diff is only available if the baseline was kept.
 
 Home is **byte-identical at `279,404`** to the pre-publish build, so this publish did not touch it; full sweep passes anyway (11x `1.17458`, 0 stale `1.180xx`, both Elements ratios, 2 hero overlays, `#f7f6f2` with 0 `#f6f4f0`, brand green, `The Method` 2, `./about` 5 with `projects-list` 0, 0 stale `View Case Study`, `lossless=1` 0, badge 0, 58 Gellix, 2 white-fill buttons, phone footer column override). `/news/debut` re-confirmed on this build: gala hero `pypHX68qcy…` 10 refs, old SoHo and the orphan 4000px master both 0, `Thumbnail` 1 / `Video Hero` 0.
+
+### THE CMS COPY WAS PUSHED ONTO THE PAGE — `/about` now matches the collection (2026-10-15, NEEDS A PUBLISH)
+
+Shak: *"the cms information is not matching the published site"*. Correct, and it was the documented binding gap — the `About` collection drives nothing. Offered the Collection List wrap against simply pushing the copy onto the page; **he chose to push the copy now and decide the wrap later.** The two are not exclusive: once bindings exist they override the canvas values, so nothing here is rework.
+
+**THE SPLIT BETWEEN SCRIPTABLE AND EDITOR-ONLY IS THE USEFUL PART, and it is not where it looks:**
+
+| surface | mechanism | route |
+|---|---|---|
+| **Approach cards** (9 values) | `About / Core Value` **instance controls** `rFExBnb6h` / `Mz0wvNH6v` / `kB1rNTf7X` | **API** |
+| Hero title, Intro body, Approach heading | canvas text | **editor only** — `getText` throws `Node is not a text node` even on plain page layers |
+
+**The hero has NO title control.** A full dump of `About / About Header`'s instance controls returns `{variant, twBEjiRp1 (video), Q9MpMF_yE (image)}` — so the title is component-internal canvas text, settled by reading the instance rather than by guessing.
+
+**The write script READ THE CMS INSIDE ITSELF and keyed on the NUMBER, never on order.** `want[Value N Number] = {number, title, text}`, then each instance is matched by its own `rFExBnb6h`. That is what makes a mis-assignment structurally impossible — the same discipline as matching node names to CMS titles in the fixtures pass. Rich text was stripped to plain text (`</p><p>` → newline) because the control is a plain string. Verified by a separate `exec`, by **re-issuing the write (9/9 `ALREADY`)**, and by dumping full controls to confirm the image and the fifth control survived — **a partial `controls` write preserving its siblings, now confirmed yet again.**
+
+**!!! A SHARED `seen` SET ACROSS SIBLING ROOTS CORRUPTS A PER-ROOT COUNT — same family as the depth-cap bug !!!** Walking all breakpoints with one `seen` set reported **3** Core Value instances, all Phone-prefixed. Giving **each breakpoint its own `seen` set** reported the truth: **9, three per breakpoint.** A `seen` set is correct *within* one traversal and wrong *across* independent ones, because whichever root is visited first consumes the shared nodes. **Scope the visited set to the traversal, not to the script.**
+
+**TEXT IS SHARED ACROSS BREAKPOINTS BUT NOT ACROSS VARIANTS THAT OVERRODE IT.** Editing the Desktop intro paragraphs showed the new copy on **Tablet** without being touched (confirmed by zooming to the Tablet layer, not assumed). But `About / About Header` has three variants, and `Header Mobile` carried its **own** wording — "ready **for** a change" against desktop's "ready **to make** a change" — so the Desktop edit cascaded to `Header Active` and **not** to `Header Mobile`, which had to be edited separately. **An override is exactly what blocks a cascade; check for differing content before assuming one edit covers every variant.**
+
+**THE HERO TITLE IS SPLIT ACROSS SEPARATE TEXT NODES, AND THE COUNT DIFFERS BY VARIANT** — read from the published markup, which is the only place this is visible:
+
+| variant | nodes | presets |
+|---|---|---|
+| `Header` / `Header Active` | **2** — `<h1>` + `<p>` | `sA1pdkMlu` (H1) + `NSHp39t7X` (H1 - Style) |
+| `Header Mobile` | **3** — all `<h1>` | `sA1pdkMlu` x3 |
+
+Set to **`Measured` / `in every way`**, which echoes the Home hero's `Measured` / `lighting objects.` two-tone treatment — **my call, not specified, and one text edit to change.** Phone's redundant third line was **hidden** (`CY1W0rQc5nnRvfjww1`) rather than emptied, because an empty text node still occupies a line box; hiding also removed the overflow clipping that line was causing. A fourth, already-hidden text node per variant is the old Ora headline, the same leftover pattern as the Home hero.
+
+**LAYER NAMES DO NOT UPDATE WHEN YOU EDIT TEXT CONTENT.** After replacing both intro paragraphs the layer rows still read `In January 2013 Spring/Summer came to life with a …`. So a name is stale from the moment it is set, and **re-reading names is useless as post-edit verification** — the zoomed screenshot is the only oracle. This also means the "Framer names a text layer after its content" shortcut only holds for layers nobody has edited.
+
+**`node --check <(...)` DOES NOT WORK ON WINDOWS** — process substitution yields `/proc/<pid>/fd/N`, which node cannot resolve (`Cannot find module 'C:\proc\591\fd\63'`). Write the wrapped copy to a real temp file instead.
+
+**Editor recipe that worked five times without a miss:** deep-link the **page or component** id → Layers → expand by clicking the disclosure arrow at `row.x - 16` with ~750 ms between → click the row → **`shift+2` to zoom to selection** (far better than hunting the canvas) → double-click to enter edit mode → **`ctrl+End` then `ctrl+shift+Home`** → confirm the blue highlight by **zoom** → type → `Escape`. `shift+2` is the piece that was missing from earlier passes; it removes all coordinate guesswork. An ~460-character paragraph and an em-dash both typed correctly in one `type` action.
+
+**Positional tree navigation beats name matching when names repeat.** Both intro paragraphs share one name and several `Container` rows exist, so rows were sorted by their rendered `top` and the target picked by its position *between* two known siblings.
+
+**!!! THE NIKE SWOOSH IS NOW BESIDE THE WORD "Partnership" — the copy change made that materially worse !!!** Approach card 02 still carries `ODPDl4kLMfToCuGLf1pYYXbl950.gif`. Previously it sat under "Experimentation", which read as odd stock imagery; it now sits under **"Partnership"** on a commercial site, which reads as a claim of a Nike partnership. The CMS `Value 1/2/3 Image` fields are **empty**, so the images are the one part of the Approach cards that still disagrees with the collection. **Raised, not changed** — clearing all three would leave empty boxes, which is a layout decision.
+
+`verify-draft-status.js` clean afterwards (Home 3/3, Fixtures 11/11, Elements 5/5, Projects 3/10, News 3/7, About 1/1).
