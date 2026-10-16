@@ -5385,3 +5385,107 @@ Asked what to do about the one surface the binding pass could not reach. **His c
 Note the headline would still need **two fields**, not one — it is two text nodes with different styles (`h1` "Measured" + `p` "in every way"), the same shape as the intro columns.
 
 **Still orphaned and deliberately left:** `Clients Heading` and `Testimonials Heading`. Their sections are hidden rather than deleted, so those fields are dormant rather than wrong — and deleting them would be destructive beyond what was asked. Revisit only if those sections are abandoned for good.
+
+### `/news/kimi` finally has a hero — and `framer.uploadFile()` OVERTURNS "video cannot be pushed by script" (2026-10-16, PUBLISHED)
+
+The article had **no hero at all** — `Image Hero` and `Hero Video URL` both empty, so it rendered Framer's diagonal placeholder tile. It is now the matrix video hero:
+
+| kimi field | value |
+|---|---|
+| `Hero Video URL` | `5biAVVQLlBeYfy86SqdzfoFR6RE.mp4` |
+| `Hero Video - Poster` | `qDXdSsodFsGzUwkDyS6SHqXgoY.jpg` |
+| `Image Hero` | the same poster — the fallback if the video is ever cleared |
+
+**Set `Image Hero` as well as the poster, even on a video hero.** `cauda` has a video hero with `Image Hero` empty, so clearing its video would leave that article with no hero at all. The poster JPEG is the obvious value and it costs nothing.
+
+**`hero-kimi-matrix` is a VIDEO + POSTER PAIR, not a still.** The Drive folder (`…/Framer/News/Kimi/`) holds `hero-kimi-matrix.mp4` (2,357,560 bytes, 1920x856, h264, 24fps, 9.05s, 2.08 Mbit/s) and `hero-kimi-matrix-poster.jpg` (1920x856). Aspect `2.2430` against the News hero box's `2.2449` — Shak crops to the slot, same as his `hero-debut-*.jpg` exports.
+
+**!!! `framer.uploadFile(file)` EXISTS AND ACCEPTS A VIDEO — THE RECORDED "uploadImage IS IMAGE-ONLY, SO VIDEO CANNOT BE PUSHED" LIMIT IS TOO STRONG !!!**
+
+This file records that the only route for video bytes is a hand drop on the canvas, on the strength of `uploadImage` rejecting a `data:video/mp4` URI with *"Expected an image result"*. **`uploadFile` was never tried.** It is in the docs beside `uploadImage`:
+
+```
+uploadFile(file: NamedFileAssetInput | File): Promise<FileAsset>
+uploadFiles(files: readonly NamedFileAssetInput[]): Promise<FileAsset[]>
+```
+
+Probing the shapes is what settles it, and the error messages are the evidence:
+
+| call | result |
+|---|---|
+| `uploadFile(dataUri)` — bare string | **`Asset input must be a URL string, File, or { bytes: Uint8Array, mimeType: string }`** — shape rejected outright |
+| `uploadFile({ file: d, name: "x.mp4" })` | **`Connection error`** — shape ACCEPTED, upload attempted, transport died |
+| `uploadFile({ file: d })` | same |
+
+**A shape error and a connection error are completely different findings.** The bare string was refused before anything happened; the `{ file: … }` form got past validation and into the upload, which is what proves the call accepts video at all.
+
+**What actually blocked it was the PAYLOAD, and the number is interesting:** 2,357,560 bytes of MP4 is **3,143,416 base64 characters**, and it failed twice — the second time taking the relay down with the libuv assertion. Yet this file records a **3,760,111-character** image payload succeeding through `uploadImage`. So the ceiling is **not** a flat relay limit; it is specific to this call, or to how long Framer's backend takes to ingest a video. **Worth pinning down with a small test video before the next time this comes up** — if `uploadFile` works at a workable size the whole park-and-publish dance below disappears.
+
+**THE WORKING ROUTE, AND ONE IMPROVEMENT ON IT.** Shak drops the file, then:
+
+1. **Find the node by GEOMETRY, not by name or controls.** It is named `Component`, its `controls` serialise as **`{}`**, and `getParent` returns `null`. It was found as `1280px x 571px` — aspect `2.2417`, i.e. the source scaled to 1280 wide. `getNodesWithAttributeSet("componentIdentifier")` sees it; a page walk may not.
+2. **Locate which canvas it is on** by walking every `WebPageNode` and `ComponentNode` root and matching the id. This one was on **`/news`**, not the page being worked on.
+3. **Cut it in the layer tree and paste it into the `Desktop` frame** — a page-level sibling of the breakpoints emits no markup. The paste propagates to all three breakpoints and **the node gets a NEW id** (`EpVwrOjsv` -> `PvhAvBJ44`).
+4. **NEW: shrink it to `1px x 1px`, `position: absolute`, `top/left: 0` before publishing.** It still emits its `<video src>` into the markup but shows nothing on the page. Previously it was parked at full size and Shak saw a video block appear at the foot of a live page.
+5. Publish, `grep` the served page for `framerusercontent.com/assets/*.mp4`, and **confirm by byte size** — the hosted asset was `2,357,560` bytes, exactly the local file, so Framer stored it unchanged.
+6. Write the URL to the CMS, delete the parked node, publish again.
+
+**EVERY NON-PUBLISH SHORTCUT WAS TRIED AND ALL OF THEM ARE BLOCKED.** Worth recording so nobody repeats them:
+
+- **The editor DOM does not carry the URL.** The right panel's File chip holds only the *filename* text (`hero-kimi-matrix.mp4`); a full attribute sweep of the top document finds no asset URL.
+- **`read_network_requests` cannot see the canvas traffic.** The canvas is a cross-origin iframe (`project-<id>.framercanvas.com`), so the video fetch never appears in the top document's network log — zero matches for `framerusercontent` even with the node selected and visibly rendering.
+- **Preview does not help.** The play button loads `&view=preview` in the same tab, inside another iframe, and the browser tool **redacts that iframe's `src`** as *"[BLOCKED: Cookie/query string data]"*, so it cannot be opened directly in a tab of its own.
+- **The Assets panel has no media browser.** It lists Templates, Components, Styles, Vectors and Code only — uploaded files are reachable only per-property.
+
+**THREE ALREADY-DOCUMENTED TRAPS ALL FIRED IN ONE SHORT TASK:**
+
+- **The editor-to-API lag.** A scan run moments after the paste reported `NOT FOUND inside any breakpoint`, twice, on a fresh session — while the editor plainly showed the layer nested under `Desktop`. A dump a minute later found it in all three breakpoints. **A negative result immediately after an editor action is a timing artifact, not evidence.**
+- **Writing a non-primary breakpoint creates a scoped override and does NOT cascade.** A loop that let `target` fall through to the last breakpoint shrank **Phone only**; Desktop and Tablet kept `1280x571`. Writing Desktop then reported Tablet `ALREADY`. **Write the primary and let it cascade; never let a loop silently pick the last match.**
+- **`remove()` failed silently again**, now on `/news`: `ok` for all three breakpoints, three nodes still present on a fresh read. Shak deleted by hand, and deleting the Desktop copy cleared Tablet and Phone as usual.
+
+**Verified live** (build `Oct 16, 2026, 10:18 PM UTC`, three byte-stable fetches per page) — and note this is the check that actually proves a conditional hero, since the canvas reports only the stored boolean:
+
+```
+/news/kimi    <video>=1  Video Hero=1  Thumbnail=0   poster=1
+/news/cauda   <video>=1  Video Hero=1  Thumbnail=0   poster=1
+/news/debut   <video>=0  Video Hero=0  Thumbnail=1   poster=0
+/news         stray mp4 = 0
+```
+
+The emitted element carries both halves:
+
+```html
+<video src="…5biAVVQLlBeYfy86SqdzfoFR6RE.mp4" loop preload="none"
+       poster="…qDXdSsodFsGzUwkDyS6SHqXgoY.jpg?width=1920&height=856" muted playsinline>
+```
+
+Draft counts clean (Home 3/3, Fixtures 11/11, Elements 5/5, Projects 3/10, News 3/7), and the Home sweep passes unchanged (11x `1.17458`, 0 stale `1.180xx`, 2 hero overlays, `#f7f6f2` with 0 `#f6f4f0`, `The Method` 2, 0 stale `View Case Study`, `lossless=1` 0, badge 0, 4 videos / 4 posters).
+
+### Every video on the site now has a poster except one (2026-10-16)
+
+Audited all 13 video instances; three had none. Fixed:
+
+- **the `/about` hero** and **the Partnership card** — posters bound alongside their videos
+- **the Home newsroom orb card** — fixed in **our own code**, not on the canvas
+
+**`VideoThumbnail.tsx` rendered video OR image and never a poster**, which is why the orb card sat blank while its video loaded. One line:
+
+```tsx
+<video src={video} poster={image?.src || undefined} autoPlay muted loop playsInline controls={false} />
+```
+
+The `Image` control is already fed from the CMS `Thumbnail` field, so **every article card now posters itself** — no per-card work. Drift-checked before editing (Framer 3479 bytes against the repo's 3483, LF-normalised identical), pushed with `setFileContent`, and a re-push reported `ALREADY IDENTICAL (3600 bytes)`.
+
+**Still posterless: `blue girl.mp4` on `/contact`** — stock `ena-supply` footage already on the pre-launch cleanup list, so it goes when that does.
+
+**A poster is not cosmetic on this site.** `preload="none"` is emitted on every one of these elements, so nothing is fetched until play is attempted; without a poster the hero or card is **blank for as long as the network takes**, which is exactly how the first news video hero was reported as "not playing" when it was working correctly.
+
+### The website repo was never diverged, and it is PUBLIC (2026-10-16)
+
+**The `REPO DIVERGENCE` ruling on the dispatch board is about `alkimi-code`, not this repo.** That item records 462 ahead / 19 behind / 104 files differing with a reconcile branch at `C:\Users\shaki\alkimi-reconcile`, and rules *"nothing is pushed until this reconciles"*. **It has never applied to `alkimi-website`**, which was `0 behind` throughout — a long-unpushed fast-forward, not a fork. Confirmed by `git rev-list --left-right --count origin/main...main` returning `0 208`, then pushed cleanly as `163f01b..e46a945`.
+
+That claim had been repeated across several sessions and written into the board footer, inherited from the board's top section without checking which repo it described. **Before adopting a constraint from the dispatch board, check which repo it names** — the board covers the website, the configurator and the Base44 app together.
+
+**`shak-alkimi/website` is a PUBLIC repo and this file is on it.** `CLAUDE.md` was already on `origin/main` before that push, so nothing was newly exposed, but it has grown **112 KB -> 665 KB** and everything in it is publicly readable — project ids, the staging URL, the production Formspark form id, unpublished-page state, Drive paths, the private dispatch repo's name.
+
+**Shak's ruling 2026-10-16: stay public for now, move when the site launches that weekend (2026-10-17/18)** — at which point this file and the internal `.md` records go to a private remote and only the Framer code-component mirror stays public. **Settled; do not re-raise it as a finding before then.** Until the move, keep writing this file as normal but assume every word is public: no credentials, no customer data, no pricing or configurator internals.
