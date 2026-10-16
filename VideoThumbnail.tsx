@@ -1,4 +1,4 @@
-// Create a Framer code component file named VideoThumbnail.tsx exporting a component named VideoThumbnail. It must accept a video file URL through a File property control titled “Video”, autoplay muted, loop continuously, and use playsInline. Render only the video with no poster image and no controls. Fill the entire Framer instance using width and height 100%, object-fit cover, display block, and inherit border radius/overflow cleanly from its canvas wrapper. Support Framer's style prop, use a transparent non-zero placeholder when no video is supplied, and remain SSR/canvas safe. The File control should allow MOV files; if Framer permits multiple extensions, include .mov only as requested.
+// Create a Framer code component file named VideoThumbnail.tsx exporting a component named VideoThumbnail. It must accept a video file URL through a File property control titled “Video”, autoplay muted, loop continuously, and use playsInline. Render only the video with no controls, using the Image control as the poster so the card is never blank while the video loads. Fill the entire Framer instance using width and height 100%, object-fit cover, display block, and inherit border radius/overflow cleanly from its canvas wrapper. Support Framer's style prop, use a transparent non-zero placeholder when no video is supplied, and remain SSR/canvas safe. The File control should allow MOV files; if Framer permits multiple extensions, include .mov only as requested.
 import type { CSSProperties } from "react"
 import { addPropertyControls, ControlType } from "framer"
 
@@ -41,6 +41,7 @@ export default function VideoThumbnail(props: MyComponentProps) {
             {video ? (
                 <video
                     src={video}
+                    poster={image?.src || undefined}
                     autoPlay
                     muted
                     loop
