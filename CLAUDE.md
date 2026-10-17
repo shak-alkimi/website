@@ -5538,3 +5538,52 @@ Container l1jEBg3Kh   pad 45 0 120 0   Chapter 2 (bound to Content 2) + gap 30 +
 | only achievable with a per-item condition | 30px | 30px |
 
 **SHAK'S RULING 2026-10-17: leave it at 45/45.** The 20/20 change was written and then reverted, so the document is back in step with the live site and **no publish is needed**. The options he declined, recorded so they are not re-derived: a `Has Article Images` boolean (exact, but one tick per article forever, the same drift risk as `5th Image Visible`); or splitting the image row into two containers conditioned on `Image 1` and `Image Wide` separately (zero maintenance, but an editor restructure of a published CMS template, and a latent duplicate if an article ever sets both). **Do not re-raise this as a defect** — the extra space on an imageless article is a known, accepted consequence of the template's spacing model.
+
+### THE TWO-CONTAINER SPLIT — the news article image well is now self-adjusting (2026-10-17, NEEDS A PUBLISH)
+
+Shak chose the zero-maintenance option over a `Has Article Images` checkbox. **An article with no images now renders no image well at all, with nothing to tick and nothing to keep in sync.** The reasoning for why nothing cheaper works is in the section above; this is what was built.
+
+**Before** — one unconditioned image row, with all the well spacing living in its NEIGHBOURS:
+
+```
+Container gtGfuHou7   pad 45 0 45 0    Chapter 1
+Container L0jBWCU95   pad 0            Image Duo Wrapper > 3 conditioned slots   <- collapses to height 0
+Container l1jEBg3Kh   pad 45 0 120 0   Chapter 2 + byline
+```
+
+**After** — two conditioned rows, each carrying its own spacing, and the neighbours contributing none:
+
+| container | padding (t r b l) | Visible condition | slots that can render |
+|---|---|---|---|
+| `gtGfuHou7` Chapter 1 | `45 · 0 ·` | — | — |
+| **`L0jBWCU95`** row A | **`45 · 45 ·`** | **`Image 1` Is set** | `hqTB_y00j` (Image 1), `ibk_0bT44` (Image 2) |
+| **`xYxn_TFRC`** row B | **`45 · 45 ·`** | **`Image Wide` Is set** | `zIrYM8D6G` (Image Wide) |
+| `l1jEBg3Kh` Chapter 2 | `0 · 120 ·` | — | — |
+
+Phone keeps `15px` sides throughout. **The unwanted slots were neutralised by REMOVING their condition and then setting `Visible: No`** — `c8OwI_6XZ` (wide) in A, and `fyrTkGdPv` / `Y7Jn0BcC1` (the portraits) in B. **Hiding alone is not enough: a condition overrides the stored boolean, so the condition has to go first.** Without that step an article setting both `Image 1` and `Image Wide` would render everything twice.
+
+**VERIFIED ON THE CANVAS BY PREVIEWING EACH LIVE ARTICLE, which is the only pre-publish oracle for a condition:**
+
+| article | fields set | renders |
+|---|---|---|
+| debut | `Image 1` + `Image 2` | row A only — two portraits, spacing unchanged |
+| cauda | `Image Wide` | row B only — the wide image, spacing unchanged |
+| **kimi** | none | **neither row; body text runs straight into the byline** |
+
+Conditions and padding **cascaded from Desktop**; Tablet and Phone were re-read and both carry `Visible: Condition` with the right padding — but read them, do not assume.
+
+**`Ctrl+D` ON A CONTAINER INSIDE A PUBLISHED CMS TEMPLATE WORKS AND PROPAGATES TO ALL THREE BREAKPOINTS.** The copy lands immediately after the original (the position wanted here), keeps every binding, and gets new ids throughout — `xYxn_TFRC` with slots `fyrTkGdPv` / `zIrYM8D6G` / `Y7Jn0BcC1`. This is the escape hatch for structure the node API cannot create inside a template.
+
+**THE ABORT GUARD EARNED ITS KEEP, AND THE STALENESS WAS THE NASTY KIND.** The padding script refuses to write unless it sees exactly `C1, IMG, IMG, C3`. Run on the session that had *just itself reported four containers*, it came back **`ABORT - unexpected layout C1,IMG,C3`** on all three breakpoints — the session had reverted to a pre-duplicate snapshot. Nothing was written. A fresh session with three agreeing reads then showed the duplicate and the write went through first time. **A guard that encodes the shape you expect turns a silent mis-write into a visible refusal; write one for any script whose correctness depends on structure you did not create in the same call.**
+
+**EDITOR TECHNIQUE, the parts that are not obvious:**
+
+- **The ⊕ to the left of `Visible` is the only way in.** Then type into the search box to narrow to one field, **hover** `Set variable` (it does not open on `Return` for this menu), hover the field, and **click the predicate directly** — the first item is pre-highlighted, which is exactly how `Isn't set` got chosen by mistake once before.
+- **A field offering `Is set` / `Isn't set` is offering a CONDITION, not a binding.** That is what the arrow beside it means.
+- **`Escape` closes the popover AND moves the selection up to the parent.** Re-select before carrying on, or the next edit lands on the wrong node.
+- **The panel's scroll position resets on every selection change**, and the amount needed varies (6 ticks put `Visible` at y≈570 once and y≈367 another time). **Re-measure before every click; never reuse a coordinate across a selection.**
+- **To read which segment of a Yes/No toggle is active when screenshots are frozen**, compare computed colour: the active one is `rgb(255,255,255)` and carries an extra class, the inactive one is `rgb(153,153,153)`. This answered the question twice when `Page.captureScreenshot` timed out.
+- **A helper that takes a row position must refuse a null**, or it clicks whatever happens to sit near the top of the panel. One call did exactly that and collapsed the tree; harmless here, but it is an unaimed click.
+- Top-level `return` still does not work in a browser-side eval — it yields `undefined` with no error.
+
+**The one convention this introduces: fill `Image 1` before `Image 2`.** Row A is gated on `Image 1`, so an article with only `Image 2` set would render nothing. That is the single rule, it is invisible in practice because the slots read left to right anyway, and it replaces a per-article checkbox that would have had to be maintained forever.
