@@ -5539,7 +5539,7 @@ Container l1jEBg3Kh   pad 45 0 120 0   Chapter 2 (bound to Content 2) + gap 30 +
 
 **SHAK'S RULING 2026-10-17: leave it at 45/45.** The 20/20 change was written and then reverted, so the document is back in step with the live site and **no publish is needed**. The options he declined, recorded so they are not re-derived: a `Has Article Images` boolean (exact, but one tick per article forever, the same drift risk as `5th Image Visible`); or splitting the image row into two containers conditioned on `Image 1` and `Image Wide` separately (zero maintenance, but an editor restructure of a published CMS template, and a latent duplicate if an article ever sets both). **Do not re-raise this as a defect** — the extra space on an imageless article is a known, accepted consequence of the template's spacing model.
 
-### THE TWO-CONTAINER SPLIT — the news article image well is now self-adjusting (2026-10-17, NEEDS A PUBLISH)
+### THE TWO-CONTAINER SPLIT — the news article image well is now self-adjusting (2026-10-17, PUBLISHED AND VERIFIED LIVE)
 
 Shak chose the zero-maintenance option over a `Has Article Images` checkbox. **An article with no images now renders no image well at all, with nothing to tick and nothing to keep in sync.** The reasoning for why nothing cheaper works is in the section above; this is what was built.
 
@@ -5587,3 +5587,23 @@ Conditions and padding **cascaded from Desktop**; Tablet and Phone were re-read 
 - Top-level `return` still does not work in a browser-side eval — it yields `undefined` with no error.
 
 **The one convention this introduces: fill `Image 1` before `Image 2`.** Row A is gated on `Image 1`, so an article with only `Image 2` set would render nothing. That is the single rule, it is invisible in practice because the slots read left to right anyway, and it replaces a per-article checkbox that would have had to be maintained forever.
+
+**PUBLISHED AND VERIFIED LIVE 2026-10-17** (build `19:09:43 GMT`, three byte-stable fetches per article, no known-bad truncation signature). **The emitted markup is the proof, because a layer dropped by a false condition is absent from the HTML entirely:**
+
+| | `Image Duo Wrapper` | `Image Wrapper Wide` | `<img>` |
+|---|---|---|---|
+| **kimi** | **0** | 0 | 4 (all in `Read more`) |
+| cauda | 1 | **1** | 5 |
+| debut | 1 | 0 | 7 (5 baseline + 2 portraits) |
+
+**Measured in a real browser — the defect is closed and the other two articles did not move:**
+
+| | body text → byline | well above | well below |
+|---|---|---|---|
+| **kimi** | **30px** (was **120px**) | — | — |
+| debut | 30px | 45px | 45px |
+| cauda | 30px | 45px | 45px |
+
+**A MEASUREMENT ARTIFACT TO AVOID REPEATING: cauda's well-below first read as `93px` and looked like a regression.** The probe took "the first `<p>` after the image row", but cauda's Chapter 2 opens with an `<h2>` — so it measured past the heading. Re-running against the first heading-or-paragraph gave **45px**, matching debut. **When measuring a gap to "the next block", select every block-level tag, not just `<p>`** — a document whose sections start with a heading will otherwise report the heading's own height as spacing.
+
+Full Home regression sweep passes unchanged: 11x `aspect-ratio:1.17458` with 0 stale `1.180xx`, both Elements breakpoint ratios, 2 hero overlays at `rgb(8, 2, 0)`, `#f7f6f2` with 0 of the wrong `#f6f4f0`, brand green 5, `Methodology` 2 with 0 stale `View Case Study`, `lossless=1` 0, badge 0, orb byte-exact at `4,280,052` and hero video at `4,009,893`.
