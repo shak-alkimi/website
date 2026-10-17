@@ -5489,3 +5489,52 @@ That claim had been repeated across several sessions and written into the board 
 **`shak-alkimi/website` is a PUBLIC repo and this file is on it.** `CLAUDE.md` was already on `origin/main` before that push, so nothing was newly exposed, but it has grown **112 KB -> 665 KB** and everything in it is publicly readable — project ids, the staging URL, the production Formspark form id, unpublished-page state, Drive paths, the private dispatch repo's name.
 
 **Shak's ruling 2026-10-16: stay public for now, move when the site launches that weekend (2026-10-17/18)** — at which point this file and the internal `.md` records go to a private remote and only the Framer code-component mirror stays public. **Settled; do not re-raise it as a finding before then.** Until the move, keep writing this file as normal but assume every word is public: no credentials, no customer data, no pricing or configurator internals.
+
+### A `formattedText` CMS FIELD CANNOT BE EMPTIED — not by script, and not by hand either (2026-10-17)
+
+Shak: *"i only have content 1 for kimi news page and content 2 empty creates extra space at the bottom unlike our debut page"*. The obvious fix is a `Content 2 Is set` condition on the spacing. **It cannot work, because no value of that field is ever "unset".**
+
+**The API normalises every attempt back to a blank paragraph.** `value: null` is rejected loudly (`expect to be string`); `value: ""` and `value: "<p></p>"` are **accepted and then silently rewritten** to `<p dir="auto"><br class="trailing-break"></p>` — 45 characters. Confirmed on a fresh session after three accepted writes.
+
+**And the EDITOR produces exactly the same thing**, which is what settles it. Opening the Kimi item in the CMS shows `Content 2` displaying its placeholder, *"Write or type / to add blocks…"* — the editor's own notion of empty — while the API reads those same 45 characters. **There is nothing left to clear by hand.** So `Is set` is useless as a "does this rich text have content" test: it is true for every item, always.
+
+**A reading trap that nearly hid this: no item in the collection was unset, so there was no control to compare against.** All 7 News items carry a `Content 2` value (the four drafts share one 1630-char stock paragraph). A scan looking for a naturally-unset example returns nothing, which is easy to misread as "my writes polluted this one field" rather than "the type has no unset state".
+
+**!!! IMAGE FIELDS ARE THE OPPOSITE — THEY ARE GENUINELY UNSETTABLE !!!** On the same collection, `fieldData[id].value` is `undefined` for an empty image. So the two field types differ on whether absence is representable at all:
+
+| field type | empty state | `Is set` usable? |
+|---|---|---|
+| `formattedText` | always a blank `<p>` | **no** |
+| `image` | genuinely unset | **yes** |
+
+**This compounds with the already-recorded asymmetry** (a node attribute needs a live `ImageAsset` and fails *silently* on a literal; a CMS image field needs a URL *string* and fails *loudly* on an asset). Add a third axis: **a CMS image field can be cleared, a CMS rich-text field cannot.**
+
+**THE SECOND BLOCKER: A FRAMER CONDITION IS ONE PREDICATE, SO "A OR B" IS NOT EXPRESSIBLE.** Having established images as the right driver, no single image field separates the three live articles:
+
+| | `Image 1` | `Image 2` | `Image Wide` |
+|---|---|---|---|
+| cauda | — | — | **set** |
+| debut | **set** | **set** | — |
+| kimi | — | — | — |
+
+Conditioning on `Image 1 Is set` would have hidden **cauda's real photograph**. There is no field set on both cauda and debut, so "show the image well when this article has any image" cannot be written as one condition.
+
+**THE THIRD BLOCKER: PADDING IS INERT ON THESE IMAGE SLOTS.** The self-adjusting fix would be to move the well spacing onto the three *conditioned* `Image Wrapper` nodes, so zero slots means zero spacing with nothing to maintain. It cannot work: each wrapper is an `aspectRatio` box (`0.74` / `1.504`) whose `Image` child is `100%/100%` absolutely positioned at `inset: 0`. **That is the identical shape to `/elements`' `Photo Placeholder`, where padding was measured to be inert** — `inset` resolves against the padding box, so the image spans it regardless, and the height comes from the ratio. Recognising the precedent saved a publish round trip; **when a layout question matches a shape already measured elsewhere in this project, reason from that measurement rather than re-testing.**
+
+**The structure, for reference** (`/news/:slug` -> `Main > Section Article`, a vertical stack with `gap: 0`):
+
+```
+Container gtGfuHou7   pad 45 0 45 0    Chapter 1  (bound to Content)
+Container L0jBWCU95   pad 0            Image Duo Wrapper > 3 conditioned slots
+Container l1jEBg3Kh   pad 45 0 120 0   Chapter 2 (bound to Content 2) + gap 30 + byline
+```
+
+**All the well spacing lives in the NEIGHBOURS' padding, not in the image row** — the row itself is `pad 0` and collapses to height 0 when no slot renders. So on an article with no images the two 45s become pure dead space, and the measured gap from the last line of body text to the byline is:
+
+| | kimi | debut |
+|---|---|---|
+| as published | **120px** (45 + 45 + 30) | 30px |
+| with both paddings at 20 | 70px | 30px |
+| only achievable with a per-item condition | 30px | 30px |
+
+**SHAK'S RULING 2026-10-17: leave it at 45/45.** The 20/20 change was written and then reverted, so the document is back in step with the live site and **no publish is needed**. The options he declined, recorded so they are not re-derived: a `Has Article Images` boolean (exact, but one tick per article forever, the same drift risk as `5th Image Visible`); or splitting the image row into two containers conditioned on `Image 1` and `Image Wide` separately (zero maintenance, but an editor restructure of a published CMS template, and a latent duplicate if an article ever sets both). **Do not re-raise this as a defect** — the extra space on an imageless article is a known, accepted consequence of the template's spacing model.
