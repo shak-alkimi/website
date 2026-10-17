@@ -5607,3 +5607,55 @@ Conditions and padding **cascaded from Desktop**; Tablet and Phone were re-read 
 **A MEASUREMENT ARTIFACT TO AVOID REPEATING: cauda's well-below first read as `93px` and looked like a regression.** The probe took "the first `<p>` after the image row", but cauda's Chapter 2 opens with an `<h2>` — so it measured past the heading. Re-running against the first heading-or-paragraph gave **45px**, matching debut. **When measuring a gap to "the next block", select every block-level tag, not just `<p>`** — a document whose sections start with a heading will otherwise report the heading's own height as spacing.
 
 Full Home regression sweep passes unchanged: 11x `aspect-ratio:1.17458` with 0 stale `1.180xx`, both Elements breakpoint ratios, 2 hero overlays at `rgb(8, 2, 0)`, `#f7f6f2` with 0 of the wrong `#f6f4f0`, brand green 5, `Methodology` 2 with 0 stale `View Case Study`, `lossless=1` 0, badge 0, orb byte-exact at `4,280,052` and hero video at `4,009,893`.
+
+### /contact rebuilt, and the map pins given per-location hover cards (2026-10-17, PUBLISHED AND VERIFIED LIVE)
+
+Three requests in sequence: put the city/state/zip on a second line, lead the page with the contacts block, and stop both map pins showing the same address.
+
+**PAGE ORDER.** `Section Hero` (stock `hello@ora.com` copy + the `ena-supply` CDN video) hidden; order now **Contacts -> Location (photo + map) -> CTA (form)**. The form survived the reorder with all 15 controls — its id changed `okaFr58LH -> POi5p3t1V`, which is what a cut-and-paste reorder does. Pre-state saved at [repair/contact-sections-prestate.json](repair/contact-sections-prestate.json).
+
+**Two spacing changes were REQUIRED, not cosmetic**, because `Main` is a `gap: 0` stack where every section has `padding-top: 0`:
+
+- `Section Contacts` needed **`padding-top: 150px`**. Section Hero sat flush at `top: 0` and its internal structure was what cleared the nav; without it the contacts block slides under the logo. 150 lands the content near where `/news` starts its first heading (167, nav ends at 45).
+- Phone's `Section CTA` had **`padding-bottom: 0`** — harmless mid-page, but it is now the last section and the form would have jammed into the footer. Set to 90, matching what Phone's last section had before.
+
+**THE TWO-LINE ADDRESSES WERE CLIPPED, AND THE EDIT-MODE VIEW LIED ABOUT IT.** After adding the line breaks the second line did not render. The text was correct all along:
+
+```
+P              h=37  overflow visible    <- two lines, correct
+Details Row    h=14  overflow HIDDEN     <- the clip
+Details        h=14  overflow hidden
+```
+
+`Details Row` was pinned at `14px` (Office) / `15px` (Lab) — the old single-line heights — so the second line was cut. Both set to `fit-content`, which is what the Careers column's second row already used.
+
+**!!! ENTERING TEXT EDIT MODE LIFTS THE PARENT'S `overflow: hidden`, SO THE EDIT-MODE VIEW IS NOT A PREVIEW OF THE RENDERED RESULT !!!** The blank second line was visible on the resting canvas and dismissed as a repaint artifact, because re-entering edit mode showed both lines highlighted. That only proved the text EXISTED. **To check whether text renders, look at the resting canvas or the published page — never at edit mode.**
+
+**THE MAP PINS SHOWED THE SAME ADDRESS BECAUSE IT WAS CANVAS TEXT INSIDE THE SHARED COMPONENT.** `Contact / Tooltip-Indicator` already had `Tooltip Text` and `Tooltip Link` variables, but **nothing was bound to them**, so every instance rendered the identical string by construction. Fixed by binding the address layer's `Content` and `Link to` to those variables, giving `Tooltip Text` the Office address as its **default** so other instances are unaffected, then overriding per pin:
+
+| | `Tooltip Text` | `Tooltip Link` |
+|---|---|---|
+| Office pin `FS251bjMG` (centerX 59%, centerY 14%) | `387 Park Ave S\nNew York, NY 10016` | maps -> Park Ave S |
+| Lab pin `C0L3iTuur` (right 112px, centerY 55%) | `59-00 Decatur St\nRidgewood, NY 11385` | maps -> Decatur St |
+
+**A `link` VARIABLE HAS NO DEFAULT FIELD** — only Name and Description — so both links had to be set explicitly; an unset instance gets no link at all.
+
+**!!! `setAttributes({ controls })` CAN UPDATE AN EXISTING OVERRIDE BUT CANNOT CREATE A NEW ONE !!!** Writing `Tooltip Text`, which the instances had never overridden, **returned OK and stored nothing** — confirmed in a fresh session with two agreeing reads, and a string-only write failed the same way, ruling out the `link` type. Writing `Indicator Color`, which the instance *already* overrode, stored first time (test value restored immediately and verified). **This narrows the recorded "`variant` is the known-bad control" note: the real rule is CREATE vs UPDATE, and it explains why the 2026-10-07 button-label write worked — that control was already present.** Creating a new override is editor-only; once created, the API can update it, which is how the comma fix was then scripted.
+
+**THE CARD FLIP.** Both cards clipped at the map edge, so they now open bottom-left. **Mirror the wrapper AND the card** — flipping only the wrapper leaves the card hanging over the pin:
+
+| | was | now |
+|---|---|---|
+| `Hover Area - Wrapper` | `right: -212px` · `top: -76px` | `left: -212px` · `bottom: -76px` |
+| …on `Show Address` | `top: -105px` | `bottom: -105px` |
+| `Address Card` | `top: -8px` | `bottom: -8px` |
+
+**Flipping the primary materialised two other variants into CENTRE coordinates (`centerX: 535%`) instead of letting them inherit**, which would have left them opening right; normalised in a second pass. Pre-state at [repair/tooltip-geo-prestate.txt](repair/tooltip-geo-prestate.txt). The wrapper still overlaps the pin (`x -212..38`, `y -18..96` against a 20x20 pin), so the hover target is not orphaned.
+
+**A `\n` IN A STRING VARIABLE RENDERS AS A REAL LINE BREAK HERE, because Framer emits `white-space: pre-wrap` on the text container** (`.framer-z2xwrn`). That was checked in the served CSS *before* relying on it, rather than publishing to find out. It matters because removing the comma alone would have let the Office card wrap as *"387 Park Ave S, New York,"* / *"NY 10016"* at the card's 177px width.
+
+**VERIFIED LIVE** by hovering both pins on the published page — the only place a hover state is observable. Each card renders two lines, opens down-left, sits fully inside the map, and links to its own location.
+
+**A FALSE DEFECT I NEARLY REPORTED: reading the hydrated DOM WHILE A CARD WAS HOVERED paired the Lab card's text with the Office href.** A clean load gave the correct pairing on both, and the SSR markup agreed. **Do not read component props from the DOM mid-transition; reload, then read.**
+
+**STALENESS, TWICE, IN ITS WORST FORM: a fresh session returned `controls={}` for all six pins across three consecutive reads** while the document was correct, and a second new session showed the real state. **Empty-on-everything is itself a staleness signature** — a node that had controls cannot lose all of them — and it is a cheaper tell than waiting for two sessions to agree.
