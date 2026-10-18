@@ -5778,3 +5778,40 @@ Guarded with an abort unless the mobile nav read exactly `false` **and** the des
 Full site tally afterwards: 13 pages with the phone mobile-nav visible, Home the sole deliberate exception (it renders the *desktop* component in its `Nav white` variant, centred wordmark). Variant spread is `Navigation White` x9, `Navigation Transparent White` x4 (`/about`, `/careers`, `/projects/:slug`, plus Home's hidden instance), `Navigation Black` x1 (`/contact`, correct on that black page).
 
 **A SESSION DIES WHEN THE RELAY RESTARTS, AND THE FAILURE LOOKS LIKE A CRASH.** The first attempt returned `Relay server not running, starting it...` / `Session 29 is invalid or has expired` **plus the libuv assertion** — the same `Assertion failed: !(handle->flags & UV_HANDLE_CLOSING)` signature this file records for malformed scripts and rejected payloads. **That assertion is not diagnostic of a bad script; it accompanies any session-level failure.** Read the line above it.
+
+### THE STANDING "CONFIRM ON A REAL PHONE" CAVEATS ARE NOW MEASURED — three of them retire (2026-10-18)
+
+Several decisions in this file carry a note saying the result could not be checked here and needed Shak's handset. Playwright can emulate viewports, so they were re-checked properly.
+
+**1. THE ELEMENTS CARD SUBJECT IS CENTRED ON ALL THREE BREAKPOINTS — CONFIRMED BY MEASUREMENT.** This was the biggest open one: *"Not verifiable from this environment… the tablet and phone result is established by the crop arithmetic plus the stored values, not by measurement."*
+
+| | measured offset from card centre | the arithmetic predicted |
+|---|---|---|
+| desktop | **-0.5 pts** | centred |
+| tablet | **-1.2 pts** | `-0.72%` |
+| phone | **-1.0 pts** | `-0.49%` |
+
+All three sit a hair LEFT, which is exactly the recorded intent (*"the eye preferred a touch left"*). **So the `125%` / `126%` breakpoint widths and the `f = 0.58275` crop model are confirmed correct end to end** — predicted and measured agree within half a point on an 833x750 asset that has since been re-exported.
+
+**!!! THE MEASURING BAND MATTERED MORE THAN THE THRESHOLD — and the first answer was off by 14 points !!!** An initial profile over the card's top **52%** reported the subject at **+13.3 pts RIGHT** on desktop, which would have been a glaring defect. Restricting to the top **45%** gives `-0.5` and, decisively, **the figure is then stable across every ink threshold from 6 to 60**. The 45-52% band reaches into the overlay gradient, which biases the bbox.
+
+**The stability sweep is the check worth keeping: sweep the threshold and trust the answer only where it stops moving.** A single-threshold reading on near-white product art is worthless — this card's left plate is within a few levels of the `#f7f6f2` background while its right-hand component is near-black, so any fixed cut-off silently measures one half of the product. The recorded trap (*"the ink centroid is dragged right by the denser second component"*) applies to the **bbox** too, not just the centroid, whenever the threshold is set high.
+
+**And the eye is what caught it.** Rendering the three cards stacked and looking settled in two seconds what the number had got wrong. **Look at the thing before believing a geometry metric on low-contrast artwork.**
+
+**2. THE WHITE SLIVER IS GONE AT EVERY PHONE SIZE TESTED.** Measured at `360x780`, `390x844` and `393x932`:
+
+```
+hero ends at exactly 90% of the fold on all three
+painted at fold-4px      rgb(8, 2, 0)
+painted just below hero  rgb(8, 2, 0)
+Section Projects padTop  150   bg rgb(8, 2, 0)
+```
+
+So the dark buffer holds across a 150px range of viewport heights, and a screenshot of the bottom 190px shows the video fading into solid `#080200` with no visible seam. **The 150px calibration Shak made on his handset is confirmed to have margin, not to be sitting on the edge.**
+
+**3. THE PHONE HEADLINE CLEARANCE IS 87px AND CONSTANT.** Identical at all three viewport heights, because the stack is bottom-anchored and the text node's height is fixed — so the recorded 1:1 relationship between that height and the headline's position is confirmed, and the clearance cannot drift with screen size. **Ink spans `x 15..299` even at 360 wide**, i.e. 46px of spare before the right margin, so the headline fits a small Android without reflowing.
+
+**SITE-WIDE SPACING IS CONSISTENT AND NEEDS NOTHING.** Every top-level section gap across 9 pages x 3 widths measures **0** (or 1px of rounding): the model is a zero-gap stack where each section supplies its own padding, and it holds identically on all three breakpoints. Phone uses the smaller end of the design's vocabulary (`30/60/90`) against desktop's (`90/120`), consistently. The one asymmetry — `/about`'s `Section Approach` carrying `padB 120` on phone where desktop and tablet carry `0` — is the documented deliberate one.
+
+**WHAT THIS STILL CANNOT ANSWER, and it is the one that matters for iOS: the dynamic toolbar.** Playwright gives a fixed viewport; a real iPhone resolves `vh` against the **large** viewport and overlays the toolbar, which is the entire reason the dark buffer exists. **Emulation proves the layout is correct at a given height; it cannot reproduce a viewport that changes as you scroll.** The buffer is the defence against that and it is calibrated on a real device — so the right reading is "measurement confirms the design, the handset calibration still owns the iOS case". Also note the engine is **Chromium, not WebKit**, so font metrics and `vh` behaviour are close but not identical.
