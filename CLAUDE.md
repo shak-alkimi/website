@@ -6077,3 +6077,25 @@ Identical to the desktop configuration, so both breakpoints now behave the same 
 **The 66px -> 75px height change on scroll is PRE-EXISTING TEMPLATE BEHAVIOUR, not something this introduced.** `Navigation Transparent White` is `fit-content` (66px here) and `Navigation Black` is a fixed `75px`, so the bar grows ~9px as it fills. **`/about` and `/careers` phone already do exactly this** (`Transparent Black`/`Transparent White` -> `Navigation White`), so it is consistent with the rest of the site rather than a new quirk. Desktop has no equivalent jump because `Nav white` and `Fill Black` are both 64px.
 
 **Ink is white throughout on both breakpoints** — `Navigation Transparent White` carries the white wordmark and white hamburger, `Navigation Black` the same on a black bar — which is correct over `/contact`'s black top and matches the desktop's white-ink-throughout behaviour. Confirmed on the phone artboard before publishing.
+
+### PUBLISHED AND VERIFIED LIVE 2026-10-18 (build `22:44:52 GMT`) — all three breakpoints now fill on the first scroll
+
+Three byte-stable `/contact` fetches at `215,423`, no known-bad signature. Measured in a **fresh browser context per breakpoint** (see the trap below):
+
+| | at load (`scrollY 0`) | after scrolling |
+|---|---|---|
+| desktop | `Nav white` transparent | **`Fill Black`** `rgb(0,0,0)` |
+| tablet | `Nav white` transparent | **`Fill Black`** |
+| **phone** | **`Navigation Transparent White`** `h66` transparent | **`Navigation Black`** `h75` `rgb(0,0,0)` |
+
+Confirmed visually too: the phone bar carries the **white wordmark and the bare two-line hamburger in both states**, so the ink work from earlier today is intact and the only thing that changes is the bar.
+
+**!!! REUSING ONE PLAYWRIGHT PAGE ACROSS VIEWPORTS PRODUCED A FALSE REGRESSION — `Fill Black` at "scroll 0" on desktop and tablet !!!** The sweep set a new viewport and called `page.goto` for each breakpoint in turn. **Neither resets a fired `Replay: No` effect, and the scroll position carried across the navigation**, so desktop was measured on a page that had already scrolled as the phone. It reads exactly like the resting variant having broken.
+
+**A fresh `browser.newContext()` per breakpoint gave the correct result on all three.** Generalise it: **any state that is one-way by design — a `Replay: No` effect, a fired appear animation, a dismissed overlay — survives `goto` within a context, so a multi-breakpoint sweep must use a fresh context, not a fresh navigation.** This sits beside the already-recorded warning that the first viewport in a sweep may not apply before the first `goto`.
+
+**THE ONE EDGE CASE I EXPECTED FROM `Replay: No` DOES NOT EXIST, and it was tested rather than assumed.** The worry was that an event-based trigger would leave the bar transparent after a **reload part-way down the page**, flashing light content under it until the visitor scrolled. Tested on both desktop and phone: scroll to 700, reload, and the nav comes back **already filled** at `scrollY 700`. **Framer evaluates the scroll state on load, not purely on scroll events**, so the one-way configuration is robust and there is no restored-scroll hole.
+
+**No other page moved** — `/`, `/about`, `/careers`, `/news`, `/products` phone navs all behave exactly as before, and Home is byte-identical at `279,127` with its full sweep passing (11x `aspect-ratio:1.17458`, 0 stale `1.180xx`, both Elements ratios, 2 hero overlays, `#f7f6f2` with 0 `#f6f4f0`, brand green 5, `Methodology` 2 with 0 stale `View Case Study`, `lossless=1` 0, badge 0, 58 Gellix).
+
+**The contact nav is now consistent across all three breakpoints and the item is closed.** The 66→75px phone height change remains, and remains pre-existing template behaviour shared with `/about` and `/careers`.
