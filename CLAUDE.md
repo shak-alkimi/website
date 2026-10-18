@@ -5839,3 +5839,30 @@ Desktop is untouched on both (`Nav black[1440x64]`), and Home was not rebuilt in
 Rest of the sweep passes: 11x `aspect-ratio:1.17458` with 0 stale `1.180xx`, both Elements breakpoint ratios, 2 hero overlays at `rgb(8, 2, 0)`, `#f7f6f2` with 0 of the wrong `#f6f4f0`, 0 stale `View Case Study`, `lossless=1` 0, badge 0, 58 Gellix refs, `href="./about"` 5 with `projects-list` 0, orb byte-exact at `4,280,052` and hero video at `4,009,893`.
 
 **Remaining nav defect, unchanged: `/about` on phone** — white ink on the pale facade video, waiting on one `Ctrl+D` to create a transparent + black-ink mobile variant.
+
+### `/about` PHONE NAV — the transparent + black-ink variant now exists (2026-10-18, NEEDS A PUBLISH)
+
+`Navigation / Navigation Mobile` gains a fourth variant, **`sc5BppSXj` `Navigation Transparent Black`**, and `/about`'s phone instance (`AwhOnpHayptm10zKYh`) points at it. It mirrors `Navigation Transparent White` exactly except for the ink:
+
+| variant | background | height | hamburger |
+|---|---|---|---|
+| `BrEWvSRFO` Transparent White | `rgba(255,255,255,0)` | fit-content | WHITE |
+| `DEBd6oizS` White bar | `rgb(255,255,255)` | 75px | BLACK |
+| `tWZZnxICR` Black bar | `rgb(0,0,0)` | 75px | WHITE |
+| **`sc5BppSXj` Transparent Black** | **`rgba(255,255,255,0)`** | **fit-content** | **BLACK** |
+
+Shak duplicated `Navigation White` in the editor; the script then set only `backgroundColor` and `height`, exactly as the two-property diff predicted. **The black hamburger came along free** — the duplicate inherits `HjXUAikep`. Verified by a separate `exec`, a re-issued write (`ALREADY` on both), and a site-wide scope check confirming the other 13 pages' phone variants are untouched.
+
+**Named by what it RENDERS, not by its source.** The component's existing convention is that the suffix describes the **ink** (`Navigation Transparent White` = transparent background + white ink), so a transparent + black-ink variant is `Navigation Transparent Black`. Worth stating because every other name in this nav family is inverted or misleading — this is the first one in the component that can be trusted.
+
+**!!! `PathNode` IS AS ATTRIBUTE-BLIND AS `ShapeGroupNode` — only `id`, `originalId`, `__class`. !!!** This file records the blindness for `ShapeGroupNode`; it extends all the way down. A full key dump of both the group and an individual path, on two variants that render **different** logo colours, returns three identical keys each. **So there is no writable fill anywhere on the wordmark, at any depth** — the only way to change it is to pick a variant that already has the ink you want.
+
+**THE TWO SOURCE VARIANTS DIFFER IN THEIR DESCENDANTS BY EXACTLY ONE CONTROL.** A full recursive diff of `Navigation White` against `Navigation Black` shows identical trees apart from `Navigation / Mobile Navigation Button` carrying `HjXUAikep` (black) against `mXFJaFpo2` (white). **The logo subtree is byte-identical in both while rendering opposite colours**, which is the clearest possible demonstration that its colour lives somewhere the node API cannot see.
+
+**And it is NOT a blend mode** — checked before publishing rather than discovered after. On `/products` (which uses the white bar) the whole ancestor chain from `Logo` upward reads `mix-blend-mode: normal`, `filter: none`, `opacity: 1`. **So the ink cannot be affected by making the background transparent**, which was the one real risk in this change. The logo is also not an inline `<svg>` on the rendered page — no `path` elements under it — so it is a mask or background-image with the colour baked in per variant.
+
+**A FIRST ATTEMPT DUPLICATED THE WRONG VARIANT, and the useful move was renaming rather than explaining.** The copy was of `Navigation Black`, giving transparent + **white** ink — i.e. a duplicate of the variant we already had. The Layers panel then showed **two rows both reading "Navigation Black"**, which is the documented key-by-id-never-by-name trap seen from the user's side. Renaming the stray to `DELETE ME - wrong copy` through the API made the next action unambiguous; `name` is a plain writable attribute and this is a cheap, reversible way to disambiguate duplicates for a human. **The stray still had to be deleted by hand** — `removeNodes` does not reach inside a `ComponentNode`.
+
+**SECOND CONFIRMATION THAT THE `variant` CONTROL IS WRITABLE**, and this one sharpens the rule. `setAttributes({ controls: { variant: "sc5BppSXj" } })` on the page instance worked first time. The variant was created by **editor duplication**, so it exists in the component's compiled module — unlike `hLYcAEbg2`, which `addVariant` created and which instances were never offered. **The distinction is the creation route, not the control.**
+
+Note `getUnpublishedPageChanges()` returns **one** entry — the `/about` instance. The variant's own property changes are component-internal and do not register, consistent with the recorded limitation.
