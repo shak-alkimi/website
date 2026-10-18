@@ -5947,3 +5947,59 @@ Confirmed visually by a 15-row contact sheet: every one is the bare two-line mar
 **This was NOT caused by the change** — only `backgroundColor` and line colours were written, which cannot affect stacking or paint order, and a capture taken *before* the change showed the same blank grey. **Treat it as an environment artifact until a human says otherwise**, and note the lesson: the resting state was verifiable to the pixel, the open state was not, so **the scope of a verification claim must match what was actually observed**. The colour logic is sound either way — white lines on a `rgba(1, 1, 3, 0.75)` overlay is the correct pairing, and it is the same variant every page switches to when opening.
 
 **A probe trap worth recording: `elementFromPoint` named `Link Wrapper` as the topmost element over the hamburger, which looked like the menu covering the close button.** The `Link Wrapper` actually matched by a width filter sits at **y 7786** — the *footer sitemap*, nowhere near. **Two different layers share that name, and a `querySelectorAll` + size filter silently picked the wrong one.** Same key-by-name trap as the three `Overlay` layers and the duplicate `Navigation Black` rows. Filter by position as well as by name whenever a name is known to repeat.
+
+### THE CONTACT NAV NEVER FILLED ON SCROLL — a dangling `#trigger` left by the 2026-10-17 rebuild (2026-10-18, NEEDS A PUBLISH)
+
+Shak: *"the contact page needs a transparent to black on scroll nav bar variation"*. **It already had one. The effect was correct end to end and simply never fired.**
+
+**THE SCROLL FILL IS AN INSTANCE-LEVEL `Effects -> Scroll -> Variant`, NOT A COMPONENT INTERACTION.** That was worth establishing first, because it determines whether a fix is scoped to one page or changes the whole site. Both `Nav white · Primary` (col 1, which fills) and `Nav white` (col 3, which does not) have **empty Interactions panels** — so the component carries no variant wiring at all, and every page supplies its own effect. **Checking the component first ruled out a site-wide change in two clicks.**
+
+**The component is three complete families, laid out as three columns on its canvas** — and column 3 is already the transparent-to-black chain:
+
+```
+col 1   Hide        -> Nav Load       -> Nav white · Primary -> Fill White
+col 2   Hide black  -> Nav load black -> Nav black           -> (uses col 1's Fill White)
+col 3   Hide white  -> Nav load white -> Nav white           -> Fill Black
+```
+
+**Measured instance -> behaviour across all 9 pages**, which is what localised the fault:
+
+| instance variant | pages | rest | on scroll |
+|---|---|---|---|
+| `Hide` | `/`, `/careers` | transparent, white ink | `Fill White` |
+| `Hide black` | products, elements, about, news, projects x2 | transparent, black ink | `Fill White` |
+| **`Hide white`** | **`/contact` only** | transparent, white ink | **never changed** |
+
+**THE ROOT CAUSE: the effect's `Section` pointed at an element inside the HIDDEN `Section Hero`.** Read off the instance:
+
+```
+Trigger   Section in view
+Viewport  top
+Replay    Yes
+Section   #trigger      <- qaLG1MqET = a Container inside Section Hero, visible:false
+To        Fill Black    <- already correct
+```
+
+A hidden layer emits no markup, so `Section in view` can never fire. **This is a casualty of the 2026-10-17 `/contact` rebuild that hid `Section Hero`** — the third time in this file that hiding a section has broken something outside it (twice spacing, once nav ink, now a scroll trigger). **Before hiding a section, check whether any scroll effect anywhere references it or a descendant.**
+
+**THE DROPDOWN LISTS TWO ENTRIES BOTH NAMED `#trigger`, and only the node ids tell them apart:**
+
+```
+0: #hero    jEy6KNp0H   Section Hero          visible:false
+1: #trigger qaLG1MqET   Container in the hero visible:true but inside a hidden parent  <- was selected
+2: #links   JtQ7epoXI   Column in Section Contacts, top 196
+3: #trigger pnRn7TVac   Section CTA, top 1118
+4: #form    nZtaaoxJk   Stack in Section CTA, top 1164
+```
+
+**The duplicate name is why the published page emits `id="trigger-1"`** — Framer de-duplicates across the document *including hidden layers*, so the visible `Section CTA` got suffixed while the dead hero kept the plain `trigger`. **Counting `id="trigger"` on the published page is the quick tell**: `/news`, `/careers` and `/projects-list` have it, `/contact` has `trigger-1` instead.
+
+**Fixed by repointing `Section` to `#links` (`JtQ7epoXI`), top 196.** `To: Fill Black` was already right, so this is a one-dropdown change and **no new variant, no new anchor, no component edit**. Why `#links` and not the other visible options: the page is black, so a transparent nav over black content is invisible either way — **the only content that must not pass under a transparent bar is the LIGHT photo in `Section Location` (460-1118)**. Firing at 196 is comfortably before it; the second `#trigger` (Section CTA, 1118) and `#form` (1164) are both too late. Erring early is free here.
+
+**The native-setter route worked but READS BACK STALE — do not conclude it failed.** `Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value').set` plus `input`/`change` reported `after: qaLG1MqET`, i.e. unchanged, and looked like React had reverted it. It had not: clicking the select a moment later reported `selectedIndex 2 / #links`. **The documented "`select.value` reads stale after a change" applies to the write you just made, so verify by closing the popover and reopening it** — a fresh popover showed `Section #links` / `To Fill Black`.
+
+**Tablet inherited it** (effects cascade from the primary breakpoint) — confirmed by opening the Tablet instance's own effect, not assumed. All six `/contact` nav instance variants re-read **unchanged** afterwards (`Hide white` / `Navigation Black` / `Nav white`), so nothing but the Section reference moved. `getUnpublishedPageChanges()` returns one entry.
+
+**PHONE IS A DIFFERENT MECHANISM AND WAS DELIBERATELY NOT CHANGED.** `/contact`'s `Navigation Mobile` carries an **`Appear`** effect, no Scroll effect at all, and sits permanently on `Navigation Black` — a solid black bar from the top. That already achieves the occlusion the desktop fix restores, so there is nothing broken there; giving it the same transparent-at-rest behaviour would mean adding a new Scroll effect **and** changing its resting variant, which is a visible change beyond what was asked. Raised with Shak rather than applied.
+
+**After publishing, expect `/contact` desktop and tablet to read `Nav white` (transparent) above ~196px of scroll and `Fill Black` below it, reverting on the way back up** (`Replay: Yes`). That is the check — a CSS grep cannot see it, because the variant swap is applied by JS at runtime.
