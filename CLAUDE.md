@@ -5866,3 +5866,27 @@ Shak duplicated `Navigation White` in the editor; the script then set only `back
 **SECOND CONFIRMATION THAT THE `variant` CONTROL IS WRITABLE**, and this one sharpens the rule. `setAttributes({ controls: { variant: "sc5BppSXj" } })` on the page instance worked first time. The variant was created by **editor duplication**, so it exists in the component's compiled module — unlike `hLYcAEbg2`, which `addVariant` created and which instances were never offered. **The distinction is the creation route, not the control.**
 
 Note `getUnpublishedPageChanges()` returns **one** entry — the `/about` instance. The variant's own property changes are component-internal and do not register, consistent with the recorded limitation.
+
+### THE PHONE NAV-INK DEFECT IS CLOSED SITE-WIDE — PUBLISHED AND VERIFIED (2026-10-18, build `21:16:45 GMT`)
+
+`/about` phone renders `Navigation Transparent Black` with a solid black wordmark on the pale facade video. Three byte-stable fetches (`285,539`), no known-bad signature. Desktop and tablet unchanged (`Nav black`), and the other 13 pages' phone variants untouched.
+
+**ALL NINE PHONE NAVS ARE LEGIBLE**, verified by stacking the rendered strips rather than by reading variant names:
+
+```
+/                white ink on the dark blue hero      circle hamburger
+/about           BLACK ink on the pale facade         bare bar          <- fixed
+/products /elements /news /projects-grid /projects-list   black on white    bare bar
+/careers         white ink on the pink gradient       circle hamburger
+/contact         white ink on the black bar           circle hamburger
+```
+
+**THE HAMBURGER TREATMENT CHANGED TOO, AND THAT TURNS OUT TO BE CORRECT RATHER THAN A SIDE EFFECT.** `/about` went from a white circle button to a bare black bar, because the new variant was duplicated from `Navigation White`, which carries `HjXUAikep`. The stacked capture shows the treatment **correlates perfectly with the ink across all nine pages** — circle on every white-ink page (`/`, `/careers`, `/contact`), bare bar on every black-ink page. So `/about` has moved into the right group; it is the site's own convention, not a regression. **Worth flagging to the user anyway, and worth checking before assuming**: a visible change beyond the one requested is theirs to judge, and the correlation was only established by looking at all nine together.
+
+**THE `Navigation Transparent White` IN `/about`'s MARKUP IS NOT RENDERED.** The served HTML carries one occurrence, which reads like the old variant surviving. A probe of the hydrated DOM finds **no element with that name at all** — it is serialised payload, like the `min read` strings and the CMS asset URLs before it. **Same rule as always: verify a variant swap by what paints, never by what the markup contains.**
+
+**HOME'S PHONE NAV REPORTS `NONE` IN A VARIANT SCAN AND IS FINE.** It uses the *desktop* nav component in its `Nav white` variant (the documented deliberate exception, centred wordmark), so a scan keyed on the mobile component's variant names cannot see it, and its logo layer is not named `Logo`. **A page-shaped scan that assumes one mechanism will report a false absence on the page that uses the other** — the stacked capture is what settled it.
+
+**THE REGRESSION CHECKLIST IS NOW CORRECT.** Re-run with expectations re-derived from the current build rather than carried forward: 11x `aspect-ratio:1.17458`, 0 stale `1.180xx`, both Elements breakpoint ratios, 2 hero overlays, `#f7f6f2` with 0 `#f6f4f0`, **`Methodology` 2 with `The Method` 0**, 0 stale `View Case Study`, `lossless=1` 0, badge 0, 58 Gellix refs, `href="./about"` 5, `projects-list` 0. Home byte-identical at `279,126`, untouched by this publish.
+
+**Three nav defects were found and closed in one day** — `/about` desktop+tablet (white ink on a light hero), `/products` and `/elements` phone (no nav at all), `/about` phone (white ink on a light hero). **Two of the three were invisible to every static check** and only a rendered pixel found them, which is the standing lesson of this whole area.
