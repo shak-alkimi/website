@@ -6032,3 +6032,24 @@ Tablet inherited the whole configuration (confirmed by opening its own effect). 
 **!!! PARTIAL SESSION STALENESS — a subset of nodes read blank while the rest read correctly !!!** The post-change verification reported the three `Navigation Mobile` instances' variants as `-` where minutes earlier they read `Navigation Black`, while the three desktop instances in the same output still read `Hide white` / `Nav white`. That looks exactly like a write having cleared a control. **It had not**: a fresh session returned all six intact across two agreeing reads.
 
 This widens the recorded signature. The file already says *"empty-on-everything is itself a staleness signature"* — **this was empty on a SUBSET, which is far more convincing as a real defect.** The rule that still works is the general one: **a read that contradicts a value you did not write is a reason to open a fresh session, not a reason to believe you broke something.**
+
+### PUBLISHED AND VERIFIED LIVE 2026-10-18 (build `22:32:18 GMT`) — the contact nav fills on the first scroll
+
+Three byte-stable `/contact` fetches at `211,629`, no known-bad truncation signature. **Measured by scrolling, which is the only way to see this** — the variant swap is applied by JS, so no CSS or markup check can confirm it:
+
+| scroll | desktop + tablet | phone |
+|---|---|---|
+| 0 | `Nav white` `rgba(0,0,0,0)` | `Navigation Black` |
+| **40** | **`Fill Black` `rgba(0,0,0,0.992)`** | `Navigation Black` |
+| 120 / 300 / 1200 | `Fill Black` `rgb(0,0,0)` | `Navigation Black` |
+| back to 0 | `Fill Black` (one-way, by design) | `Navigation Black` |
+
+**It fires by 40px and is fully opaque by 120px**, so "sooner" is satisfied with room to spare. **The `0.992` alpha at 40px is worth noting: it caught the transition mid-fade**, which confirms the change is animated rather than a snap — something a single end-state reading would never reveal. Sampling *during* the range, not just after it, is what showed this.
+
+**The one-way consequence is confirmed invisible, by pixels rather than by argument.** A stacked capture of the wordmark strip at rest, at scroll 600 and after scrolling back to the top shows **three identical frames** — white wordmark, black field — because the top of the page is `Section Contacts` on black. At scroll 600 the solid bar is visibly occluding the map behind it, which is the whole point of the fill.
+
+**No other page moved**, which is the expected consequence of the fill being an instance-level effect: `/`, `/careers` still `Nav white -> Fill White`; `/about`, `/news`, `/products` still `Nav black -> Fill White`. Home is byte-stable at `279,127` and its full sweep passes with every expectation re-derived from the current build — 11x `aspect-ratio:1.17458`, 0 stale `1.180xx`, both Elements ratios, 2 hero overlays, `#f7f6f2` with 0 `#f6f4f0`, brand green 5, `Methodology` 2 with 0 stale `View Case Study`, `lossless=1` 0, badge 0, 58 Gellix, orb byte-exact at `4,280,052` and hero video at `4,009,893`.
+
+**Still open and unchanged: the phone.** `/contact`'s `Navigation Mobile` carries an `Appear` effect, no scroll effect, and a permanently black bar. Nothing is broken — it already occludes — but it does not share the desktop behaviour. Shak's call.
+
+**A screenshot-capture note:** `page.screenshot({clip})` wrote into the **repo root**, not the scratchpad, because Playwright resolves a bare filename against its own working directory. The files were moved out and the tree re-checked clean before committing. **Pass an absolute path, or check `git status` afterwards.** Also `ffmpeg`'s `drawtext` **segfaults here** (`Fontconfig error: Cannot load default config file`), so label contact sheets with coloured separator bars instead of text.
