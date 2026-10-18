@@ -6053,3 +6053,27 @@ Three byte-stable `/contact` fetches at `211,629`, no known-bad truncation signa
 **Still open and unchanged: the phone.** `/contact`'s `Navigation Mobile` carries an `Appear` effect, no scroll effect, and a permanently black bar. Nothing is broken — it already occludes — but it does not share the desktop behaviour. Shak's call.
 
 **A screenshot-capture note:** `page.screenshot({clip})` wrote into the **repo root**, not the scratchpad, because Playwright resolves a bare filename against its own working directory. The files were moved out and the tree re-checked clean before committing. **Pass an absolute path, or check `git status` afterwards.** Also `ffmpeg`'s `drawtext` **segfaults here** (`Fontconfig error: Cannot load default config file`), so label contact sheets with coloured separator bars instead of text.
+
+### THE `/contact` PHONE NAV NOW MATCHES DESKTOP (2026-10-18, NEEDS A PUBLISH)
+
+Shak's call: give the phone the same transparent-to-black behaviour. **It needed both halves — a new effect AND a new resting variant — because the phone had no scroll effect at all**, only an `Appear` one, sitting permanently on `Navigation Black`.
+
+| | was | now |
+|---|---|---|
+| resting variant | `Navigation Black` (solid bar) | **`Navigation Transparent White`** (`BrEWvSRFO`) |
+| effects | `Appear` only | `Appear` **+ `Scroll -> Variant`** |
+| scroll config | — | **`On scroll` / `Down` / Replay `No` / To `Navigation Black`** |
+
+Identical to the desktop configuration, so both breakpoints now behave the same way.
+
+**THE ORDER WAS CHOSEN SO NO INTERMEDIATE STATE IS PUBLISHABLE-WRONG.** The effect went in **first**, while the resting variant was still `Navigation Black` — at that point the effect is a no-op (it switches black to black). Had the variant been flipped first, any publish in the gap would have shipped a permanently transparent phone bar with the light photo sliding under it. **This is the documented sequencing rule and it is worth applying whenever a change needs one API write and one editor action.**
+
+**Adding an effect is editor-only and the path is not obvious:** `Effects` **+** -> `Hover / Press / Loop / Drag / Scroll >` -> hover `Scroll` -> `Scroll speed / Scroll transform / **Scroll variant**`. The submenu opens on **hover**, not on click or Return — the same behaviour already recorded for the image-binding menu. **A new effect defaults to `Layer in view`** with `Start / Replay / From / To`, so the trigger has to be changed first and the field set changes under you when you do.
+
+**The resting variant was set through the API**, since `variant` is writable for a compiled-module variant — guarded to abort unless it read exactly `tWZZnxICR`, verified by a separate `exec` on the same session, and confirmed by **re-issuing the write, which answered `ALREADY BrEWvSRFO`**.
+
+**!!! THE GUARD EARNED ITS KEEP: the first attempt aborted with `expected tWZZnxICR got undefined` !!!** That is the partial-staleness signature from earlier the same day, now seen a second time on a different session — `controls.variant` reading `undefined` on a node that plainly has one. **Three agreeing reads on a fresh session showed `Navigation Black` intact**, and the write then went through first time. **Without the guard this would have been a silent no-op at best, or a write against a misread state at worst.** Write guards that assert the expected prior value are the cheapest defence against this project's staleness, because they turn an invisible failure into a refusal.
+
+**The 66px -> 75px height change on scroll is PRE-EXISTING TEMPLATE BEHAVIOUR, not something this introduced.** `Navigation Transparent White` is `fit-content` (66px here) and `Navigation Black` is a fixed `75px`, so the bar grows ~9px as it fills. **`/about` and `/careers` phone already do exactly this** (`Transparent Black`/`Transparent White` -> `Navigation White`), so it is consistent with the rest of the site rather than a new quirk. Desktop has no equivalent jump because `Nav white` and `Fill Black` are both 64px.
+
+**Ink is white throughout on both breakpoints** — `Navigation Transparent White` carries the white wordmark and white hamburger, `Navigation Black` the same on a black bar — which is correct over `/contact`'s black top and matches the desktop's white-ink-throughout behaviour. Confirmed on the phone artboard before publishing.
