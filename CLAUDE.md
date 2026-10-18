@@ -5927,3 +5927,23 @@ Navigation Transparent Black  (black wordmark)  -> BLACK lines
 
 - **`WrceYjROp` (Black - Clicked) now has black lines**, which would be invisible if it ever rendered on the dark menu. The evidence says it does not — the open state resolved to the White family on both a light and a dark page — but it is unproven, so **open the menu on a light page after publishing**.
 - **The tap target is still asymmetric**: `44x44` on the white variants against `44 x fit-content` (~9px) on the black ones. With the fills gone this is now purely a touch-usability difference, invisible either way, and it affects the six light pages. Raising the black variants to `44px` would not change the rendered nav height, since the 145x66 logo already sets it — but it is a different axis from what was asked.
+
+### THE BARE HAMBURGER IS LIVE ON ALL 27 COMBINATIONS (2026-10-18, build published)
+
+**9 pages x 3 breakpoints, and not one retains a fill.** Measured on the button component root (not the wrapper — the wrapper was always transparent, which misled an earlier probe):
+
+```
+/                 D/T/P  WHITE on media
+/about            D/T    BLACK on media      P  BLACK on transparent
+/products /elements /news /projects-grid /projects-list   D/T/P  BLACK on white
+/careers          D/T/P  WHITE on media
+/contact          D/T/P  WHITE on black
+```
+
+Confirmed visually by a 15-row contact sheet: every one is the bare two-line mark, correctly inked against its backdrop. Full Home regression sweep passes.
+
+**!!! THE OPEN-MENU STATE COULD NOT BE VISUALLY CONFIRMED HERE, AND THE EVIDENCE IS SELF-CONTRADICTORY — CHECK IT BY EYE !!!** With the menu open the DOM reports everything healthy: `Mobile Button - White`, transparent fill, **white lines**, effective opacity **1** sampled at 500/1500/3000/5000 ms, six menu rows at opacity 1 with their labels (`Fixtures`, `Elements`, `About`, `News`) laid out at y 222-449 — and yet **a screenshot of that region comes back flat grey with nothing drawn**. Both readings cannot be true.
+
+**This was NOT caused by the change** — only `backgroundColor` and line colours were written, which cannot affect stacking or paint order, and a capture taken *before* the change showed the same blank grey. **Treat it as an environment artifact until a human says otherwise**, and note the lesson: the resting state was verifiable to the pixel, the open state was not, so **the scope of a verification claim must match what was actually observed**. The colour logic is sound either way — white lines on a `rgba(1, 1, 3, 0.75)` overlay is the correct pairing, and it is the same variant every page switches to when opening.
+
+**A probe trap worth recording: `elementFromPoint` named `Link Wrapper` as the topmost element over the hamburger, which looked like the menu covering the close button.** The `Link Wrapper` actually matched by a width filter sits at **y 7786** — the *footer sitemap*, nowhere near. **Two different layers share that name, and a `querySelectorAll` + size filter silently picked the wrong one.** Same key-by-name trap as the three `Overlay` layers and the duplicate `Navigation Black` rows. Filter by position as well as by name whenever a name is known to repeat.
