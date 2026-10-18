@@ -5761,3 +5761,20 @@ Note these are the same two pages that were stuck on the **remote footer module*
 - **The hero headline clips descenders by ~2px** on `/about` desktop and tablet ("in every way" — the `y` tail). Inherent to the `lineHeight: 100%` chosen to match `main`; the trade was deliberate.
 - **12 orphan frames sit OUTSIDE the breakpoints** — `/about` has `Testimonial Mobile 1-4`, `/careers` has four `Image Wrapper` and four `Image Wrapper / Tablet Mobile`. As page-level siblings of Desktop/Tablet/Phone they **emit no markup**, so they are dead canvas debris rather than a rendering fault. **They also broke the first version of this audit**: a breakpoint matcher using `name.includes("mobile"|"tablet")` picked them up as the Phone/Tablet root and produced a confident, entirely false report that `/about` phone held 8 nodes and `/careers` tablet held 1. **Match breakpoint roots on the exact name, never a substring.**
 - **Home uses a different phone-nav mechanism from every other page** — the desktop nav component in its `Nav white` variant (centred wordmark) rather than `Navigation Mobile`. It works; it is simply inconsistent, and it is why Home's phone nav survives while `/products` and `/elements` do not.
+
+### THE PHONE NAV IS BACK ON `/products` AND `/elements` (2026-10-18, NEEDS A PUBLISH)
+
+One attribute each — `Navigation Mobile` -> `visible: true` on the **Phone** breakpoint (`I3zkCZprdisKKM4gF_`, `x4KFl0JfnI7YuWAoAB`). Both pages now match the site-wide pattern exactly:
+
+```
+Desktop / Tablet :  Navigation=true    Navigation Mobile=false
+Phone            :  Navigation=false   Navigation Mobile=TRUE
+```
+
+Guarded with an abort unless the mobile nav read exactly `false` **and** the desktop nav read `false`, so a half-broken page could not be made worse. Verified by two agreeing pre-reads on a fresh session (with `/news` alongside as the known-good control), a separate-`exec` read-back, and a **re-issued write answering `ALREADY visible` on both**. `getUnpublishedPageChanges()` returns **two** entries, one per page — a page-level visibility toggle does register, unlike a component-internal or CMS write.
+
+**THE VARIANT WAS ALREADY CORRECT, and checking it was worth the extra call.** Both instances carry **`DEBd6oizS` = `Navigation White`** — which, by the inverted-names rule, is the **solid white bar with BLACK ink**. That is what `/news`, `/news/:slug`, `/projects-grid`, `/projects-list`, `/terms`, `/privacy` and `/404` all use, and it is right for a white content page. **Had it been `BrEWvSRFO` (transparent + white ink) the nav would have rendered and still been invisible** — the exact `/about` phone defect, reintroduced on two more pages by a fix that looked complete. **After un-hiding any nav, read its variant against what the page's backdrop needs; `visible: true` is only half the question.**
+
+Full site tally afterwards: 13 pages with the phone mobile-nav visible, Home the sole deliberate exception (it renders the *desktop* component in its `Nav white` variant, centred wordmark). Variant spread is `Navigation White` x9, `Navigation Transparent White` x4 (`/about`, `/careers`, `/projects/:slug`, plus Home's hidden instance), `Navigation Black` x1 (`/contact`, correct on that black page).
+
+**A SESSION DIES WHEN THE RELAY RESTARTS, AND THE FAILURE LOOKS LIKE A CRASH.** The first attempt returned `Relay server not running, starting it...` / `Session 29 is invalid or has expired` **plus the libuv assertion** — the same `Assertion failed: !(handle->flags & UV_HANDLE_CLOSING)` signature this file records for malformed scripts and rejected payloads. **That assertion is not diagnostic of a bad script; it accompanies any session-level failure.** Read the line above it.
