@@ -6099,3 +6099,37 @@ Confirmed visually too: the phone bar carries the **white wordmark and the bare 
 **No other page moved** — `/`, `/about`, `/careers`, `/news`, `/products` phone navs all behave exactly as before, and Home is byte-identical at `279,127` with its full sweep passing (11x `aspect-ratio:1.17458`, 0 stale `1.180xx`, both Elements ratios, 2 hero overlays, `#f7f6f2` with 0 `#f6f4f0`, brand green 5, `Methodology` 2 with 0 stale `View Case Study`, `lossless=1` 0, badge 0, 58 Gellix).
 
 **The contact nav is now consistent across all three breakpoints and the item is closed.** The 66→75px phone height change remains, and remains pre-existing template behaviour shared with `/about` and `/careers`.
+
+### FULL CONTINUITY AUDIT — CMS, canvas, custom code, all three breakpoints (2026-10-18)
+
+Full report at [audit/2026-10-18-continuity.md](audit/2026-10-18-continuity.md). Summary of what it found and, more usefully, what it corrects here.
+
+**STRUCTURALLY THE SITE IS CLEAN.** Node counts identical D/T/P on **all 14 pages**; every `visible`/`controls` divergence is a deliberate responsive swap (nav, `Client Row` vs `- Tablet`, slider vs `Slideshow - Mobile`, `Ticker` vs `- Mobile` with a phone speed/gap override, `Job Header` hidden on phone). **27 rendered combinations** (9 pages x 3 widths) pass: no horizontal scroll anywhere, nav + logo + footer present on every one, zero broken images. CMS draft counts match `verify-draft-status.js` exactly, **every image value is `resolution: auto`**, and every pointer field resolves.
+
+**THE REAL FINDINGS ARE CONTENT, AND TWO ARE LIVE DEAD LINKS:**
+
+- **`/careers` "Send your portfolio" points at `mailto:hello@ora.com`.** The label is generic, so the dead address is invisible until someone clicks it — a candidate's mail goes nowhere and Alkimi never sees a bounce. **The worst defect on the site precisely because nothing on the page looks wrong.**
+- **`/contact` renders `marcus.nguyen@ora.com`** as visible text under *Careers / Jobs*, attributed to a fictitious "Marcus Nguyen", beside the genuine `orders@alkimiworks.com`. **That column survived the 2026-10-17 contact rebuild** — a reminder that rebuilding a page's structure does not audit its content.
+
+Both were confirmed in the **hydrated DOM**, not the payload — the distinction this file already insists on.
+
+**SIX ENTRIES IN THIS FILE ARE NOW STALE, ALL BECAUSE SHAK HAS BEEN FIXING THINGS.** Recorded so the file is not trusted blindly:
+
+| | this file said | actually |
+|---|---|---|
+| page `<title>` | `Ora® — Agency Framer Template` | **`Alkimi` on every page** |
+| `ena-supply` CDN | `/about` **and** `/careers` | **`/careers` only** (2 videos) |
+| Projects `About`/`Client`/`Category 1`/`Category 2` | empty, so `Section Details` renders bare labels | **filled 10/10** (`Year` 9/10) |
+| News `Time Read` | values retained after the read-time removal | **cleared on all 7** |
+| Projects `Image 3`/`Image 4` | set on Resorts World and Belmont | **empty on all 10** |
+| `/news/kimi` | no hero, striped placeholder | **video hero** |
+
+**The lesson is the one already recorded for the dispatch board and for regression checklists, now demonstrated on this file itself: a long-lived record accumulates claims that were true when written.** An audit's most valuable output here was not the new defects but the six stale assertions it retired. **Re-derive from the document or the served page; never cite this file as evidence about current state.**
+
+**TWO FIELDS ARE EMPTY THAT LOOK LIKE REAL CONTENT GAPS RATHER THAN TEMPLATE RESIDUE** — `Dimensions Metric` on **all 16 products** across both collections while `Dimensions Imperial` is filled on every one, and `Footnote` likewise. The other 34 empty fields are inert stock schema.
+
+**ONE INERT BREAKPOINT INCONSISTENCY, worth knowing because it will trip a stock-content grep:** Home's `News / News Article` instance stores literal draft-article strings (`"How creator nike connects with their fans"`, `"Sustainable Fashion"`) on **Desktop and Tablet** and empty strings on **Phone**. **None of it renders** — 0 occurrences in the published markup, because the CMS binding supplies the content — so this is a design-time placeholder cleared on one breakpoint only.
+
+**Custom code is one global slot** — `headEnd` carrying the settled `theme-color` meta. Nothing in `headStart`, `bodyStart` or `bodyEnd`.
+
+**A method note: the canvas walk exceeds the two-minute `exec` limit**, so run it backgrounded to a file rather than inline. Keying each node by its id with the breakpoint-root prefix stripped is what makes the three-way comparison possible at all, and **`controls.variant` must be excluded** or legitimate per-breakpoint variants drown the signal.
