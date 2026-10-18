@@ -5815,3 +5815,27 @@ So the dark buffer holds across a 150px range of viewport heights, and a screens
 **SITE-WIDE SPACING IS CONSISTENT AND NEEDS NOTHING.** Every top-level section gap across 9 pages x 3 widths measures **0** (or 1px of rounding): the model is a zero-gap stack where each section supplies its own padding, and it holds identically on all three breakpoints. Phone uses the smaller end of the design's vocabulary (`30/60/90`) against desktop's (`90/120`), consistently. The one asymmetry — `/about`'s `Section Approach` carrying `padB 120` on phone where desktop and tablet carry `0` — is the documented deliberate one.
 
 **WHAT THIS STILL CANNOT ANSWER, and it is the one that matters for iOS: the dynamic toolbar.** Playwright gives a fixed viewport; a real iPhone resolves `vh` against the **large** viewport and overlays the toolbar, which is the entire reason the dark buffer exists. **Emulation proves the layout is correct at a given height; it cannot reproduce a viewport that changes as you scroll.** The buffer is the defence against that and it is calibrated on a real device — so the right reading is "measurement confirms the design, the handset calibration still owns the iOS case". Also note the engine is **Chromium, not WebKit**, so font metrics and `vh` behaviour are close but not identical.
+
+### PHONE NAV FIX PUBLISHED AND VERIFIED LIVE (2026-10-18, build `20:51:56 GMT`)
+
+Three byte-stable fetches each (`/products` 298,910; `/elements` 240,313), neither matching a known-bad truncation signature.
+
+| | before | after |
+|---|---|---|
+| `data-framer-name="Navigation Mobile"` | 0 | **1** |
+| `data-framer-name="Navigation White"` | 0 | **1** |
+| `data-framer-name="Logo"` | 0 | **1** |
+
+**Both pages grew by EXACTLY 7,333 bytes** — the same delta on each, which is the mobile-nav markup and nothing else. **An identical byte delta across two pages receiving the same one-attribute change is a complete account of the diff**, the same arithmetic check that settled the 10-byte label change on Home.
+
+**Rendered at 390 wide, both now match `/news` exactly:** `Navigation Mobile[390x75]`, `Navigation White[390x75]`, `Logo 145x66 @15,5 opacity 1`, `Menu Button` hamburger, on `rgb(255,255,255)`. **Confirmed by pixels, not just by markup** — a stacked capture of the three phone nav strips shows three identical black wordmarks and hamburgers. That check is not optional here: `/about` is the standing proof that a nav can be present in the DOM, correctly sized, and still invisible.
+
+Desktop is untouched on both (`Nav black[1440x64]`), and Home was not rebuilt in substance — normalising the publish stamp leaves **one** difference, `data-framer-page-optimized-at`, with an identical byte count.
+
+**!!! MY OWN REGRESSION CHECKLIST WAS STALE AND REPORTED A FALSE FAILURE !!!** The sweep expected **`The Method` x2** on Home and found **0**, which reads exactly like the wide-card button having been reverted. The live label is **`Methodology`**, and **this file's own 2026-10-17 verification already recorded `Methodology` 2** — the 2026-10-15 value was carried forward into the checklist and never re-derived.
+
+**This is the carried-forward-state trap that is already written here twice** (the spent `NEEDS A PUBLISH` markers, and the dispatch board stalling). **A regression sweep is itself state and goes stale like any other.** The fix is the one already prescribed for pending-publish claims: **derive the expected value from the current build or the most recent verification, never from the note that first established it.** Checked properly, the card is wholly intact — `Home Project Single - Wide` 1, its image 15 srcset refs, `Button White to Outline` with the solid white fill and `href="./about"`.
+
+Rest of the sweep passes: 11x `aspect-ratio:1.17458` with 0 stale `1.180xx`, both Elements breakpoint ratios, 2 hero overlays at `rgb(8, 2, 0)`, `#f7f6f2` with 0 of the wrong `#f6f4f0`, 0 stale `View Case Study`, `lossless=1` 0, badge 0, 58 Gellix refs, `href="./about"` 5 with `projects-list` 0, orb byte-exact at `4,280,052` and hero video at `4,009,893`.
+
+**Remaining nav defect, unchanged: `/about` on phone** — white ink on the pale facade video, waiting on one `Ctrl+D` to create a transparent + black-ink mobile variant.
