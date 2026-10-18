@@ -5659,3 +5659,58 @@ Details        h=14  overflow hidden
 **A FALSE DEFECT I NEARLY REPORTED: reading the hydrated DOM WHILE A CARD WAS HOVERED paired the Lab card's text with the Office href.** A clean load gave the correct pairing on both, and the SSR markup agreed. **Do not read component props from the DOM mid-transition; reload, then read.**
 
 **STALENESS, TWICE, IN ITS WORST FORM: a fresh session returned `controls={}` for all six pins across three consecutive reads** while the document was correct, and a second new session showed the real state. **Empty-on-everything is itself a staleness signature** — a node that had controls cannot lose all of them — and it is a cheaper tell than waiting for two sessions to agree.
+
+### THE NAV VARIANT YOU SEE AT REST IS NOT THE ONE IN THE MARKUP — and the variant names are INVERTED (2026-10-17)
+
+Shak: *"initial state needs black alkimi logo and hamburger on about page"*. He had replaced the `/about` hero with his own light facade video (**`ena-supply` is now 0 on that page** — one stock-CDN dependency gone), and the white nav logo washed out against it. Hero top band measures luminance **102-167**, so white ink has almost no contrast there.
+
+**!!! THE SSR MARKUP'S VARIANT IS NOT WHAT THE VISITOR SEES AT REST — the component swaps on mount !!!**
+
+The served HTML for `/about` renders `data-framer-name="Hide"`. Measured in a real browser at `scrollTop 0`, the nav is actually **`Nav white`**. The component carries its own Appear interaction, so the stored/SSR variant is only the mount state:
+
+| instance variant | SSR says | **at rest (runtime)** | after scroll |
+|---|---|---|---|
+| `Hide` `glROJL_vL` | `Hide` | **`Nav white`** — white logo + hamburger | `Fill White` — black logo |
+| `Hide black` `TVfWqaIfB` | `Hide black` | **`Nav black`** — **black** logo + hamburger | `Fill White` — black logo |
+
+**So reading the markup answers the wrong question.** This is the nav-level twin of the already-recorded conditional-hero rule, pointing the other way: there the canvas lied and the page told the truth; here the *page source* lies and only the **running** page tells the truth. **For any question about what a Framer component looks like at rest, measure the live DOM at `scrollTop 0` after the appear animation has settled (~1.5s).**
+
+**THE VARIANT NAMES ARE INVERTED — do not read them.** Measured from the served SVG `fill=` on five pages:
+
+| desktop variant | id | logo + hamburger |
+|---|---|---|
+| `Hide` | `glROJL_vL` | **white** |
+| **`Hide black`** | **`TVfWqaIfB`** | **black** |
+| `Hide white` | `RmynPz7kD` | **white** |
+
+| mobile variant | id | background | logo |
+|---|---|---|---|
+| `Navigation Transparent White` | `BrEWvSRFO` | transparent | **white** |
+| `Navigation White` | `DEBd6oizS` | **solid white bar** | **black** |
+| `Navigation Black` | `tWZZnxICR` | **solid black bar** | **white** |
+
+`Hide white` renders white ink and `Navigation White` renders black ink — both the opposite of their names. Add these to the stale-Ora-names list.
+
+**APPLIED: `/about` Desktop + Tablet `glROJL_vL` -> `TVfWqaIfB`.** Both breakpoints' desktop-nav instances (`dwIjkdJ33`, `JWlDAB7wNdwIjkdJ33`). **This is a drop-in, not an invention** — `Hide black` carries the same transparent background (`rgba(0,0,0,0)`) as `Hide`, and `/news`, `/news/:slug`, `/elements`, `/projects-grid` and `/projects-list` already run it. **The scrolled state is untouched**: both variants converge on `Fill White`, verified live on both pages before writing.
+
+Guarded with an abort unless the current value is exactly `glROJL_vL`; verified by a separate `exec` on the same session and by re-issuing the write (`ALREADY` on both). Scope checked by re-tallying every nav instance site-wide: `glROJL_vL` went **6 -> 4** (the survivors are `/careers` and `/projects/:slug`, untouched) and `TVfWqaIfB` **12 -> 14**.
+
+**PHONE HAS THE SAME DEFECT AND NO CLEAN VARIANT.** `Header Mobile` uses the **same** video and poster as desktop, so the light hero is there too, and the phone renders `Navigation Transparent White` (white ink). There is **no mobile variant with a transparent background AND black ink** — the only black-ink one drags in a solid white bar.
+
+**The cheap fix is to duplicate the BLACK one and make it transparent, not to recolour the white one.** A full attribute diff of the two variant roots shows they differ in exactly **two** substantive properties:
+
+```
+                    Navigation Transparent White     Navigation White
+backgroundColor     rgba(255, 255, 255, 0)           rgb(255, 255, 255)
+height              fit-content                      75px
+```
+
+Everything else — structure, logo, hamburger — is identical. So `Ctrl+D` on **`Navigation White`** yields a variant whose logo is already black, and both remaining differences are plain `FrameNode` attributes that **mutate fine through the API**. Recolouring the logo instead would mean editing a `ShapeGroupNode`, which exposes only `id`/`originalId`/`__class` and is API-blind. **Duplicate the variant that already has the ink you want and fix its background; never try to recolour the vector.**
+
+**The hamburger is variant-driven, so it needs no hand-editing:** `Menu Button > Component` is a `Navigation / Mobile Navigation Button` instance (`RDjb5U8oA`) with variants `mXFJaFpo2` **Mobile Button - White**, `HjXUAikep` **Mobile Button - Black** (+ two `- Clicked`). The duplicate inherits `HjXUAikep` from `Navigation White`, already correct.
+
+**`/contact` HAS THE IDENTICAL DEFECT, AND IT IS A REGRESSION FROM THE 2026-10-17 REBUILD.** Hiding `Section Hero` removed the dark video that made the white nav readable; the page now opens on the white contacts block while the nav still renders `Nav white`. Measured live: logo fill `rgb(255,255,255)`, hamburger `rgb(255,255,255)`, every element behind it transparent down to `Section Contacts`. A screenshot shows the wordmark as a faint white-on-white ghost. **The fix is the same one line** (`RmynPz7kD` -> `TVfWqaIfB` on Desktop + Tablet); phone is fine there because `/contact` uses `Navigation Black`, a solid black bar with white ink, which is legible on white.
+
+**The lesson is the recorded one, obeyed this time:** hiding a section can break something that is not in that section. The `/contact` rebuild checked the *spacing* its neighbours depended on and never asked what the hero was doing for the **nav**. **Before hiding a hero, check whether anything overlaying it depends on its colour.**
+
+**A BROWSER-DRIVING SLIP WORTH NOT REPEATING: `navigate` without an explicit `tabId` took over Shak's open Framer editor tab.** The file already warns about this and it still happened, because the call was made standalone. It was restored immediately to the same `?node=` URL and nothing was lost. **Always call `tabs_context_mcp` first and pass an explicit `tabId`** — and note the editor tab is the one most likely to be first in the group.
