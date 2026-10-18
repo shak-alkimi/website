@@ -5714,3 +5714,50 @@ Everything else — structure, logo, hamburger — is identical. So `Ctrl+D` on 
 **The lesson is the recorded one, obeyed this time:** hiding a section can break something that is not in that section. The `/contact` rebuild checked the *spacing* its neighbours depended on and never asked what the hero was doing for the **nav**. **Before hiding a hero, check whether anything overlaying it depends on its colour.**
 
 **A BROWSER-DRIVING SLIP WORTH NOT REPEATING: `navigate` without an explicit `tabId` took over Shak's open Framer editor tab.** The file already warns about this and it still happened, because the call was made standalone. It was restored immediately to the same `?node=` URL and nothing was lost. **Always call `tabs_context_mcp` first and pass an explicit `tabId`** — and note the editor tab is the one most likely to be first in the group.
+
+### CROSS-BREAKPOINT AUDIT, 2026-10-18 — and PLAYWRIGHT CAN EMULATE VIEWPORTS, which unlocks tablet and phone measurement
+
+**!!! THE BIGGEST FINDING IS A CAPABILITY ONE: `mcp__playwright__*` EMULATES VIEWPORTS PROPERLY. !!!** This file records, repeatedly and correctly, that Chrome's `resize_window` does **not** work here — the page keeps reporting `1536` — and that therefore *"phone layout cannot be verified from this environment at all"*. Every phone and tablet decision on this project has been made by arithmetic plus Shak's handset because of it.
+
+`page.setViewportSize({ width: 390, height: 844 })` gives a real `innerWidth: 390`, the correct breakpoint renders, and `page.screenshot` captures it. **Tablet and phone are measurable. Stop reasoning about them in the abstract.**
+
+**`browser_run_code_unsafe` is what makes it practical** — it runs Playwright code in the server process, so a whole sweep (9 pages x 3 viewports, navigate + settle + probe) is **one tool call** instead of 27. Two gotchas: `page.evaluate` given a **string** evaluates it as an *expression*, so a bare `() => {...}` returns a function and serialises as `undefined` — wrap it as `(() => {...})()`; and `page.screenshot({clip})` wants `width`/`height`, not `w`/`h`.
+
+**THE AUDIT METHOD, both halves, worth reusing:**
+
+**1. Canvas diff — key every node by its id with the breakpoint-root prefix STRIPPED.** Tablet and Phone node ids are `<breakpointRootId> + <desktopNodeId>` (`dwIjkdJ33` / `JWlDAB7wNdwIjkdJ33` / `AwhOnpHaydwIjkdJ33`), so stripping the prefix gives the logical identity and a clean three-way comparison. Compare `visible`, `controls` and `link`; **ignore `controls.variant`**, which legitimately differs per breakpoint on nearly every component and otherwise drowns the signal.
+
+**2. Live measurement — scroll the page through BEFORE measuring.** Framer's appear animations leave content at `opacity: 0` until scrolled into view, so a probe that filters on opacity silently **skips** anything not yet revealed, and a screenshot of it comes back blank. Scroll to the bottom in `0.7 * innerHeight` steps, return to top, then measure. The first pass of this audit reported `/about`'s intro as clipped and screenshotted an empty white box purely because of this. Same family as the documented backgrounded-tab trap, in a new tool.
+
+**Measure INK, never the box.** `Range.getClientRects()` against the nearest `overflow: hidden|clip` ancestor. The Home phone hero headline's *box* is `514px` wide inside a `390px` viewport and its `Container` clips — which reads as a glaring defect and is nothing at all, because the ink is ~285px and well inside. Three separate "findings" evaporated on this test.
+
+**RESULT: all 14 pages are structurally identical across their three breakpoints** (same node count, same tree). Every `visible`/`controls` divergence found is a deliberate responsive swap — desktop-vs-mobile nav, `Ticker` vs `Ticker - Mobile`, `Client Row` vs `Client Row - Tablet`, the testimonial slider vs `Slideshow - Mobile`. **No horizontal scroll at any width on any page. No zero-size images. No clipped ink** (three cases of 2-6px, all still inside the viewport, sub-visible).
+
+**!!! DEFECT: `/products` AND `/elements` RENDER NO NAVIGATION AT ALL ON PHONE !!!**
+
+Every other page follows one pattern:
+
+```
+Desktop / Tablet :  Navigation Desktop vis=true    Navigation Mobile vis=false
+Phone            :  Navigation Desktop vis=false   Navigation Mobile vis=TRUE
+```
+
+`/products` and `/elements` have **both hidden on Phone**. Confirmed on the published site at 390px: no `Navigation Mobile`, no `Navigation White`, no `Logo` in the DOM — only a 1x1 `Navigation Scroll Trigger`. **No wordmark, no hamburger, no way to navigate off those two pages on a phone except the footer.**
+
+Both instances point at the same components as everywhere else (`F0lbt84nG`, `CA2UVAOBt`), so nothing is structurally odd — it is purely the `visible` flag. **The fix is one attribute each:** `Navigation Mobile` -> `visible: true` on those two pages' Phone breakpoint.
+
+Note these are the same two pages that were stuck on the **remote footer module** until 2026-10-13, and their desktop-nav instance is named plainly `Navigation` where every other page's is `Navigation / Navigation Desktop`. **Treat `/products` and `/elements` as structurally older than the rest of the site and worth checking first whenever something is wrong on some pages but not others.**
+
+**!!! THE METHODOLOGICAL LESSON, AND IT IS THE IMPORTANT ONE: A CROSS-BREAKPOINT DIFF FINDS DIVERGENCE, NOT WRONGNESS. !!!** `/products` and `/elements` came back **"clean"** from the canvas diff — because their nav is uniformly off, there is nothing to diverge. A consistency check cannot see a fault that is consistent. **Pair every diff with an absolute check** ("does each page render a nav at each width?"), or a whole class of defect is invisible by construction.
+
+**`/about` PHONE still renders white nav ink on the pale facade video** — the same defect Shak reported for desktop, confirmed by pixels (white wordmark, near-invisible). **Desktop and tablet are fixed and live**: the published page resolves `Nav black` and the zoomed wordmark is solidly black. `getUnpublishedPageChanges()` is `[]`. Phone still needs the transparent + black-ink mobile variant, which does not exist yet (`Ctrl+D` on `Navigation White`, then clear its background — see the nav-ink section above).
+
+**!!! CORRECTION — `/contact` IS NOT BROKEN. The 2026-10-17 claim that it renders white nav ink on a white page, "a regression from hiding its Section Hero", is WRONG and is withdrawn. !!!** The contact page is **black** — `body` is `rgb(0, 0, 0)` and the content behind the nav is black — so white ink is correct, and the rendered strip confirms it.
+
+**The error is one this file already warns about in another form: I walked the ancestor chain looking for a background colour, found every ancestor transparent down to `Section Contacts`, and ASSUMED white.** Transparent ancestors mean the colour comes from further up — read `body`, or sample the pixels. **An absent background is not a white background.**
+
+**Minor, recorded and not acted on:**
+
+- **The hero headline clips descenders by ~2px** on `/about` desktop and tablet ("in every way" — the `y` tail). Inherent to the `lineHeight: 100%` chosen to match `main`; the trade was deliberate.
+- **12 orphan frames sit OUTSIDE the breakpoints** — `/about` has `Testimonial Mobile 1-4`, `/careers` has four `Image Wrapper` and four `Image Wrapper / Tablet Mobile`. As page-level siblings of Desktop/Tablet/Phone they **emit no markup**, so they are dead canvas debris rather than a rendering fault. **They also broke the first version of this audit**: a breakpoint matcher using `name.includes("mobile"|"tablet")` picked them up as the Phone/Tablet root and produced a confident, entirely false report that `/about` phone held 8 nodes and `/careers` tablet held 1. **Match breakpoint roots on the exact name, never a substring.**
+- **Home uses a different phone-nav mechanism from every other page** — the desktop nav component in its `Nav white` variant (centred wordmark) rather than `Navigation Mobile`. It works; it is simply inconsistent, and it is why Home's phone nav survives while `/products` and `/elements` do not.
