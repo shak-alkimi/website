@@ -5890,3 +5890,40 @@ Note `getUnpublishedPageChanges()` returns **one** entry — the `/about` instan
 **THE REGRESSION CHECKLIST IS NOW CORRECT.** Re-run with expectations re-derived from the current build rather than carried forward: 11x `aspect-ratio:1.17458`, 0 stale `1.180xx`, both Elements breakpoint ratios, 2 hero overlays, `#f7f6f2` with 0 `#f6f4f0`, **`Methodology` 2 with `The Method` 0**, 0 stale `View Case Study`, `lossless=1` 0, badge 0, 58 Gellix refs, `href="./about"` 5, `projects-list` 0. Home byte-identical at `279,126`, untouched by this publish.
 
 **Three nav defects were found and closed in one day** — `/about` desktop+tablet (white ink on a light hero), `/products` and `/elements` phone (no nav at all), `/about` phone (white ink on a light hero). **Two of the three were invisible to every static check** and only a rendered pixel found them, which is the standing lesson of this whole area.
+
+### THE HAMBURGER IS NOW THE BARE TWO-LINE MARK EVERYWHERE (2026-10-18, NEEDS A PUBLISH)
+
+Shak supplied a design showing two lines and no container, in white or black, for all three breakpoints.
+
+**DESKTOP AND TABLET ALREADY MATCHED IT — only the phone button had a fill.** Every variant of `Navigation / Navigation Desktop` carries `Hamburger Menu` with **`backgroundColor: null`**, 44x34, holding two `18x2` line frames coloured per variant. Confirmed live too (`fill: rgba(0,0,0,0)`, black lines on `/products`, white on Home). **Checking that first halved the work and stopped a pointless edit to eleven desktop variants.**
+
+**The phone button is `Navigation / Mobile Navigation Button` (`RDjb5U8oA`), and EVERY variant was a filled pill:**
+
+| | fill | size | lines |
+|---|---|---|---|
+| `mXFJaFpo2` Mobile Button - White | `rgb(255,255,255)` r200 | 44x44 | black |
+| `dt7W9fd9a` White - Clicked | white | 44x44 | white |
+| `HjXUAikep` Mobile Button - Black | `rgb(0,0,0)` r200 | 44 x **fit-content** | white |
+| `WrceYjROp` Black - Clicked | black | 44 x fit-content | white |
+
+**The "bare bar" seen on six pages was never bare** — it is `HjXUAikep`'s black pill collapsed to `fit-content`, about 44x9, with white lines inside. The circle on `/careers` and `/contact` is `mXFJaFpo2` at its full 44x44.
+
+**Applied: all four fills to transparent, and each variant's lines recoloured to match the ink of the nav that uses it** — `mXFJaFpo2`/`dt7W9fd9a` to white, `HjXUAikep`/`WrceYjROp` to black. Verified in a separate `exec` and by a re-issued write reporting all **12** values already correct.
+
+**The mapping now reads correctly on every nav variant**, which is the check that matters more than the colours themselves:
+
+```
+Navigation Transparent White  (white wordmark)  -> WHITE lines
+Navigation Black              (white wordmark)  -> WHITE lines
+Navigation White              (black wordmark)  -> BLACK lines
+Navigation Transparent Black  (black wordmark)  -> BLACK lines
+```
+
+**A side effect worth having: the variant NAMES are now honest.** `Mobile Button - White` previously meant a white *fill* with black lines; it now means white *lines*. In a component family where every other name is inverted, two more have become trustworthy.
+
+**!!! THE OPEN MENU REUSES THE WHITE BUTTON ON EVERY PAGE, WHICH IS WHY THE COLOURS HAD TO BE CHOSEN THIS WAY AND NOT BY PAIRING !!!** Clicking the hamburger on `/products` — which rests on the *black* variant — switches it to **`Mobile Button - White`**, over a `rgba(1, 1, 3, 0.75)` overlay. Same on `/careers`. So that one variant does double duty: the resting state on white-ink pages **and** the close button site-wide. Giving it white lines therefore serves both — white on a dark hero, white on the dark menu. **Had the lines been chosen by pairing each variant with its own fill, the close button would have gone black-on-near-black on every page.** This was only discoverable by actually opening the menu and reading the DOM; no canvas inspection would have shown it.
+
+**Two things left deliberately, both flagged rather than fixed:**
+
+- **`WrceYjROp` (Black - Clicked) now has black lines**, which would be invisible if it ever rendered on the dark menu. The evidence says it does not — the open state resolved to the White family on both a light and a dark page — but it is unproven, so **open the menu on a light page after publishing**.
+- **The tap target is still asymmetric**: `44x44` on the white variants against `44 x fit-content` (~9px) on the black ones. With the fills gone this is now purely a touch-usability difference, invisible either way, and it affects the six light pages. Raising the black variants to `44px` would not change the rendered nav height, since the 145x66 logo already sets it — but it is a different axis from what was asked.
