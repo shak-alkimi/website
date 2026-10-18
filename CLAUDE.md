@@ -6003,3 +6003,32 @@ A hidden layer emits no markup, so `Section in view` can never fire. **This is a
 **PHONE IS A DIFFERENT MECHANISM AND WAS DELIBERATELY NOT CHANGED.** `/contact`'s `Navigation Mobile` carries an **`Appear`** effect, no Scroll effect at all, and sits permanently on `Navigation Black` — a solid black bar from the top. That already achieves the occlusion the desktop fix restores, so there is nothing broken there; giving it the same transparent-at-rest behaviour would mean adding a new Scroll effect **and** changing its resting variant, which is a visible change beyond what was asked. Raised with Shak rather than applied.
 
 **After publishing, expect `/contact` desktop and tablet to read `Nav white` (transparent) above ~196px of scroll and `Fill Black` below it, reverting on the way back up** (`Replay: Yes`). That is the check — a CSS grep cannot see it, because the variant swap is applied by JS at runtime.
+
+### …AND THEN SOONER: the trigger changed from positional to `On scroll` (2026-10-18, NEEDS A PUBLISH)
+
+Shak: *"have contact page transition to black on scroll sooner"* — the `#links` fix above fires at **196px**, and he wanted it earlier.
+
+**THERE IS NO EARLIER ANCHOR, which is what forced a change of mechanism rather than of threshold.** The full set of visible anchors on `/contact` is `#links` (196), `#trigger`/`Section CTA` (1118) and `#form` (1164); the only two above them are inside the hidden `Section Hero`. Adding a new `Scroll section` to `Container` or `Contacts Wrapper` would buy roughly **150px instead of 196px** — 46px, not worth an extra anchor.
+
+**And the `Viewport` control cannot help either.** Its three icons set which part of the viewport the section must reach. `#links` sits at 196 in an 855-tall viewport, so it is *already* past the middle (427) and the bottom at scroll 0 — both of those fire **immediately**, i.e. black at rest. `top` is the only setting that defers at all. **Reason about the anchor's position against the viewport height before reaching for that control; two of its three values are often degenerate.**
+
+**So the trigger type changed instead:**
+
+| | was | now |
+|---|---|---|
+| Trigger | `Section in view` | **`On scroll`** |
+| | Section `#links`, Viewport top | **Direction `Down`** |
+| Replay | Yes | **No** |
+| To | `Fill Black` | `Fill Black` |
+
+`On scroll` / `Down` fires on the first downward scroll of any distance, which is as soon as it is possible to be.
+
+**!!! CHANGING THE TRIGGER TYPE SILENTLY RESETS `To` TO "Set variant…" !!!** The moment `Section in view` became `On scroll`, the target — which had been `Fill Black` all along — went blank. **Re-set it in the same pass and re-read it**, or the effect ships pointing at nothing, which is exactly the no-op this whole item started as. The `To` dropdown also gains a placeholder row when empty, so **`Fill Black` is index 9 there and index 8 on the variant dropdowns** — read the options rather than counting keystrokes.
+
+**`Replay: No` is deliberate, and it is the one judgement call here.** With `Direction: Down` the complementary up-scroll behaviour is not something this environment can observe without publishing, so `Replay: Yes` carries a real risk: the bar turning transparent again mid-page, over the **light photo in `Section Location` (460-1118)**, which is the one thing the fill exists to cover. `No` makes it strictly one-way. **The cost is invisible on this page** — the nav never returns to transparent, but the top of `/contact` is `Section Contacts` on black, so a black bar there is indistinguishable from a transparent one. On a page with a light header that trade would not hold.
+
+Tablet inherited the whole configuration (confirmed by opening its own effect). Phone is still untouched and still permanently `Navigation Black`.
+
+**!!! PARTIAL SESSION STALENESS — a subset of nodes read blank while the rest read correctly !!!** The post-change verification reported the three `Navigation Mobile` instances' variants as `-` where minutes earlier they read `Navigation Black`, while the three desktop instances in the same output still read `Hide white` / `Nav white`. That looks exactly like a write having cleared a control. **It had not**: a fresh session returned all six intact across two agreeing reads.
+
+This widens the recorded signature. The file already says *"empty-on-everything is itself a staleness signature"* — **this was empty on a SUBSET, which is far more convincing as a real defect.** The rule that still works is the general one: **a read that contradicts a value you did not write is a reason to open a fresh session, not a reason to believe you broke something.**
