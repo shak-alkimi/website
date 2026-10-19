@@ -6287,3 +6287,40 @@ Phone is untouched and matches `/news`: the desktop nav is hidden and `Navigatio
 **PHONE SPACER: `200px -> 150px` on `/terms` and `/privacy`**, a Phone-only override; Desktop and Tablet stay at 200. `150` is in the design's own padding vocabulary (30/45/50/60/90/120/150) and sits mid-range of the phone comparables (`/about` 130, `/news/:slug` 160, `/news` 330 as the outlier). **Writing a non-primary breakpoint creates a scoped override and does not cascade upward**, which is the behaviour wanted here and was confirmed by reading all three back.
 
 Verified throughout by a separate `exec` read-back and by re-issuing each write (`ALREADY` on every node). `getUnpublishedPageChanges()` returns **3** — the two legal pages and `/404`.
+
+### PUBLISHED — the phone spacer landed, `/404`'s VARIANT DID NOT, and the page WAS rebuilt anyway (2026-10-19)
+
+| | live? |
+|---|---|
+| phone spacer `150` on `/terms` + `/privacy`, desktop/tablet still `200` | **yes** |
+| `/terms` + `/privacy` nav still reverting on scroll-up | **yes** |
+| `#trigger` anchor on `/404` | **yes** |
+| **`/404` nav resting variant `Hide black`** | **NO — still `Fill White`** |
+
+Measured gaps: desktop `/privacy` 200 `/terms` 200 `/news` 200 `/about` 187; tablet 200/200/200/191; phone **150**/**150**/330/130.
+
+**THE INTERESTING PART IS THAT `/404` WAS REBUILT AND STILL CAME OUT WRONG.** The three edits were made minutes apart in one sitting — anchor, then effect, then the variant flip. The published page carries `id="trigger"` (edit 1) and **not** `Hide black` (edit 3). So this is **not** Framer skipping the page: it rebuilt it from a document snapshot that held the first edit and not the last.
+
+**Every available check says the document is correct**, which is what makes the published page the only disagreeing source:
+
+- the **editor's own Variant dropdown** reads `Hide black` — independent of the Agent API entirely, and the strongest signal available;
+- two fresh `exec` sessions agree, first read discarded;
+- re-issuing the write answers `ALREADY TVfWqaIfB`;
+- `getUnpublishedPageChanges()` reads **0** on a fresh session.
+
+**So the cause is NOT established and should not be guessed at.** The two candidates are a propagation lag between the editor and the build service (the ~20s editor-to-API lag is already documented; a longer one to the publisher would explain it exactly), or an instance `variant` control change not registering as a page change and therefore not refreshing that page's build input. **The remedy is the same either way — republish — so it was not worth more of Shak's time to distinguish them.**
+
+**THE CHECK THAT CAUGHT IT IS WORTH KEEPING, BECAUSE THE COUNTER SAID EVERYTHING WAS FINE.** `pendingPageChanges: 0` plus a fresh `Last-Modified` plus a correct document would normally close the question. **What settled it was grepping the SSR markup for the variant name and comparing a working page against the broken one:**
+
+```
+/terms   data-framer-name="Hide black"  1   "Fill White" 0
+/404     data-framer-name="Hide black"  0   "Fill White" 1
+```
+
+**A nav variant IS visible in the SSR markup even though it is only the mount state** — the runtime swap happens later, but the name Framer serialises is the stored one, so this is a reliable pre-hydration check for "did the resting variant ship". Pair it with the runtime read, which answers the different question of what the visitor sees.
+
+**A stale session reported `pendingPageChanges: 3` AFTER the publish** while a fresh session on the same project read `0`. The usual staleness, in the one place where it looks like a publish failure rather than a read failure. **Re-check pending on a fresh session before concluding a publish did not happen.**
+
+`/terms` also returned the known-bad `29,314` truncation signature on its first fetch and was correctly disbelieved; two further fetches agreed at `202,919`.
+
+Home is byte-identical at `282,097` and its full sweep passes: 11x `aspect-ratio:1.17458` with 0 stale `1.180xx`, both Elements ratios, 2 hero overlays, `#f7f6f2` 2 with `#f6f4f0` 0, 0 stale `View Case Study`, `lossless=1` 0, badge 0, 58 Gellix, `Methodology` 2, `projects-list` 0.
