@@ -6211,3 +6211,27 @@ A section that spans the document always overlaps the viewport top, so `Section 
 **Verified by closing and reopening the popover on all four instances, and once more after a full editor reload** — the documented reliable read, since a select reports stale immediately after a write. `getUnpublishedPageChanges()` returns **2**, one per page.
 
 **A diagnostic worth keeping: measure rest, scrolled AND the return.** Every earlier check on these pages sampled two states and passed, because two states cannot see a missing third. The sweep that found this simply added `scrollTo(0,0)` and a re-read.
+
+### THE BOTTOM SPACER ON THE LEGAL PAGES — 140px -> 200px (2026-10-19, NEEDS A PUBLISH)
+
+**There is no single "standard" gap on this site, and measuring that first is what made the choice defensible rather than invented.** Gap from the last ink in `Main` to the top of the footer, across all 14 pages at 1536:
+
+```
+/ 7    /elements 57    /projects/:slug 121    /products 136    /terms 140    /privacy 140
+/projects-list 141     /news/:slug 155        /about 187       /news 200     /404 257
+/careers 348           /contact 366           /projects-grid 506
+```
+
+The spread is 7 to 506, because each page's last *section* carries its own trailing padding and its content ends at a different place inside it. **So "the standard" cannot be read off one page — the comparable set is the white content pages, which cluster `155 - 200`, and the legal pages at `140` were the tightest of them.**
+
+**Set to `200`, matching `/news` exactly** — the nearest analogue, a white content page whose final section runs straight into the footer. It is also the height of the template's own `Footer Spacer` (`ov38Fb1IJ`), which this project hides, so the number has two independent sources rather than being picked by eye.
+
+**It is ONE value: `Main > Container` padding `180px 15px 140px 15px` -> `180px 15px 200px 15px`.** All three breakpoints already held the identical value with no per-breakpoint override, and **the Desktop write cascaded to Tablet and Phone** — which the guard surfaced as two `ALREADY` lines instead of silently re-writing. Verified by a separate `exec` read-back on the same session (6/6) and by re-issuing the write (`ALREADY` x6).
+
+**MEASURING THE FOOTER BOUNDARY IS HARDER THAN IT LOOKS AND THREE ATTEMPTS GAVE NONSENSE FIRST.** What finally worked, and why the obvious routes fail:
+
+- **`getBoundingClientRect().top + scrollY` is wrong here** — it returned gaps of `-1567` and similar. The footer sits in a zero-height sibling of `Main` and is revealed as the page scrolls over it, so its *rendered* position bears no relation to its layout position. **Accumulate `offsetTop` up the `offsetParent` chain instead**, which is layout-based and immune to that.
+- **Matching the footer by "large, near-black, wide" matched the wrong element**, and matching by `data-framer-name` starting with `Footer` matched footer *text*. In the end none of that was needed: **`Main`'s bottom edge IS the footer's top edge** on every page, so the gap is simply `Main`'s end minus the last ink inside it — one element, no footer lookup at all.
+- **Scroll the whole page through before measuring.** Appear animations leave later sections at `opacity: 0` and a naive "last visible element" scan then returns something half way up the page.
+
+**Phone is the one judgement call left open.** The value is uniform across breakpoints, so phone also goes to `200`, where the comparable pages measure `/about 130`, `/news/:slug 160` and `/news 330`. That is on the generous side of the range rather than outside it, and uniformity keeps it to a single number — **but if it should be tighter on phone, that is one per-breakpoint override and nothing else depends on it.**
