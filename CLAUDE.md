@@ -6324,3 +6324,29 @@ Measured gaps: desktop `/privacy` 200 `/terms` 200 `/news` 200 `/about` 187; tab
 `/terms` also returned the known-bad `29,314` truncation signature on its first fetch and was correctly disbelieved; two further fetches agreed at `202,919`.
 
 Home is byte-identical at `282,097` and its full sweep passes: 11x `aspect-ratio:1.17458` with 0 stale `1.180xx`, both Elements ratios, 2 hero overlays, `#f7f6f2` 2 with `#f6f4f0` 0, 0 stale `View Case Study`, `lossless=1` 0, badge 0, 58 Gellix, `Methodology` 2, `projects-list` 0.
+
+### !!! AN API `variant` WRITE NEVER MARKS ITS PAGE DIRTY, SO FRAMER NEVER REBUILDS IT — AND NO PUBLISH WILL EVER SHIP IT (2026-10-19) !!!
+
+**This is the most consequential API finding in a while, and it is silent in every direction.** `/404`'s nav variant was written through the Agent API, verified in two fresh sessions, verified in the **editor's own Variant dropdown**, and confirmed by an idempotent re-write — and **two consecutive publishes did not ship it.**
+
+**The decisive measurement was the BYTE COUNT across the two publishes:**
+
+| publish | `/404` bytes | carried |
+|---|---|---|
+| 1st (anchor + effect + API variant write) | `199,207` | the `#trigger` anchor, **not** the variant |
+| 2nd (nothing else changed) | **`199,207` — identical** | still not the variant |
+
+**A byte-identical page across a publish means the page was never rebuilt.** That is what separates this from a propagation lag, which was the other hypothesis and was wrong: the first publish *did* rebuild `/404` (the anchor shipped), because **the anchor is a layer property and registered as a page change**. The variant is an instance **control**, and it did not — so after that, `/404` had zero registered changes and Framer's per-page build skipped it forever.
+
+**`getUnpublishedPageChanges()` is therefore not merely an incomplete reporter — it is the BUILD INPUT.** This file already recorded that the counter "does not see component-internal or CMS changes" and treated that as a reporting quirk. **It is much worse than that: a change the counter cannot see is a change that will never be published**, no matter how many times you press Publish. Re-read that alongside the `/products` + `/elements` remote-footer episode: both are the same shape, a page that rebuilds cleanly and serves the wrong content.
+
+**THE FIX IS TO MAKE THE SAME CHANGE THROUGH THE EDITOR UI, WHICH DOES REGISTER.** A round trip on the instance's Variant `<select>` — `Hide black` -> `Fill White` -> `Hide black`, via the native setter plus `input`/`change`, the same route used for the effect fields — took pending from **0 to 1** immediately. Net document state unchanged; the page is now dirty and will rebuild.
+
+**Choose the intermediate value so the window is safe.** Stepping through `Fill White` means the midpoint equals what was already live, so a publish landing between the two writes changes nothing. Stepping through an arbitrary variant would have left a real defect live in that window.
+
+**The general rules this establishes:**
+
+- **After any API write, confirm the page is dirty — `getUnpublishedPageChanges()` must be non-zero — before treating the work as publishable.** A correct document plus a zero counter is a trap, not a success.
+- **Verify a publish by the byte count as well as the content.** Byte-identical means not rebuilt, which is a different failure from rebuilt-wrong and needs a different remedy.
+- **Prefer the editor UI over the API for instance `controls`** whenever the change needs to ship. The API write is real and persists; it simply never reaches a build on its own.
+- **This casts doubt on other API-only control writes that were verified in the document but never confirmed on a published page.** Any that shipped did so because something else dirtied the same page in the same round.
