@@ -6235,3 +6235,33 @@ The spread is 7 to 506, because each page's last *section* carries its own trail
 - **Scroll the whole page through before measuring.** Appear animations leave later sections at `opacity: 0` and a naive "last visible element" scan then returns something half way up the page.
 
 **Phone is the one judgement call left open.** The value is uniform across breakpoints, so phone also goes to `200`, where the comparable pages measure `/about 130`, `/news/:slug 160` and `/news 330`. That is on the generous side of the range rather than outside it, and uniformity keeps it to a single number — **but if it should be tighter on phone, that is one per-breakpoint override and nothing else depends on it.**
+
+### BOTH LEGAL-PAGE CHANGES PUBLISHED AND VERIFIED LIVE (2026-10-19, build `19:39:25 GMT`)
+
+Three byte-stable fetches each (`/privacy` 201,682; `/terms` 202,894), neither matching a known-bad truncation signature.
+
+**The nav now returns to transparent, which is the whole point and the thing two states could not see:**
+
+| | rest | scrolled | **back to top** |
+|---|---|---|---|
+| `/privacy`, `/terms`, `/news` — desktop | `Nav black` transparent | `Fill White` | **`Nav black` transparent** |
+| the same three — tablet | `Nav black` transparent | `Fill White` | **`Nav black` transparent** |
+| phone, all three | `Navigation White` solid bar | unchanged | unchanged |
+
+Phone is identical to `/news` and was never in scope. **Measured with a FRESH BROWSER CONTEXT PER BREAKPOINT** — a fired effect and the scroll position both survive `goto` within a context, which is how a one-way effect previously produced a false "already filled at rest" reading.
+
+**The spacer landed on all three breakpoints**, gap from last ink to the footer:
+
+```
+desktop   /privacy 200   /terms 200   /news 200   /about 187
+tablet    /privacy 200   /terms 200   /news 200   /about 191
+phone     /privacy 200   /terms 200   /news 330   /about 130
+```
+
+`Main`'s bottom edge moved `1707 -> 1767`, **exactly +60**, which is the whole account of the diff for a `140 -> 200` padding change and proves nothing else shifted.
+
+**`getUnpublishedPageChanges()` READ `0` BEFORE I PUBLISHED, AND THAT WAS THE PUBLISH ALREADY HAVING HAPPENED.** Asked to publish, I checked `getPublishInfo()` first to see which hostnames the call would touch — and found `pendingPageChanges: 0` with a deployment timestamp two minutes old. Shak had published himself. **Reading the publish state before publishing cost one call and avoided a redundant deployment**; it is also the only way to learn that this project's production and staging URLs are both `fulfilled-development-106906.framer.app`, i.e. publishing here cannot reach `www.alkimiworks.com`, which is served by `Alkimi (teaser)`.
+
+Full Home regression sweep passes with every expectation re-derived from this build: 11x `aspect-ratio:1.17458` with 0 stale `1.180xx`, both Elements breakpoint ratios, 2 hero overlays at `rgb(8, 2, 0)`, `#f7f6f2` 2 with `#f6f4f0` 0, 0 stale `View Case Study`, `lossless=1` 0, badge 0, 58 Gellix refs, `Methodology` 2, `projects-list` 0, `href="./about"` 5, orb byte-exact at `4,280,052` and hero video at `4,009,893`.
+
+**Still open and unchanged: `/404`** — the page these two were cloned from, and now the only one on the site whose nav never transitions at all.
