@@ -6377,3 +6377,44 @@ Confirmed by pixels as well as by variant name — a stacked capture of the nav 
 Home is byte-identical at `282,097` and its sweep passes: 11x `aspect-ratio:1.17458` with 0 stale `1.180xx`, both Elements ratios, 2 hero overlays, `#f7f6f2` 2 with `#f6f4f0` 0, 0 stale `View Case Study`, `lossless=1` 0, badge 0, 58 Gellix, `Methodology` 2.
 
 **Four publishes were needed for one variant change, and three of them were wasted.** The cost was not the change; it was that a correct document plus a zero pending-count reads exactly like success. **The habit that prevents a repeat is cheap: after an API write, check that pending is non-zero before calling the work publishable, and verify a publish by byte count as well as by content.**
+
+### The replacement Prisma Multiplier drawing — three defects, and the one that is ARTWORK not layout (2026-10-19, NEEDS A PUBLISH)
+
+Shak: *"i added a new line drawing to prisma multipler - it is not showing up properly"*. It was live on `/products` and rendering enormous and cropped. Measured on the hosted master (`eFfj3jFMYasl4zN4olilhRs5Po.png?lossless=1`, decoded in the browser):
+
+| | the upload | the convention |
+|---|---|---|
+| frame | **`7009 x 4956`** — aspect `1.4142`, i.e. **√2 landscape** | square |
+| alpha | **99.71% transparent**, 0% opaque | opaque, white corners |
+| ink bbox | **`52.82% x 81.66%`** of frame, centre `51.87/49.01` | **`25%` geoMean**, centred `50/50` |
+
+**A LANDSCAPE DRAWING IN A SQUARE `object-fit: cover` CARD IS THE WHOLE "not showing up properly".** The card is `391x391`; cover scales the short edge to fill, so a `√2` frame is blown up ~1.41x and its left and right thirds are cut away. **Aspect mismatch reads as "too big and cropped", never as "letterboxed"** — that is the signature to look for.
+
+**Transparency is the documented lightbox trap** — all 16 drawings were flattened onto white on 2026-10-12 precisely because clicking a card opens an in-page lightbox that dims the page dark, and a transparent drawing then renders near-black ink on a near-black backdrop. **A new drawing that skips the flatten step reintroduces it silently**, because the card itself looks fine.
+
+**No new file exists in Drive**, so this was uploaded straight into Framer rather than exported through the pipeline. That is the real lesson: **the geometry conventions live only in the processing scripts, so anything hand-uploaded arrives raw.**
+
+**Rebuilt to the cross-section convention** — flatten onto white, robust ink bbox, scale so `sqrt(W x H)` of the ink = `25%` of the frame, centre `50/50`, frame `2908` (matching `Vena Corner`, its nearest-sized neighbour). Verified on the **hosted** copy after rebinding, which is the check that proves delivery:
+
+```
+2908x2908   geoMean 25.03%   centre 49.98/50.00   minAlpha 255   TL/BR 255,255,255,255
+```
+
+**!!! THE SOURCE'S LINE WEIGHT IS TOO THIN, AND THE INTAKE CHECK CATCHES IT IN ONE NUMBER !!!** Stroke as a percentage of the product's longest dimension, measured at native resolution by the same method on all four:
+
+| | frame | product | stroke | **stroke / product** |
+|---|---|---|---|---|
+| **Prisma Multiplier (new upload)** | `7009x4956` | `3702x4047` | 3px | **`0.0741%`** |
+| `Vena Corner` | `2908` | `706x707` | 2px | `0.2829%` |
+| `Vena Mini` | `1977` | `405x300` | 2px | `0.4938%` |
+| `Vena Round Mini` | `1926` | `379x379` | 2px | `0.5277%` |
+
+**3.8x to 7x thinner than its neighbours** — the exact signature already recorded for the three replaced drawings: *"an export whose line weight is a fixed absolute value rather than one that scales with the drawing"*. Drawn at 7009px with the same absolute pen, the stroke is a hairline relative to the part.
+
+**THE FIX IS AN EXPORT SETTING, NOT A GAIN: export at roughly `2000px` instead of `7009px`.** The pen is absolute, so a 3.5x smaller canvas leaves the stroke at ~3px against a ~1156px product = `0.26%`, landing on `Vena Corner`. Reaching the set's per-stroke median with an ink gain instead would need about **x2.7**, well above the ~`x1.85` at which Shak has rejected four previous brightened drawings — **so no gain was applied.**
+
+**BUT THE MEASURED GAP OVERSTATES WHAT THE EYE SEES, AND LOOKING IS WHAT ESTABLISHED THAT.** At card size the new drawing measures `perStroke 0.141` against `Vena Corner 0.667` — nearly 5x — yet rendered at the true **587 device px** beside its neighbours it reads only marginally lighter than `Vena Corner` and about the same as `Vena Round Mini`. **Per-stroke ink is not perceived darkness** (the recorded lesson from `Prisma Link 1` vs `2`), and at this downscale the whole set converges. **Render the candidate at real device size before treating a metric gap as a visible defect** — the first comparison, rendered at CSS `391px`, washed everything out and was equally misleading in the other direction.
+
+**So: geometry fixed and rebound; line weight flagged, not altered.** The drawing is publishable as it stands and sits with the lighter members of the set. A re-export at ~2000px would bring it fully in line and is the durable fix.
+
+**Measuring the comparison set needs the URLs read from the CMS, not guessed.** A first pass invented plausible asset ids for `Vena Corner` and friends; dumping `Technical Drawing` per item takes one `exec` and removes the guess entirely.
