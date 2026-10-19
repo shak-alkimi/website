@@ -6170,3 +6170,44 @@ Shak reported the legal-page nav "not set properly". Measured against `/news`:
 **The documented staleness signature appeared again and was correctly disbelieved:** a read returned `label=undefined href=undefined` on **all eight** slots at once. A node that had controls cannot lose all of them, so that reads as a stale session rather than data loss — a fresh session with the first read discarded showed every label intact across two agreeing reads.
 
 **Still deliberately untouched on these pages:** the privacy link beside the contact-form submit, which remains on the pre-launch cleanup list.
+
+### THE LEGAL-PAGE NAV NEVER CAME BACK — `Replay: No` is one-way by construction (2026-10-19, NEEDS A PUBLISH)
+
+Shak: *"when you scroll back to the top the nav bar does not transition back to original state."* Correct, and it was my setting, not a Framer quirk. Measured live:
+
+| | rest | scrolled | **back to top** |
+|---|---|---|---|
+| `/news` | transparent | `Fill White` | **transparent** |
+| `/terms`, `/privacy` | transparent | `Fill White` | **`Fill White`** |
+
+I had copied `/contact`'s configuration — `On scroll / Direction Down / Replay No` — where one-way is deliberate and invisible because that page is black at the top. **On a white page it is equally invisible going down and permanently wrong coming back up.** Copying a setting between pages carries its *reasoning* too; that reasoning did not transfer.
+
+**`/news` IS CONFIGURED COMPLETELY DIFFERENTLY, AND READING IT FIRST IS WHAT MADE THE FIX CORRECT:**
+
+```
+Trigger   Section in view        Viewport  top
+Replay    Yes                    Section   #trigger
+To        Fill White
+```
+
+`Section in view` reverts by nature — the condition stops being true when the anchor leaves the viewport band — so the revert is structural rather than a second rule. **`On scroll` + `Replay: Yes` would not have fixed it**: Replay governs whether the effect can fire *again*, not whether it undoes itself, and with `Direction: Down` there is no up-rule to restore the base variant.
+
+**!!! THE LEGAL PAGES HAD NO USABLE ANCHOR, AND THAT IS WHY THE CHEAP FIX DID NOT EXIST !!!** Their Section dropdown offered exactly one entry, `#hero` — which on these pages is the **`Container` holding the entire page body**, starting at the top:
+
+```
+/news      <section data-framer-name="Section Hero"            id="hero">
+           <section data-framer-name="Section Featured Article" id="trigger">   <- the 2nd section
+/privacy   <section data-framer-name="Container"               id="hero">       <- the whole page
+```
+
+A section that spans the document always overlaps the viewport top, so `Section in view` on it is true at every scroll position — the nav would have been filled at rest. **Check where an anchor actually sits before selecting it; the name says nothing about its extent.** `grep 'id="hero"\|id="trigger"' ` on the published page answers it in one line.
+
+**So a new anchor was created: `Right Content` -> `Scroll section` -> name `trigger`**, on both pages. `Right Content` begins about 190px down (it is the intro paragraph and the numbered sections), so the fill now arrives shortly after you start scrolling and reverts when you return — the same shape as `/news`, whose own `#trigger` is likewise its second section. The name matches `/news` deliberately.
+
+**!!! A SCROLL SECTION CASCADES TO TABLET; THE EFFECT'S REFERENCE TO IT DOES NOT !!!** After configuring Desktop, the Tablet nav had inherited `Trigger`, `Viewport`, `Replay` and `To` — and its **`Section` read `Select…`** while `#trigger` was present in its dropdown. So the anchor propagated and the pointer to it did not, on both pages. **This is the cascade being real but not uniform, in a new place: read `Section` explicitly on every breakpoint after setting the primary**, or the effect ships with a dangling reference and silently never fires. Phone needed nothing — it uses `Navigation Mobile` on a solid white bar, exactly as `/news` does.
+
+**Reconfirmed, since it bit again: changing `Trigger` resets `To` to `Set variant…`.** Set it in the same pass and re-read.
+
+**Verified by closing and reopening the popover on all four instances, and once more after a full editor reload** — the documented reliable read, since a select reports stale immediately after a write. `getUnpublishedPageChanges()` returns **2**, one per page.
+
+**A diagnostic worth keeping: measure rest, scrolled AND the return.** Every earlier check on these pages sampled two states and passed, because two states cannot see a missing third. The sweep that found this simply added `scrollTo(0,0)` and a re-read.
