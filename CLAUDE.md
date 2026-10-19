@@ -6350,3 +6350,30 @@ Home is byte-identical at `282,097` and its full sweep passes: 11x `aspect-ratio
 - **Verify a publish by the byte count as well as the content.** Byte-identical means not rebuilt, which is a different failure from rebuilt-wrong and needs a different remedy.
 - **Prefer the editor UI over the API for instance `controls`** whenever the change needs to ship. The API write is real and persists; it simply never reaches a build on its own.
 - **This casts doubt on other API-only control writes that were verified in the document but never confirmed on a published page.** Any that shipped did so because something else dirtied the same page in the same round.
+
+### `/404` SHIPPED — the editor round trip was the fix, confirmed by the byte count (2026-10-19)
+
+`/404` went **`199,207` -> `199,208`**, i.e. it finally rebuilt, and its SSR now carries `Hide black`. **The byte count is the proof the editor round trip worked**, because the two previous publishes had left it byte-identical. Pending is back to `0`.
+
+Measured on all three breakpoints, `/404` is now indistinguishable from `/news`:
+
+```
+desktop   rest Nav black transparent -> scrolled Fill White -> back Nav black transparent
+tablet    same
+phone     Navigation White solid bar throughout   (matches /news; never in scope)
+```
+
+Confirmed by pixels as well as by variant name — a stacked capture of the nav strip at rest, scrolled and back shows the wordmark black and legible in all six frames across `/404` and `/news`.
+
+**SITE-WIDE CHECK, which is the one that proves the class of defect is closed rather than one instance of it:** every one of the 12 published pages now serves a *resting* variant, and **none serves `Fill White` at rest**.
+
+```
+/ Hide + Nav white   /about /products /elements /news /projects-grid /projects-list /privacy /terms /404  Hide black
+/contact Hide white   /careers Hide
+```
+
+**`/terms` returned an EMPTY variant match in that sweep and was correctly disbelieved** — the documented truncation, on its first fetch, for the third time in this thread. Three re-fetches agreed at `202,917` with `Hide black`. **Any blank or zero result on `/terms` should be re-fetched before it is believed; that page truncates more often than any other on this site.**
+
+Home is byte-identical at `282,097` and its sweep passes: 11x `aspect-ratio:1.17458` with 0 stale `1.180xx`, both Elements ratios, 2 hero overlays, `#f7f6f2` 2 with `#f6f4f0` 0, 0 stale `View Case Study`, `lossless=1` 0, badge 0, 58 Gellix, `Methodology` 2.
+
+**Four publishes were needed for one variant change, and three of them were wasted.** The cost was not the change; it was that a correct document plus a zero pending-count reads exactly like success. **The habit that prevents a repeat is cheap: after an API write, check that pending is non-zero before calling the work publishable, and verify a publish by byte count as well as by content.**
