@@ -6133,3 +6133,40 @@ Both were confirmed in the **hydrated DOM**, not the payload — the distinction
 **Custom code is one global slot** — `headEnd` carrying the settled `theme-color` meta. Nothing in `headStart`, `bodyStart` or `bodyEnd`.
 
 **A method note: the canvas walk exceeds the two-minute `exec` limit**, so run it backgrounded to a file rather than inline. Keying each node by its id with the breakpoint-root prefix stripped is what makes the three-way comparison possible at all, and **`controls.variant` must be excluded** or legitimate per-breakpoint variants drown the signal.
+
+### THE LEGAL PAGES ARE LIVE AND LINKED — the launch blocker is closed (2026-10-19, PUBLISHED AND VERIFIED)
+
+`/terms` and `/privacy` return **200**, and the footer sitemap on **all eleven pages** reads `Fixtures · Elements · About · News · Contact · Terms · Privacy`, three hrefs each (one per breakpoint). That retires the longest-standing item in this file — the pages had existed as drafts since 2026-10-05 with nothing linking to them, on a site whose contact form collects name, email and message.
+
+**The sitemap needed two more slots, and that half cannot be scripted.** Creating a node inside a `ComponentNode` is a hard wall, so Shak pressed `Ctrl+D` twice on the last slot (`Iv49uOsCv`, Contact) — which **propagated to Tablet and Mobile by itself**, giving 8 slots on all three variants. The hidden `Projects` slot was deliberately left parked in place rather than reused, so it is one unhide away if Projects returns to the nav.
+
+**A `Ctrl+D` duplicate inherits the source's control OVERRIDES, which is what makes the rest scriptable.** The copies arrived carrying `UvO00kpP1: "Contact"` / `pN5qcoZCL: "/contact"`, so writing Terms and Privacy over them was an **UPDATE, not a CREATE** — the distinction that decides whether `setAttributes({ controls })` works at all. **Duplicate from a slot that already overrides every control you intend to set.**
+
+**The guard did its job in an instructive way.** It refuses unless the wrapper holds exactly 8 slots whose last three read `Contact`. It wrote Desktop, then **aborted on Tablet and Mobile reporting `["Contact","Terms","Privacy"]`** — because the Desktop write had already cascaded there. A guard that encodes the expected prior state turns a cascade into a visible refusal instead of a silent double-write.
+
+### THE REAL `/terms` + `/privacy` NAV DEFECT WAS A GRADIENT THE OPAQUE NAV HAD BEEN HIDING (2026-10-19)
+
+Shak reported the legal-page nav "not set properly". Measured against `/news`:
+
+| | at rest | on scroll |
+|---|---|---|
+| `/terms`, `/privacy` (before) | **`Fill White`** — solid white bar | **unchanged** |
+| `/news`, `/products`, `/elements`, `/projects-grid` | `Hide black` — transparent | `Fill White` — fills |
+
+`Fill White` (`lQ7T5v16X`) is the **scrolled end state**, not a resting variant, and it came from the `/404` page these were cloned from. Fixed to match the house pattern: **`Hide black` (`TVfWqaIfB`) + an instance-level `Scroll → Variant` effect** at `On scroll / Down / Replay No / To Fill White`.
+
+**!!! THE VISIBLE DEFECT AFTER THAT CHANGE WAS NOT THE NAV AT ALL. !!!** With the bar transparent, a **dark band appeared across the top** — `linear-gradient(rgb(84, 84, 84) 0%, rgb(255, 255, 255) 5%)` on the `Container` inside `Main`. That is the **stock Ora `Section Hero` gradient**, inherited with the `/404` clone and present on all six Containers (both pages x three breakpoints), plus `/404` itself. **The opaque white bar had been covering it since October.**
+
+**The general lesson: making an element transparent does not change what is behind it, it only stops hiding it.** Before turning any opaque surface transparent, probe what is painted underneath — one pass over elements overlapping the top band, reading `backgroundColor` **and `backgroundImage`**, found it immediately. A `backgroundColor`-only sweep would have returned `rgba(0,0,0,0)` and missed a gradient entirely.
+
+**!!! CLEARING A GRADIENT TO `null` IS WRITABLE — this narrows a recorded limitation. !!!** This file says gradients are "assignable only by BORROWING a live instance… an object literal fails silently". That is true of **setting** one. **`setAttributes({ backgroundGradient: null })` works first time**, verified in a separate `exec` and by a re-issued write reporting `ALREADY CLEAR` on all nine nodes (6 legal + 3 on `/404`). So: constructing a gradient is blocked, removing one is not.
+
+**Sequencing that kept every intermediate state publishable:** the effect went in **first**, while the instance was still on `Fill White` — an effect targeting `Fill White` is then a no-op. Only afterwards was the variant flipped. The reverse order would have left a window where a publish shipped a permanently transparent nav with legal text scrolling under the logo.
+
+**Verified live:** desktop and tablet both pages now read `Nav black` / `rgba(0,0,0,0)` at rest and `Fill White` / `rgb(255,255,255)` after scrolling — **identical to `/news`** — phone unchanged, and **zero** grey-to-white gradient references on `/terms`, `/privacy` or `/404` (Home still carries its one legitimate hero band). Confirmed by eye as well as by measurement: a stacked capture of the top strip shows `/privacy` and `/news` indistinguishable in both states.
+
+**!!! I TOLD SHAK TWICE THAT THE FOOTER LINKS HAD NOT SHIPPED. BOTH TIMES THAT WAS MY OWN GREP, NOT THE SITE. !!!** I searched for `'"/terms"'` and got 0 across every page. **Framer emits RELATIVE hrefs — `href="./terms"`** — so the links were live and I reported them missing, then asked for a republish on the strength of it. This file already records exactly this trap from the Read-more cards (*"the cards use `./cauda`, not `./news/cauda`… read the hydrated DOM and print the hrefs you actually find rather than grepping for the shape you expect"*), and it was walked into anyway. **Dump the unique `href="…"` values and read them; never assert absence from a single pattern guess.**
+
+**The documented staleness signature appeared again and was correctly disbelieved:** a read returned `label=undefined href=undefined` on **all eight** slots at once. A node that had controls cannot lose all of them, so that reads as a stale session rather than data loss — a fresh session with the first read discarded showed every label intact across two agreeing reads.
+
+**Still deliberately untouched on these pages:** the privacy link beside the contact-form submit, which remains on the pre-launch cleanup list.
