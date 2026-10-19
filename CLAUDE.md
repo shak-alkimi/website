@@ -6265,3 +6265,25 @@ phone     /privacy 200   /terms 200   /news 330   /about 130
 Full Home regression sweep passes with every expectation re-derived from this build: 11x `aspect-ratio:1.17458` with 0 stale `1.180xx`, both Elements breakpoint ratios, 2 hero overlays at `rgb(8, 2, 0)`, `#f7f6f2` 2 with `#f6f4f0` 0, 0 stale `View Case Study`, `lossless=1` 0, badge 0, 58 Gellix refs, `Methodology` 2, `projects-list` 0, `href="./about"` 5, orb byte-exact at `4,280,052` and hero video at `4,009,893`.
 
 **Still open and unchanged: `/404`** — the page these two were cloned from, and now the only one on the site whose nav never transitions at all.
+
+### `/404` BROUGHT INTO LINE, AND THE PHONE SPACER TIGHTENED (2026-10-19, NEEDS A PUBLISH)
+
+**`/404` was the last page on the site whose nav never transitioned** — it rested on `Fill White` (the scrolled end state) with **no scroll effect at all**, which is exactly the state `/terms` and `/privacy` were in, because both were cloned from it. It has the identical structure (`Main > Container id="hero" > Left Content + Right Content`) and the same useless `#hero` anchor spanning the whole document, so it needed the same three steps. It scrolls 569px, so the transition is real rather than decorative.
+
+**THE SEQUENCE WAS CHOSEN SO NO INTERMEDIATE STATE IS PUBLISHABLE-WRONG**, and here that falls out especially cleanly:
+
+1. add the `#trigger` scroll section on `Right Content` — invisible, nothing references it yet;
+2. add the `Scroll -> Variant` effect targeting `Fill White` **while the nav still rests on `Fill White`**, so the effect is a no-op;
+3. only then flip the resting variant `lQ7T5v16X` -> `TVfWqaIfB`, which is the one scriptable step.
+
+Publishing at any point between those steps ships something correct. **Doing step 3 first would have shipped a permanently transparent nav.**
+
+**A NEW SCROLL EFFECT DEFAULTS TO `Replay: Yes`** — every field except the trigger was already right (`Viewport` top, `Replay` Yes, and `To` picked up `Fill White`). **So the one-way behaviour that caused this whole thread was something I introduced by hand, not a default**, which makes the original mistake purely a copy of `/contact`'s reasoning rather than an easy trap.
+
+**The Tablet `Section` reference did not cascade AGAIN** — it read `Select…` while `#trigger` was present in its dropdown, exactly as on both legal pages. **Three pages, three times: treat `Section` as per-breakpoint and always set it explicitly.** Everything else on the effect cascaded.
+
+Phone is untouched and matches `/news`: the desktop nav is hidden and `Navigation Mobile` renders `Navigation White`, a solid white bar.
+
+**PHONE SPACER: `200px -> 150px` on `/terms` and `/privacy`**, a Phone-only override; Desktop and Tablet stay at 200. `150` is in the design's own padding vocabulary (30/45/50/60/90/120/150) and sits mid-range of the phone comparables (`/about` 130, `/news/:slug` 160, `/news` 330 as the outlier). **Writing a non-primary breakpoint creates a scoped override and does not cascade upward**, which is the behaviour wanted here and was confirmed by reading all three back.
+
+Verified throughout by a separate `exec` read-back and by re-issuing each write (`ALREADY` on every node). `getUnpublishedPageChanges()` returns **3** — the two legal pages and `/404`.
