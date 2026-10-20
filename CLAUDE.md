@@ -7793,3 +7793,64 @@ only `/404` rebuilt — as the publish preview named.
 
 **If the heading should instead recentre in the shorter box, delete that one padding value** — nothing
 else depends on it.
+
+### The phone footer logo was indented 22px — a dead `justify-content` my own fix brought to life (2026-10-20, PUBLISHED AND VERIFIED LIVE)
+
+Shak: *"on the phone the alkimi logo on the footer is not aligned left"*. It sat at `x 37` while the
+`© Alkimi 2026` line below it sat at `15`.
+
+**THE ARITHMETIC NAMES THE CAUSE EXACTLY:**
+
+```
+Content        left 15  w 360   dir row   justify-content: CENTER
+  Left Content left 37  w 127   (fit-content — the logo)
+  Right Content left 179 w 174  (flex 0.8 0 0)
+```
+
+`127 + 15 gap + 174 = 316` inside `360`, so the row carries **44px of slack**, and
+`stackDistribution: "center"` splits it **22px each side** — putting the logo at `15 + 22 = 37`.
+
+**!!! THIS WAS A LATENT BUG THAT MY OWN 2026-10-20 CLIPPING FIX ACTIVATED. !!!** `Left Content` used
+to be `0.4fr`; with its sibling at `0.8fr` the two flex-grow children consumed **all** the free space,
+so the row had **zero slack and `center` was dead code**. Changing it to `fit-content` — the correct fix
+for the wordmark being clipped to `ALKIM` — gave the row slack for the first time, and the dormant
+centring immediately became visible.
+
+**The general rule, and it is worth carrying: `justify-content` on a stack whose children are ALL
+flex-grow is inert, and it comes alive the moment one child becomes `fit-content` or fixed.** So a
+sizing change can expose a distribution setting that has been wrong since the template shipped. When a
+layout shifts after a width change, read the PARENT's distribution before re-examining the child.
+
+**Fix: `Row Bottom > Content` `stackDistribution` `center` -> `start`.** Applied to **all three
+variants**, not scoped to Mobile, because it is **provably inert on the other two** — measured slack is
+zero on both, so the value can only ever be dead code there:
+
+```
+desktop  498 + 15 + 995 = 1508 = contentW   slack 0
+tablet   282 + 15 + 563 =  860 = contentW   slack 0
+```
+
+Setting it everywhere removes the latent trap instead of leaving a Mobile-only override. **Verified
+after publishing that desktop and tablet are byte-identical in geometry** (`14/498/527/995` and
+`20/282/317/563`, the exact pre-change numbers), and phone now reads `logo ink 15` / `copyright 15`.
+
+**The simulate-before-publish technique was used again and is now two for two.** Setting
+`justifyContent = 'flex-start'` on the live element and re-measuring gave `37 -> 15` and
+`179 -> 157` before any write, and a screenshot of the simulated footer confirmed it read correctly.
+
+**!!! `agent.publish({ action: "preview" })` NAMES THE COMPONENT FOR A COMPONENT-INTERNAL CHANGE. !!!**
+It returned `{ type: "SmartComponent", nodeId: "CPt2kErNr", name: "Footer / Footer" }` with
+`changesCount: 1`. **This refines the recorded "the counter is blind to component-internal changes":**
+`getUnpublishedPageChanges()` is *page*-scoped and genuinely cannot see this, but the **preview can**,
+because it reports the changed node whatever its type. **Use the preview, not the counter, to confirm a
+component edit is pending** — that is a direct answer to a question this file has worked around twice.
+
+**!!! AND THE BYTE DELTAS WERE NOT IDENTICAL ACROSS PAGES, which narrows an earlier generalisation.
+!!!** This file records that a shared-component change gives "an identical delta across several pages,
+a complete account of the diff". Here every page grew by a *different* amount — `/` +148, `/about` +128,
+`/products` +56, `/news` +148, `/terms` +138. That earlier rule held for the **Follow-column removal**,
+which deleted a whole markup block of fixed size; **a single changed CSS declaration merges into each
+page's rule groups differently**, so the delta varies. The useful invariant is only that *every* page
+changed, which is what proves a shared component rebuilt site-wide.
+
+Home is byte-stable at `279,721`, the full sweep passes, and `/404` still reports `Return Home` 0.
