@@ -6995,3 +6995,62 @@ Full Home sweep passes on the new build (byte-stable `279,198` across three fetc
 with `#f6f4f0` 0, `Methodology` 2 with 0 stale `View Case Study`, `lossless=1` 0, badge 0,
 58 Gellix, `href="./about"` 5, `projects-list` 0, orb `4,280,052` and hero video `4,009,893`
 byte-exact.
+
+### The divider variants are renumbered 1-5 — the skipped 3 is gone (2026-10-20, NEEDS A PUBLISH)
+
+Variant names now run `Line Mobile Menu 1…5` with no hole, matching the `01-05` row labels. The
+orphaned pair that served the removed Projects row is parked as **`Line Mobile Menu - Spare
+(was 3)`** / `… Active` rather than deleted — `removeNodes` does not reach inside a
+`ComponentNode` anyway, and the pair is wanted back if Projects returns.
+
+| id | was | now |
+|---|---|---|
+| `X14_IfIPo` / `TvMopUKMz` | `Line Mobile Menu 3` / `3 Active` | **`… - Spare (was 3)`** / `… Active` |
+| `iyswB7AC6` / `x4IyJhgup` | `4` / `4 Active` | **`3`** / `3 Active` |
+| `X7Ly2BLoB` / `ksnO5ORUD` | `5` / `5 Active` | **`4`** / `4 Active` |
+| `AtpIo51Yu` / `dC8xBCwZw` | `6` / `6 Active` | **`5`** / `5 Active` |
+
+**THE ORDER IS LOAD-BEARING: the spare had to be renamed FIRST.** `Line Mobile Menu 3` was
+already taken by the orphan, so renaming `4 -> 3` before freeing that name would have produced two
+variants with one name — the documented key-by-id-never-by-name trap, self-inflicted. Freeing the
+spare first means each step releases the name the next one needs, and **no transient duplicate
+ever exists.** The same applies to any renumbering: open a gap at the end of the chain before
+shifting into it.
+
+**THE MAPPING WAS MEASURED ON THE RENDERED PAGE, NOT INFERRED FROM THE NUMBERS.** This file's own
+rule is that a variant number says nothing about which row it sits under, and here they genuinely
+disagreed. Opening the menu and reading both sets of rects gave:
+
+```
+Fixtures 01 @335 -> Menu 1 @387     Elements 02 @395 -> Menu 2 @447
+About    03 @455 -> Menu 4 @507     News     04 @515 -> Menu 5 @567
+Contact  05 @575 -> Menu 6 @627
+```
+
+Every divider exactly **52px** below its row, pitch **60** throughout. So `4 -> 3`, `5 -> 4`,
+`6 -> 5` is the rename that makes the names describe reality. Guessing from the sequence would
+have given the same answer here by luck, but only because the hidden row happened to be the third.
+
+**Renaming a component variant through the API works** (`setAttributes({ name })` on a live handle
+from `getChildren()`; `framer.getNode` cannot resolve these ids). Guarded to abort unless all
+eight carry exactly their expected prior name, and idempotent — a re-issue reported **`ALREADY` on
+all eight**, which is the evidence-from-the-live-document check rather than a possibly-stale read.
+
+**THE NAMES ARE NOT IN THE PAGE HTML — they are in the JS CHUNK, so that is where to verify.**
+`grep -c 'Line Mobile Menu' home.html` returns **0**, because the menu is injected on open and
+never SSR'd. The chunk carrying the string is the place to check, and the **pre-publish baseline is
+recorded here so the change is checkable rather than assumed**: each of `1…6` appears `2` times as
+the idle name and `3` times as `… Active`, `Spare` appears `0` times, chunk `175,936` bytes.
+**After publishing, expect `Line Mobile Menu 6` and `6 Active` to fall to 0 and `Spare (was 3)` to
+appear.**
+
+**Nothing about rendering changes** — instances bind by id, so the dividers, their timing and their
+geometry are untouched. This is purely the editor and the emitted `data-framer-name` becoming
+honest.
+
+**RESTORING PROJECTS IS NOW A THREE-PART UNDO, not two.** The standing note said the renumbering
+and the `01-05` row labels were a pair; the variant names make a third. In order: unhide the row
+and its paired `Line`, rename `5 -> 6`, `4 -> 5`, `3 -> 4` and the spare back to `3` (freeing the
+end of the chain first, i.e. the reverse of the order used here), and re-edit the six row-number
+text layers. **The spare's name records its original number precisely so that undo does not need
+this file.**
