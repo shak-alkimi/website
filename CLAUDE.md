@@ -6418,3 +6418,91 @@ Shak: *"i added a new line drawing to prisma multipler - it is not showing up pr
 **So: geometry fixed and rebound; line weight flagged, not altered.** The drawing is publishable as it stands and sits with the lighter members of the set. A re-export at ~2000px would bring it fully in line and is the durable fix.
 
 **Measuring the comparison set needs the URLs read from the CMS, not guessed.** A first pass invented plausible asset ids for `Vena Corner` and friends; dumping `Technical Drawing` per item takes one `exec` and removes the guess entirely.
+
+### The twelve replacement line drawings — mapping, per-file pen targets, and why ONE percentage cannot serve them (2026-10-20)
+
+`G:\My Drive\Marketing\Website\Framer\Products\Product Lines\Web Ready` holds twelve files named
+`Revision Round E-1 .png … E-12 .png`, all `7009x4955` (E-1…E-4 are `4956`), RGBA, transparent.
+They are replacements for twelve of the sixteen live drawings. **The filenames say nothing about
+which product they are**, so the mapping had to be derived:
+
+```
+E1  Prisma Multiplier    E5  Flow Straight    E9   Flow 20
+E2  Vena Round Mini      E6  Vena             E10  Liga T
+E3  Vena Corner Mini     E7  Vena Corner      E11  Liga W
+E4  Vena Mini            E8  Flow Spine       E12  Driver 5-1
+```
+
+**Four live drawings have no replacement in this batch and are unaffected:** `Prisma Link 1`,
+`Prisma Link 2`, `Rima 5`, `Rima 10`.
+
+**!!! MEASURE THE INK BBOX AT NATIVE RESOLUTION — A DOWNSCALED RENDER COLLAPSES IT ON FAINT ART !!!**
+
+This cost the identification and produced a confidently wrong answer. On a drawing whose lines are
+this thin, a downscaled render pushes them below the ink threshold and the 2%-of-peak bbox
+**collapses to a fragment**. E-12 measured `17x38` (aspect `0.447`) at 600px wide against
+`5730x2231` (aspect **`2.568`**) native — the difference between "matches nothing" and "is
+obviously Driver 5-1 at `2.548`". Worse, rendering a comparison crop *from* that corrupt bbox
+shows a fragment of the drawing, so the visual check agrees with the broken measurement.
+
+**The same error inverted the Liga pair.** Native aspects give **E-10 → Liga T** (`0.783` against
+the live `0.781`) and **E-11 → Liga W** (`0.859` against `0.855`); the downscaled measurement had
+them the other way round. Pairing agrees within `0.006` while cross-pairing is 10x worse, so the
+**aspect of the native ink bbox is a reliable product fingerprint** where the shape-grid signature
+is not — a 24x24 normalised ink grid scored 91–187 on this batch (all refusal band) with nonsense
+pairings, because it is far too sensitive for hairline art. Raw aspects plus looking settled it.
+
+**Do not shape-match against drawings that have already been through the pipeline.** Flow Spine,
+Flow Straight and both Prisma Links were cropped and bled by our own geometry passes, so their
+visible aspect is an artifact of our processing, not a property of the product.
+
+**!!! THERE IS NO SINGLE CORRECT STROKE PERCENTAGE — a first draft of the vendor brief prescribed
+one and it was wrong for nine of the twelve. !!!**
+
+Stroke measured as a percentage of the product's longest dimension at native resolution, against
+the target taken from the live drawing each file replaces:
+
+```
+E1  0.0988% -> 0.1314%  x1.33      E7  0.1071% -> 0.2829%  x2.64
+E2  0.1646% -> 0.5277%  x3.21      E8  0.0490% -> 0.1653%  x3.37
+E3  0.2101% -> 0.8264%  x3.93      E9  0.1842% -> 0.4082%  x2.22
+E4  0.1727% -> 0.4938%  x2.86      E10 0.0874% -> 0.4219%  x4.83
+E5  0.1951% -> 0.1825%  x0.94      E11 0.0959% -> 0.4619%  x4.82
+E6  0.1008% -> 0.2667%  x2.65      E12 0.0524% -> 0.1642%  x3.13
+```
+
+Targets span **`0.131%` to `0.826%`, a 6.3x spread**, because the size hierarchy places a small
+cross-section large in its card and a long extrusion small — so the same rendered stroke needs a
+proportionally fatter source pen on the former. A universal `0.16%` would have been right for the
+extrusions and left the Venas and Ligas up to five times too thin.
+
+**And "longest dimension" means two different things across this batch**, which is the deeper
+reason one number cannot work: E-3 is a flat 2D profile where the bounding box *is* the part,
+while E-8 is an isometric run whose longest dimension is however much extrusion happens to be
+drawn. This is the same cross-section/extrusion split already recorded for the size policy, seen
+from the stroke side.
+
+**`E5 Flow Straight` needs NO change** (`x0.94`) — so "all twelve" is wrong in either direction,
+and saying so to the vendor matters.
+
+**Two claims in the vendor brief were verified rather than asserted:**
+
+- **The PNGs genuinely carry no metadata.** Every file sampled runs `IHDR` straight to `IDAT` with
+  no `tEXt` / `iTXt` / `zTXt` / `pHYs` chunk, so nothing identifies the authoring tool and we
+  cannot re-export. **Parsing the chunk list is a ten-line check** and worth doing before telling
+  a vendor their files lack something.
+- **The Flow Spine fusing risk is real and correctly scoped to that one file.** E-8 is a receding
+  row of about ten mounting clips, each carrying a doubled sheet-thickness line that compresses
+  toward the far end; at `x3.37` those fuse into solid bars. **E-3 has the largest multiplier in
+  the set (`x3.93`) and is NOT at risk** — it is a clean profile with generous spacing. So the
+  multiplier alone does not predict fusing; the drawing's own minimum feature spacing does.
+
+**Darkening is NOT the fix and was not proposed.** Half these files are already pure black at
+source (darkest pixel `0`); the defect is stroke *width*, which varies `4.3x` among the twelve and
+runs 2–5x thinner than the drawings they replace. An ink gain large enough to compensate would
+exceed the `x1.85` ceiling at which four previous brightened drawings were rejected.
+
+**The brief, with the measured table and the verification notes, is at
+[briefs/2026-10-20-line-drawing-pen-spec.md](briefs/2026-10-20-line-drawing-pen-spec.md).**
+Framer-side work (flatten, square, size to the hierarchy, ink-normalise, upload, rebind, publish)
+is deliberately **not** delegated and waits for corrected files to land in `Web Ready v2`.
