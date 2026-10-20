@@ -8103,3 +8103,70 @@ with `TypeError: __fn__ is not a function` was situational, not permanent.** The
 single call. It also reaches `page.context().browser().newContext()`, which the dedicated tools
 cannot — so the fresh-context-per-breakpoint rule **is** available through it, contrary to the
 earlier note. Prefer it for any multi-width sweep; fall back to the dedicated tools if it errors.
+
+### The Methodology button now goes BLACK on hover, not transparent (2026-10-20, PUBLISHED AND VERIFIED LIVE)
+
+Shak's call. The Home wide card's button moved from `Button White to Outline` (`ucTfE3rNi`, hover ->
+transparent with a white border) to **`Button White to Black` (`IsPmXClw2`, hover -> solid black)**, on
+all three nodes that render it: `Q__AVxo4PbeNpOjgIR` (desktop base), `uR6T4xhGKbeNpOjgIR` (hover
+gesture) and `tDcw55E8QbeNpOjgIR` (mobile). Label `Methodology` and link `/about` preserved.
+
+| | rest | hover |
+|---|---|---|
+| was `ucTfE3rNi` / `eI_njgAoy` | `rgb(255,255,255)` | `rgba(255,255,255,0)` + 1px white border |
+| **now `IsPmXClw2` / `P6rnwIq2D`** | **`rgb(255,255,255)`** | **`rgb(0,0,0)`** |
+
+Geometry is identical on both pairs (`fit-content`, `padding 11px 18px`, `gap 10px`, `radius 200px`),
+so nothing shifts in the card — confirmed live at `122x36` in both states.
+
+**!!! THE RISK WAS BLACK-ON-BLACK, AND THE API CANNOT SEE IT. !!!** A variant's **text colour** lives
+in `inlineTextStyle` on a text node the twelve variants all share, so it reports the *base* value for
+every one of them — the documented blind spot, previously proven by three white-fill variants all
+claiming white text. So the API could confirm the hover fill is `rgb(0,0,0)` and **could not** tell
+whether the label turns white. Shipping it blind risked an invisible label on hover, which is worse
+than the transparent state being replaced.
+
+**THE CHECK THAT SETTLED IT: HOVER THE SAME VARIANT PAIR ON THE STOCK ORA SITE.** `White to Black` was
+used nowhere on our site (0 occurrences across all nine pages), so there was nothing of ours to hover
+— but **stock Ora shares this component** and its home page carries a live instance. Measured there
+with a real pointer:
+
+```
+REST     Button White to Black          bg rgb(255,255,255)   label rgb(0,0,0)
+HOVER    Button White to Black - Hover  bg rgb(0,0,0)         label rgb(255,255,255)
+UNHOVER  Button White to Black          bg rgb(255,255,255)   label rgb(0,0,0)
+```
+
+**Generalise it: when a variant is unused on our site, the stock template is a live specimen of it.**
+`energized-personalization-419445.framer.app` is the same Ora component set, so any variant we have
+not adopted can usually be observed there — rendered, hoverable and free — instead of being inferred
+from the canvas or discovered after a publish.
+
+**Scope was proven from a usage tally rather than assumed.** A full-project instance walk (run
+backgrounded, since it exceeds the two-minute `exec` limit) returned **`ucTfE3rNi: 3`** — exactly the
+three wide-card buttons and nothing else — and no instance at all on `IsPmXClw2`. The other 17 buttons
+on this component are `PQb6JRcY1` x11 and `C1hBM5Wy4` x6 (the `View Case Study` ones), re-read
+unchanged afterwards. `Button White to Outline` is now unused.
+
+**!!! THE PENDING COUNTER READ `0` AND THE CHANGE SHIPPED ANYWAY — a third data point, and it is the
+exact shape of the `/404` case that never published. !!!** `getUnpublishedPageChanges()` returned `0`
+before and after the write, while **`framer.agent.publish({action:"preview"})` named
+`{ type: "SmartComponent", name: "Home / Home - Projects Row 2", status: "updated" }`** with
+`changesCount: 1`. The publish then rebuilt Home (`278,148 -> 278,094`, **-54 bytes**, fresh
+`Last-Modified`). So for an instance `variant` control the counter is simply not the build input it
+was once taken for — **the preview is, and it should be the instrument every time.**
+
+**Verified live with a real pointer, which is the only way to see a variant interaction** (no CSS
+rule exists for it; Framer swaps the class in JS):
+
+```
+settled         White to Black          white / black label   opacity 0   y 690
+card hovered    White to Black          white / black label   opacity 1   y 684   <- the 60px rise still works
+BUTTON hovered  White to Black - Hover  BLACK  / WHITE label   opacity 1   y 684
+moved away      White to Black          white / black label   opacity 0   y 744   <- symmetric, not a latch
+```
+
+`href="./about"` survives, every ancestor reads `pointer-events: auto` (so the long-standing
+clickability fix is intact), and a capture of the hovered state shows a black pill with white
+`Methodology` over the facade image. **Phone is unchanged in appearance** — `opacity: 1` always, white
+pill with a black label, since a touch device never reaches the hover variant.
