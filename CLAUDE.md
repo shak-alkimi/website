@@ -6727,3 +6727,54 @@ class of finding went to zero — not because anything was fixed, but because th
 being in scope. **Re-scoping is as legitimate a way to close a finding as repairing it, provided
 the scope change is itself verified** rather than asserted. Live `@ora.com` addresses likewise
 fell from two pages to one.
+
+### The footer Follow column is hidden — Instagram is off the site (2026-10-20, PUBLISHED AND VERIFIED)
+
+Shak: *"remove or hide this section for now - we do not have an instagram"*.
+
+**Hid the whole `Column`, not the Instagram link.** The column is `MgbEJ15tU` inside
+`Row Bottom > Content > Right Content`, holding the `Follow` heading plus three
+`Text Link` instances (Instagram visible; Twitter and LinkedIn already hidden since 2026-10-13).
+Hiding only the link would have left the heading stranded above nothing. `Contact Column`
+beside it was already hidden the same way, so there is precedent in this component.
+
+Written on Desktop; **the write cascaded to Tablet and Mobile inside the same `exec`**, which the
+loop surfaced as `ALREADY` on both rather than silently re-writing. Verified in a separate `exec`
+and by a re-issued write (`ALREADY` x3), with the Sitemap column confirmed untouched on all three.
+
+**The Sitemap did not move, and that was predicted before writing rather than checked after.**
+`Right Content` is a row with `justify-content: flex-start` and `gap: 80px`, so removing the
+second column leaves the first at `x=527` with nothing to its right. Measured after the publish:
+still `x=527 w=60`.
+
+**Verified across all 12 live surfaces:** `instagram.com/ena.supply` **0**, `Follow` **0**,
+`Sitemap` still 3 (one per breakpoint), Twitter and LinkedIn still 0.
+
+**!!! THE RECORDED "A CHANGE THE COUNTER CANNOT SEE WILL NEVER PUBLISH" RULE IS TOO STRONG —
+THIS SHIPPED WITH `getUnpublishedPageChanges()` READING 0. !!!**
+
+After the write the counter returned **0**, which by the rule written on 2026-10-19 means the
+change can never reach a build. It published correctly anyway: **every one of the eight pages
+measured dropped by exactly `2,840` bytes**, an identical delta that is precisely that column's
+markup leaving each page.
+
+**So the counter's blindness is specific to a page INSTANCE's `controls`, not to component
+internals generally.** The `/404` failure was a `controls.variant` write on a page instance; this
+is a `visible` attribute on a layer inside a `ComponentNode`, and the build picks those up —
+presumably because editing a shared component invalidates every page that uses it, rather than
+needing a per-page entry. That also explains why the 2026-10-13 footer sitemap rewrite shipped.
+
+**The practical rule, corrected:**
+
+| change | counter sees it | publishes |
+|---|---|---|
+| page-level layer property (padding, visible, draft) | **yes** | yes |
+| **component-internal layer property** | **no** | **YES** |
+| page instance `controls` (e.g. `variant`) | no | **NO — needs an editor round trip** |
+
+**The byte count remains the decisive check either way**, and it is what settled this: a publish
+that leaves pages byte-identical did not rebuild them, and an identical non-zero delta across
+several pages is a complete account of a shared-component change.
+
+This closes **A2** on the open-items list. Live `@ora.com` addresses are now the only group-A
+item left — `marcus.nguyen@ora.com` on `/contact`.
