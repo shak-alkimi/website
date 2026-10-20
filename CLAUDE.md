@@ -7548,3 +7548,111 @@ Full Home regression sweep passes on the new build, every expectation re-derived
 `rgb(8, 2, 0)`, `#f7f6f2` 2 with `#f6f4f0` 0, `Methodology` 2 with 0 stale `View Case Study`, `lossless=1` 0,
 badge 0, 58 Gellix refs, `href="./about"` 5, `projects-list` 0, orb byte-exact at `4,280,052` and hero video
 at `4,009,893`.
+
+### EVERY PHONE NAV NOW USES HOME'S MECHANISM — centred wordmark, transparent → fill (2026-10-20, PUBLISHED AND VERIFIED LIVE)
+
+Shak: *"for phone - all the pages should handle nav bar with the same as home. centered logo with hamburger
+to scroll transition version"*. All nine pages now do.
+
+**THE TWO MECHANISMS WERE MEASURABLY DIFFERENT, AND THE DIFFERENCE IS WHICH COMPONENT RENDERS:**
+
+| | Home phone | the other eight |
+|---|---|---|
+| component | the **desktop** `Navigation` (`F0lbt84nG`) | `Navigation Mobile` (`CA2UVAOBt`) |
+| logo | `logo dark`, **centred at `cx 195`** (= 390/2) | `Logo`, **left at `x 15`**, `cx 88` |
+| height | 64 | 66 → 75 on fill |
+| variants | `Nav white` → `Fill White` | `Navigation Transparent Black` → `Navigation White` |
+
+**So the swap is two attributes per page** — hide `Navigation Mobile`, show the desktop instance, both on
+the Phone breakpoint. The desktop component was already sitting there on every page, hidden.
+
+**MATCH ON `componentIdentifier`, NEVER ON NAME.** A first pass keyed on the layer name and reported
+`MISSING NODE` for `/products` and `/elements`, because those two name their instance plainly
+**`Navigation`** where every other page says `Navigation / Navigation Desktop` — the documented sign that
+those two pages are structurally older than the rest. `local-module:canvasComponent/F0lbt84nG:default` is
+stable across all nine.
+
+**INK IS SET BY MATCHING EACH PAGE'S OWN DESKTOP VARIANT, which makes it correctness rather than taste.**
+"Same as Home" cannot mean the same *variant* — Home rests on `Nav white` because its hero is dark, and
+white ink on `/products`' white page would be invisible. Final resting ink: **black on seven pages**, white
+on `/` (dark hero) and `/contact` (black page). Fill target is `Fill White` everywhere except `/contact`,
+which fills to `Fill Black`.
+
+**!!! THE 2026-10-19 RULE "AN API `variant` WRITE NEVER MARKS ITS PAGE DIRTY, SO IT WILL NEVER PUBLISH"
+IS NOT GENERAL — it registered and shipped here. !!!**
+
+Four pages (`/about`, `/terms`, `/privacy`, `/404`) carried `CQn2PSQz8` (`Nav white`) on their hidden phone
+instance and needed black ink. Writing `controls: { variant: "TVfWqaIfB" }` through the API took
+**`getUnpublishedPageChanges()` from 3 to 7 — exactly one entry per write** — and all four render `Nav black`
+on the published page. No editor round trip was needed.
+
+**So the counter is unreliable in both directions, and the only safe procedure is the one used here:**
+check pending immediately before and after the write, and treat a non-zero delta as the licence to rely on
+it. That check is what made it safe to skip four editor passes. The `/404` case remains a real observation;
+it is simply not a law.
+
+**THE SCROLL EFFECT SPLIT EXACTLY ALONG "HAD THIS INSTANCE EVER BEEN CONFIGURED":**
+
+| fired at 40px immediately | effect present but DANGLING |
+|---|---|
+| `/`, `/products`, `/elements`, `/news` | `/about`, `/contact`, `/terms`, `/privacy`, `/404` |
+| phone instance already carried `Hide black` | phone instance carried the default `Nav white` |
+
+Opening the dangling ones showed `Trigger: Section in view` correct but **`Section: Select…`** and
+**`To: Set variant…`** — the documented pattern, now seen on five pages at once. Each needed its own
+`#<page>-nav-state` anchor and fill target; all five anchors already existed from the earlier 40px
+standardisation, so this was two dropdowns per page and no new layers.
+
+**The four that worked did so without me touching their effect at all** — strong evidence that the effect
+does reach the Phone instance of a layer, and that the recurring failure is specifically the **`Section`
+reference** not cascading, not the effect being absent.
+
+**THE LAYER-TREE SEARCH BOX DID NOT HOLD ITS FILTER ON A PLAIN PAGE.** Typing `Navigation` into it left
+`input.value === ""` and an unfiltered tree, so a row lookup returned zero. This file records filtering as
+reliable *inside a component* and unreliable on a CMS page; **add plain pages to the unreliable side.**
+
+**What works instead, and it is better anyway: expand the Phone breakpoint by its disclosure arrow**
+(`elementFromPoint(row.x - 16, row.y + h/2)`, then synthetic pointer events). With only Phone expanded there
+is **exactly one** `Navigation / Navigation Desktop` row in the tree, so the selection is unambiguous and
+needs no index, no sort, and no `x < 300` guard against the panel's own component label.
+
+**`CQn2PSQz8` is `Nav white` and it is the PRIMARY variant** — the first of the two identically-named ones
+this file has long flagged on `Navigation Desktop`. Worth recording the id, because the name alone cannot
+distinguish it from `gDOEOKgPj`.
+
+**Home rests on a `Nav *` variant directly; the other pages rest on `Hide *`, which appears into `Nav *`.**
+Both render identically once settled — `Hide black` resolved to `Nav black` on every swapped page — so the
+difference is only whether the bar fades in on load. No attempt was made to unify it.
+
+**VERIFIED LIVE on all nine pages at 390x844** — rest variant, fire threshold, fill colour and the return:
+
+```
+/          Nav white  cx195   fires 40   Fill White   back Nav white
+/about     Nav black  cx195   fires 40   Fill White   back Nav black
+/products  Nav black  cx195   fires 39   Fill White   back Nav black
+/elements  Nav black  cx195   fires 39   Fill White   back Nav black
+/news      Nav black  cx195   fires 40   Fill White   back Nav black
+/contact   Nav white  cx195   fires 40   Fill Black   back Nav white
+/terms     Nav black  cx195   fires 40   Fill White   back Nav black
+/privacy   Nav black  cx195   fires 40   Fill White   back Nav black
+/404       Nav black  cx195   fires 40   Fill White   back Nav black
+```
+
+Confirmed by pixels too — a 7-page contact sheet of the rest and filled strips shows one identical centred
+wordmark and bare two-line hamburger throughout, correctly inked against each backdrop.
+
+**THE HAMBURGER WAS TESTED, NOT ASSUMED.** Eight pages now open their menu through a different component
+than before, so a real click was sent on `/products`, `/terms` and `/contact`: each opens with **5
+`Line Mobile Menu` dividers and all five links** (`./products`, `./elements`, `./about`, `./news`,
+`./contact`). A nav whose hamburger silently stopped working would have been a worse defect than the one
+being fixed.
+
+**Desktop and tablet are untouched** — re-measured at 1536 and 900 on five pages, every one still
+`rest → Fill → rest` exactly as before. Home itself needed no change at all and is byte-identical at
+`279,553`, with the full regression sweep passing (11x `aspect-ratio:1.17458`, 0 stale `1.180xx`, both
+Elements ratios, 2 hero overlays, `#f7f6f2` 2 with `#f6f4f0` 0, `Methodology` 2, `lossless=1` 0, badge 0,
+58 Gellix, orb `4,280,052` and hero video `4,009,893` byte-exact).
+
+**`Navigation Mobile` is now unused on every page** — all 27 instances hidden. The component and its four
+variants (including `Navigation Transparent Black`, created for `/about` two days ago) remain in the
+project, so this is one attribute per page to reverse.
