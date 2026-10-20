@@ -6622,3 +6622,49 @@ be processed here. They stay as the vendor's master.
 mesh-based renders (which is why the shape matcher flags these as different artwork rather than
 re-exports). In vector that becomes an editable question — a designer can add or remove lines —
 instead of a re-export request.
+
+### `/products` and `/elements` footer spacing — PUBLISHED AND VERIFIED LIVE (2026-10-20, build `14:38:4x GMT`)
+
+Shak reported the gap between the last product row and the black footer reading too tight on
+`/elements`, and asked whether the site has a standard figure.
+
+**There is no single standard, but only TWO values were in use** for last-content-to-footer, and
+these two pages were alone on the lower one:
+
+| | desktop | tablet | phone | pages |
+|---|---|---|---|---|
+| was | 120 | 96 | 96 | **`/products`, `/elements`** |
+| house value | 200 | 200 | 150 | `/news`, `/privacy`, `/terms` |
+
+Shak chose the house value **on both pages** rather than scoping it to the one he was looking at,
+since they are structurally identical siblings one click apart in the nav.
+
+**One lever: `Products Sections` padding-bottom**, six nodes (2 pages x 3 breakpoints) —
+`UxP7pnItC` / `jeBJOTditUxP7pnItC` / `I3zkCZprdUxP7pnItC` and `bx7sYYpJI` /
+`xWl5j5Y7Lbx7sYYpJI` / `x4KFl0Jfnbx7sYYpJI`.
+
+**Tablet and phone each carried their OWN `96px` override, so the Desktop write did not cascade**
+and all three breakpoints had to be written explicitly. The guard would have aborted had a
+cascade clobbered one — it reported the original value on every node, so none did.
+
+Verified live on all three breakpoints, with `/privacy` alongside as the control: **200 / 200 /
+150 on both pages, matching `/privacy` exactly** (tablet `/elements` reads 199, a 1px rounding).
+Both pages byte-stable across three fetches with no known-bad truncation signature, and **both
+grew by exactly `2,950` bytes** — an identical delta for an identical one-property change on two
+pages is the whole account of the diff.
+
+**!!! THE "57px" I FIRST REPORTED FOR `/elements` WAS A MEASUREMENT ARTIFACT — the real gap was
+always 120px, the same as `/products`. !!!**
+
+An ink sweep that takes the lowest element *box* inside `Main` reported `/elements` at **57px**
+against `/products` at 136px, which looked like a per-page divergence and was the basis for
+calling it "the tightest on the site". It is not. `Rima 10`'s `Product Photo` is scaled to
+**140%**, so its box overflows **63px below its row** while `Photo Placeholder`'s `overflow: clip`
+means nothing is painted there. `2747 - 2690 = 57`; the painted edge is at `2627`, i.e. `120`.
+
+**So an element-box measure is wrong wherever a layer is scaled past 100% inside a clipping
+parent — which on this site is every product card.** The reliable reading is the last *section
+box*, or the container's own `padding-bottom`, both of which gave 120 immediately. This is the
+third artifact in two days from measuring the wrong quantity (after the horizontal stroke run and
+the downscaled ink bbox), and the common thread is the same: **the number was right about what it
+measured and wrong about what was being asked.**
