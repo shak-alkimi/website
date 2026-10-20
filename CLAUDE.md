@@ -7111,3 +7111,79 @@ Full Home sweep passes: 11x `aspect-ratio:1.17458` with 0 stale `1.180xx`, both 
 2 hero overlays, `#f7f6f2` 2 with `#f6f4f0` 0, `Methodology` 2 with 0 stale `View Case Study`,
 `lossless=1` 0, badge 0, 58 Gellix, `href="./about"` 5, `projects-list` 0, orb `4,280,052` and
 hero video `4,009,893` byte-exact.
+
+### `/contact` nav now reverts on scroll-up, on all three breakpoints (2026-10-20, NEEDS A PUBLISH)
+
+Shak: *"contact nav bar is not going back to original state when scrolling fully back to the top
+like all other pages transition."* Correct, and it was my setting. Measured live before changing
+anything:
+
+```
+at top         Nav white   rgba(0, 0, 0, 0)   transparent
+scrolled 700   Fill Black
+back to top    Fill Black  rgb(0, 0, 0)       <- stuck, forever
+```
+
+**!!! MY 2026-10-18 JUSTIFICATION MEASURED THE WRONG THING, AND THE LESSON IS THE VALUABLE PART.
+!!!** I chose `On scroll / Direction Down / Replay No` and defended it with: *"The cost is invisible
+on this page — the nav never returns to transparent, but the top of `/contact` is `Section
+Contacts` on black, so a black bar there is indistinguishable from a transparent one."*
+
+**That claim about the STATIC END STATE is true, and re-measuring confirms it**: at scroll 0 the
+stuck bar is `rgba(0, 0, 0, 0.99)` over a `rgb(0, 0, 0)` body, with no border on the `::after` and
+the same 64px height. There is no pixel difference to find.
+
+**What I failed to account for is that the TRANSITION is itself part of what a user perceives.**
+Every other page visibly fades its bar away as you return to the top; `/contact` did nothing. A
+missing animation is noticeable even when its two end states are not distinguishable — so
+"the end states look identical" is **not** a sufficient argument for making an effect one-way.
+**Compare behaviour against the rest of the site, not just the final frame.**
+
+**Fixed by adopting the configuration every other page already uses**, rather than inventing a
+third pattern:
+
+| | was | now |
+|---|---|---|
+| Trigger | `On scroll` | **`Section in view`** |
+| | Direction `Down` | **Viewport `top`** |
+| Replay | **`No`** | **`Yes`** |
+| Section | — | **`#links`** (docY 196) |
+| To | `Fill Black` / `Navigation Black` | unchanged |
+
+`Section in view` reverts **structurally** — the condition stops being true when the anchor drops
+back below the viewport top — which is why it needs no second rule. That is the same reasoning
+recorded for the legal pages, and it is why `On scroll` + `Replay: Yes` was not the fix: Replay
+governs whether an effect can fire *again*, not whether it undoes itself.
+
+**THE TRADE, STATED PLAINLY: the fill now begins at 196px of scroll rather than ~40px**, walking
+back the earlier "transition sooner" request. `#links` is the earliest usable anchor — everything
+above it is inside the hidden `Section Hero`, and `Section Contacts` itself starts at docY 0, so
+anchoring there would fire at rest. **The light photo in `Section Location` starts at 460**, so a
+196px trigger still covers the one thing the fill exists to cover, with 264px to spare.
+
+**`Viewport: middle` was considered and REJECTED as viewport-height dependent.** Anchoring on
+something near docY 460 with `middle` would fire at `460 - viewportHeight/2`, i.e. ~33px on an
+855-tall window — which looks like a way to keep both. But on a ~1000px-tall window that is
+**negative**, so the bar would be black at rest. `Viewport: top` fires at exactly the anchor's
+offset regardless of window height, which is why every page on this site uses it.
+
+**A SECOND `On scroll` EFFECT WITH `Direction: Up` WAS ALSO REJECTED, and it is the tempting one.**
+It would keep the 40px firing and revert — but it reverts on *any* upward scroll, including
+mid-page over the light photo at 460-1118, putting a white logo on a pale background. The whole
+reason the fill exists.
+
+**PHONE LOST BOTH `Section` AND `To` WHEN THE TRIGGER CHANGED; DESKTOP AND TABLET LOST NEITHER.**
+The documented reset is real but **not uniform**, and the difference is informative: desktop and
+tablet already had `Section: #links` stored from the 2026-10-18 repoint, so there was nothing to
+re-resolve, while phone's effect targets a different component (`Navigation Mobile`) and came back
+`Select…` / `Set variant…`. **Re-read every field after changing a trigger, on every breakpoint —
+and do not conclude from one breakpoint that the others survived.**
+
+**Tablet inherited the whole configuration INCLUDING `Section` this time**, which contradicts the
+three previous occasions where the Section reference specifically did not cascade. Same cause: it
+was already correct, so nothing had to propagate. **The rule stands as "always read it explicitly",
+but the reason it sometimes appears to cascade is that it was never stale to begin with.**
+
+Verified on a **freshly reopened popover** for all three breakpoints (a select reports stale
+immediately after a write), and `getUnpublishedPageChanges()` went `1 -> 2`, so the page is dirty
+and will rebuild.
