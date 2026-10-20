@@ -7187,3 +7187,45 @@ but the reason it sometimes appears to cascade is that it was never stale to beg
 Verified on a **freshly reopened popover** for all three breakpoints (a select reports stale
 immediately after a write), and `getUnpublishedPageChanges()` went `1 -> 2`, so the page is dirty
 and will rebuild.
+
+### PUBLISHED AND VERIFIED LIVE 2026-10-20 (build `17:38:20 GMT`) — the contact nav reverts on all three breakpoints
+
+Three byte-stable `/contact` fetches at `215,632`, no known-bad truncation signature; the page grew
+**209 bytes**, consistent with one effect's configuration changing. Measured with a scroll reset and
+a settle between each reading:
+
+| | at rest | scrolled 700 | **back to top** |
+|---|---|---|---|
+| desktop | `Nav white` `rgba(0,0,0,0)` | `Fill Black` `rgb(0,0,0)` | **`Nav white` transparent** |
+| tablet | `Nav white` `rgba(0,0,0,0)` | `Fill Black` | **`Nav white` transparent** |
+| phone | `Navigation Transparent White` h66 | `Navigation Black` h75 | **`Navigation Transparent White` h66** |
+
+**THE TRIGGER FIRES AT EXACTLY 196px, WHICH IS THE ANCHOR'S OWN docY — that is the measurement that
+confirms `Viewport: top` is viewport-height independent**, rather than leaving it as an argument.
+Swept `0 / 100 / 180 / 190 / 196 / 200 / 210 / 250 / 400`: transparent through `190`, `Fill Black`
+from `196` on. The `196` sample caught it **mid-fade at `rgba(0, 0, 0, 0.976)`**, which is
+incidental proof the change is animated rather than a snap — a single end-state reading never shows
+that. **Sample during the transition range, not only after it.**
+
+`Section Location`'s light photo starts at **460**, so the fill is established 264px before the one
+thing it exists to cover.
+
+**No other page moved**, which is the expected consequence of the fill being an instance-level
+effect rather than a component interaction: `/` still `Nav white -> Fill White -> Nav white`,
+`/about`, `/news` and `/products` still `Nav black -> Fill White -> Nav black`. **Every one of those
+four reverts too** — which is the comparison that made this a defect in the first place, so it is
+worth re-reading them in the same sweep rather than only checking the page that was fixed.
+
+Home is byte-identical at `279,198` (untouched by this publish) and its full sweep passes with every
+expectation re-derived from this build: 11x `aspect-ratio:1.17458` with 0 stale `1.180xx`, both
+Elements breakpoint ratios, 2 hero overlays at `rgb(8, 2, 0)`, `#f7f6f2` 2 with `#f6f4f0` 0,
+`Methodology` 2 with 0 stale `View Case Study`, `lossless=1` 0, badge 0, 58 Gellix refs,
+`href="./about"` 5, `projects-list` 0, orb byte-exact at `4,280,052` and hero video at `4,009,893`.
+
+**A FRESH CONTEXT PER BREAKPOINT WAS NOT NEEDED HERE, AND THE REASON IS THE FIX ITSELF.** The
+recorded rule is that a one-way (`Replay: No`) effect and the scroll position both survive `goto`
+within a context, so a multi-breakpoint sweep must open a fresh context. **With `Section in view /
+Replay Yes` the variant is a pure function of scroll position**, so an explicit `scrollTo(0, 0)` plus
+a settle fully resets it — which `browser_run_code_unsafe` can do, where `browser.newContext()` is
+not available to it at all. **The rule still holds for one-way effects; it simply does not apply to
+a state with no memory.**
