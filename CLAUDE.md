@@ -7854,3 +7854,104 @@ page's rule groups differently**, so the delta varies. The useful invariant is o
 changed, which is what proves a shared component rebuilt site-wide.
 
 Home is byte-stable at `279,721`, the full sweep passes, and `/404` still reports `Return Home` 0.
+
+### The dangling comma and the tablet footer margin — both closed (2026-10-20, PUBLISHED AND VERIFIED LIVE)
+
+The two defects found while verifying the footer on desktop and tablet. One publish, one shared
+component, both fixed.
+
+| | was | now |
+|---|---|---|
+| **A1** the orphaned comma `c94dNo0xV` in `Details` | `visible: true`, rendering `Made in The Shire,` | **hidden** on all three variants |
+| **D** Tablet footer side margin | `100px 20px 14px 20px` | **`100px 15px 14px 15px`** |
+
+**!!! MY EARLIER DIAGNOSIS OF THE COMMA'S MISSING SIBLING WAS WRONG, AND READING THE WHOLE ROW IS
+WHAT CORRECTED IT. !!!** I had recorded *"stock Ora had two links there; the second was removed"*,
+with `Back to top` assumed to be that lost sibling's replacement. The real structure:
+
+```
+Details > Container > Right Content   (0.8fr, gap 10)
+  Link Wrapper [CqZWv_d11]  1fr, gap 5      <- lost a child
+    Footer / Footer Link - Small [uwdbJXNV4]  fit-content, gap 0
+      Footer / Footer Link - Small [iHYoZv0q0]  "Made in The Shire"
+      , [c94dNo0xV]                             <- orphaned separator
+  Link Wrapper [m6eADuzY8]  fit-content, gap 10
+    Footer / Footer Link - Small [AFK3n5kgU]  "Back to top"   <- NEVER removed, different wrapper
+```
+
+So `Back to top` is a sibling *wrapper*, pushed right, and was never the comma's partner. The comma
+belongs to a second entry that once sat inside `CqZWv_d11` ("Made in X, by Y"). **The conclusion was
+right and the evidence for it was not** — which only showed up because this pass dumped every node in
+the row with its `controls`, instead of matching on the names the earlier read happened to surface.
+
+**THE FOOTER'S SIDE MARGIN LIVES ON THE VARIANT ROOT, not on `Stack`.** One value per variant, and
+nothing between the root and the rows carries any padding at all (`Stack`, `Row Top`, `Row Bottom`
+and `Details` are all `0px`):
+
+```
+Desktop  100px 14px 14px 14px      Tablet  100px 15px 14px 15px      Mobile  60px 15px 15px 15px
+```
+
+That is why the fix is a single attribute and why it cannot cascade anywhere unwanted — writing a
+**non-primary variant creates a scoped override**, so Desktop and Mobile were provably untouched
+(re-measured live at `14..14` and `15..15`).
+
+**The comma hide CASCADED from Desktop inside the same `exec`** — Tablet and Mobile both reported
+`ALREADY hidden` before the loop reached them, as with the Follow column. Verified by a separate
+`exec` and by **re-issuing the write, which answered `ALREADY` on all six items**; the per-item
+prior-state test (rather than a global abort) is what let the same script serve as its own verifier,
+the lesson from the `Body Tag - Address` guard that short-circuited.
+
+**!!! `agent.publish(...)` IS NOT CALLABLE AS WRITTEN — IT IS `framer.agent.publish(...)`. !!!** This
+file records the preview call as `agent.publish({ action: "preview" })`, copied from the docs, where
+`agent` is described as a namespace *on* `framer`. Inside an `exec` a bare `agent` raises
+**`ReferenceError: agent is not defined`**. There is also **no `publish` CLI subcommand** — the only
+route is `exec`. Correct form:
+
+```js
+const prev = await framer.agent.publish({ action: "preview" })
+await framer.agent.publish({ action: "confirm_publish", confirmationHash: prev.confirmationHash })
+```
+
+The preview again named the change precisely — `{ type: "SmartComponent", name: "Footer / Footer" }`,
+`changesCount: 1` — confirming it as the right instrument for a component-internal edit the
+page-scoped counter cannot see.
+
+**EVERY PAGE DROPPED BY EXACTLY `-1,549` BYTES** (`/`, `/about`, `/products`, `/news`, `/terms`),
+which is a complete account of the diff and proves the shared component rebuilt site-wide. **Note
+this publish carried BOTH kinds of change** — a removed markup block *and* a changed CSS declaration
+— and still gave an identical delta, where yesterday's declaration-only change gave varying ones. So
+the useful invariant remains only that *every* page changes; an identical delta is a bonus when the
+dominant change is a fixed-size block.
+
+**!!! `data-framer-name="Details"` COLLIDES WITH A PAGE LAYER ON `/about`, AND THE FIRST PROBE
+MEASURED THE WRONG ONE. !!!** `byName('Details')[0]` returned the **Approach card** ("01 / Research /
+Color science is the foundation…"), giving a confident reading of three leaves that had nothing to do
+with the footer. **The reusable recovery is to anchor on a unique text leaf and walk UP:**
+
+```js
+const copy = [...document.querySelectorAll('*')].find(e => !e.children.length && /^©\s*Alkimi/.test((e.textContent||'').trim()))
+let foot = copy; while (foot && !/^(Desktop|Tablet|Mobile)$/.test(foot.getAttribute?.('data-framer-name')||'')) foot = foot.parentElement
+const det = foot.querySelector('[data-framer-name="Details"]')
+```
+
+That names the footer *and* its resolved breakpoint variant in one step, and every later query is
+scoped inside it. Same family as the `Link Wrapper` that matched the footer sitemap when the
+hamburger was being probed — **on this site a layer name is a hint, never a selector.**
+
+**Verified live on three widths and two pages**, by what paints rather than by markup:
+
+```
+desktop 1536  pad 100px 14px 14px   rows 14..14   logo 14   "© Alkimi 2026" 14 · "Made in The Shire" 526 · "Back to top" ends 14
+tablet   900  pad 100px 15px 14px   rows 15..15   logo 15   three leaves, stray comma leaves = 0
+phone    390  pad  60px 15px 15px   Details 15..15  logo 15  stray comma leaves = 0
+/products tablet                     rows 15..15   logo 15   stray comma leaves = 0
+```
+
+A cropped capture of the strip confirms it by eye: `© Alkimi 2026 · Made in The Shire · Back to top`,
+no trailing comma. The phone logo is still flush at 15, so the morning's `stackDistribution` fix
+survives.
+
+**Left alone deliberately: the DESKTOP footer margin is still `14px` against the page's `15px`.** It
+was measured as invisible when the defect was first recorded, and changing it was not part of either
+finding. One character on the Desktop variant if it should match the other two.
