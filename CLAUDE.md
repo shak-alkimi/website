@@ -7296,3 +7296,43 @@ bytes at the 17:38 build. **If it comes back byte-identical, the page was not re
 documented editor round trip (change a page-level property to a value equal to what is already live, then
 back) to force it dirty. If it grew, the change shipped and the counter was simply wrong again — which this
 file already records it being, in both directions.
+
+### PUBLISHED AND VERIFIED LIVE 2026-10-20 (build `18:07:53 GMT`) — the fill fires at 40px on all three breakpoints
+
+`/contact` went **`215,632` -> `215,992`** (+360 bytes), byte-stable across three fetches, and the markup now
+carries `id="contact-nav-state"`. **So the page DID rebuild and the pending counter was wrong again** — it
+read `1` on three independent sessions with the single entry `{}`, i.e. blind to a change that shipped. That
+is the second direction this counter has now failed in, and it means **`getUnpublishedPageChanges()` cannot
+be used as a pre-publish gate in either direction: an empty count is not "nothing to publish", and a
+non-empty one is not "something of mine is pending".** The byte count remains the only authority.
+
+**The arithmetic holds on every breakpoint**, swept at `0 / 20 / 30 / 35 / 39 / 40 / 41 / 45 / 60 / 120 / 196 / 700`
+with the trigger measured at docY `140` each time:
+
+| | transparent through | fills from | back at top |
+|---|---|---|---|
+| desktop | 35 | **39** | `Nav white` transparent |
+| tablet | 39 | **40** | `Nav white` transparent |
+| phone | 39 | **40** | `Navigation Transparent White` |
+
+Desktop tipping at 39 rather than 40 is a sub-pixel rounding boundary, not a different configuration.
+
+**!!! A VARIANT SWAP AND ITS COLOUR FADE ARE NOT IN LOCKSTEP — sample the settle, not one frame !!!** Reading
+the phone's return at a single 1800ms mark gave `Navigation Transparent White` with
+`background: rgba(117, 117, 117, 0.792)` — the right variant painted in a mid-fade grey, which reads as a
+defect. Sampling at `600 / 1500 / 3000 / 5000` ms shows what is actually happening: at 1500ms the
+`data-framer-name` had **already flipped** while the paint was still `rgb(0, 0, 0)`, and it reaches
+`rgba(255, 255, 255, 0)` by 3000ms. **The name is the first thing to change and the colour is the last, so a
+probe that reads both at one instant can report a combination that never exists at rest.**
+
+**The screenshots prove the revert where the DOM only asserts it — but only on phone.** `ph_rest.png` and
+`ph_back.png` are **byte-identical** (`b557d2cf…`), with the scrolled frame plainly different. **The desktop
+pair is also byte-identical and proves nothing**, because `/contact` is black at the top, so a transparent bar
+and a black bar render the same pixels — which is exactly the argument that made the original one-way effect
+look free. **Pick the breakpoint whose backdrop can actually show the difference when verifying by image.**
+
+No other page moved: `/` still `Hide` + `Nav white`, and `/about`, `/news`, `/products`, `/privacy`, `/404`
+all still `Hide black`. Home is byte-identical at `279,198` with its full sweep passing — 11x
+`aspect-ratio:1.17458` with 0 stale `1.180xx`, both Elements ratios, 2 hero overlays, `#f7f6f2` 2 with
+`#f6f4f0` 0, `Methodology` 2 with 0 stale `View Case Study`, `lossless=1` 0, badge 0, 58 Gellix,
+`href="./about"` 5, `projects-list` 0.
