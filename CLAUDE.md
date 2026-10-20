@@ -7454,3 +7454,97 @@ exists to eliminate.
 being wrong. **Measure rest -> fire point -> scrolled -> back on the published page; three states
 plus a threshold, because two states cannot see a missing revert and no state can see a wrong
 threshold.**
+
+### HOME NOW MATCHES THE OTHER 24 SURFACES — 27 of 27 fire at 40px (2026-10-20, PUBLISHED AND VERIFIED LIVE)
+
+Home was the one deliberate exception left by the site-wide standardisation, and it was inconsistent
+**with itself**: it fired at ~30 on desktop, ~120 on tablet and **never on phone**. All three now rest
+transparent, fill at exactly **40px** and revert.
+
+**Two separate causes, and only one of them was the recorded one.**
+
+- **Desktop and tablet** were on anchor **`#projects`** with **`Viewport: middle`**. `#projects` sits at
+  the foot of a `100vh` hero, so its `docY` *is* the viewport height — which is why the fire point moved
+  with the window and the two breakpoints could never agree.
+- **Phone's effect was DANGLING** — `Section: Select…` and `To: Set variant…`, **both unset**. The effect
+  existed and pointed at nothing, which is why phone had no transition at all. Same inherited-orphan shape
+  already found on `/privacy` and `/404`. **An effect that exists is not an effect that is wired; read its
+  `Section` and `To`, not just its presence.**
+
+All three repointed to **`#home-nav-state`** (the 1x1 trigger layer at `top 140px`, `Offset Y 100`, so
+`140 - 100 = 40`) with `Section in view / Viewport top / Replay Yes / To Fill White`.
+
+**!!! MY OBJECTION TO 40px ON HOME WAS WRONG, AND I HAD ALREADY SAID SO ONCE !!!** I argued a solid white
+bar would sit across the dark hero video. Desktop was *already* filling at ~30 and tablet at ~80, both deep
+inside the hero, so the behaviour I was warning against was the behaviour Shak had been looking at. More to
+the point, **`#projects` is viewport-dependent by construction, so no setting of it delivers consistency** —
+"make Home consistent" and "adopt the 40px standard" were the same change, not two options.
+
+**THE FIRE POINT IS THE VIEWPORT CHECK, AND IT IS BETTER THAN A SCREENSHOT.** The Viewport segmented control
+has **no DOM signal** — all three icons report identical colour, opacity and fill — so the editor can only be
+read by zooming. But the arithmetic is diagnostic: `top` fires at `140 - 100 = 40`, while `middle` would fire
+at `140 - 100 - vh/2`, i.e. **negative and therefore filled at rest**. Measuring the threshold live proves the
+setting on every breakpoint at once:
+
+| scroll | all three breakpoints |
+|---|---|
+| rest, 20, 30, 35, 38 | `Nav white` · `rgba(0,0,0,0)` |
+| **40** | **`Fill White`** — the name flips first, paint still transparent |
+| 45, 60 | `rgba(253, 253, 253, 0.99)` — caught mid-fade |
+| 120, 900 | `rgb(255, 255, 255)` |
+| back to 0 | `Nav white` · transparent |
+
+**THE CASCADE WORKED THIS TIME AND STILL MUST NOT BE ASSUMED.** Writing Desktop carried **both** `Section`
+and `Viewport` to Tablet — against four prior occasions where `Section` specifically did not — while **Phone
+needed everything set explicitly**, because its effect targets the same component through a different
+instance and had never been wired. The rule is unchanged: **the cascade is real but not uniform, so read all
+three.**
+
+**Phone rests on a different variant from desktop and tablet, and that is correct.** Its instance `variant`
+is **`Nav white`** where the other two are **`Hide`** — Home uses the *desktop* `Navigation` component on all
+three breakpoints (the documented exception), and phone simply skips the `Hide -> Nav Load -> Nav white`
+appear chain. Both paths rest transparent and both fill to `Fill White`, so the end behaviour matches.
+
+**!!! `agent.publish({ action: "preview" })` NAMES THE PENDING CHANGE — `getUnpublishedPageChanges()` DOES
+NOT !!!** That counter had been returning a single opaque `{}` entry all day, unattributable and present
+before and after every publish, and this file records it as "not attributable to anything outstanding".
+The preview resolves it in one call:
+
+```json
+"changes": [ { "type": "WebPage", "nodeId": "augiA20Il", "name": "Home", "status": "updated" } ],
+"changesCount": 1, "confirmationHash": "skfavt"
+```
+
+It was Home the whole time. **Use the publish preview, not the counter, to find out what is pending** — it
+returns page names, errors and warnings, and hands back the hash that `action: "confirm_publish"` needs.
+It also states `publishTarget`, which is how to confirm a publish cannot reach `www.alkimiworks.com`
+(that domain is served by `Alkimi (teaser)`; this project's production URL is the staging app host).
+
+**!!! A BYTE-IDENTICAL PAGE IS NOT ALWAYS THE "NEVER REBUILT" SIGNATURE !!!** Home published at **`279,553`
+bytes before and after**, with a **fresh `Last-Modified`**. A scroll-effect's configuration lives in the
+**JS chunk**, not the page markup — the same thing already seen with the divider variant renames. **Pair the
+byte count with `Last-Modified`, and check the artifact the change actually lives in**, or a correct publish
+reads as a failed one.
+
+**THE EDITOR UI STOPPED RE-RENDERING ENTIRELY, WHICH IS WORSE THAN THE RECORDED CANVAS FREEZE.**
+`Page.captureScreenshot` timed out repeatedly, **and** the properties panel stopped following the selection —
+it kept reporting `Phone` while both a real `computer left_click` and synthetic pointer events were landing on
+the Desktop row. JavaScript kept running throughout (`3294` divs, `readyState complete`), and **a full reload
+did not clear it**. The recorded freeze is a *capture* problem; this was the whole interface. **When the panel
+stops following selection, stop driving the editor and verify through the published page instead** — which
+here was the better evidence anyway.
+
+**A probe trap worth avoiding: `data-framer-name="Navigation"` is the instance WRAPPER and never changes.**
+A first sweep read it and reported `Navigation / transparent` at every scroll position on every breakpoint,
+which looks exactly like an effect that never fires. The variant root sits *inside* it. **Filter on the
+component's own variant-name set** (`Nav white`, `Fill White`, `Hide`, …) rather than on the layer name.
+
+Note the `To` dropdown lists **two entries named `Nav white`** — the long-standing duplicate on
+`Navigation Desktop`. `Fill White` is unique, so matching by text was safe here, but **count the matches
+before taking the first**.
+
+Full Home regression sweep passes on the new build, every expectation re-derived from it: 11x
+`aspect-ratio:1.17458` with 0 stale `1.180xx`, both Elements breakpoint ratios, 2 hero overlays at
+`rgb(8, 2, 0)`, `#f7f6f2` 2 with `#f6f4f0` 0, `Methodology` 2 with 0 stale `View Case Study`, `lossless=1` 0,
+badge 0, 58 Gellix refs, `href="./about"` 5, `projects-list` 0, orb byte-exact at `4,280,052` and hero video
+at `4,009,893`.
