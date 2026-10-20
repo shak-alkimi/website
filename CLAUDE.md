@@ -7656,3 +7656,72 @@ Elements ratios, 2 hero overlays, `#f7f6f2` 2 with `#f6f4f0` 0, `Methodology` 2,
 **`Navigation Mobile` is now unused on every page** — all 27 instances hidden. The component and its four
 variants (including `Navigation Transparent Black`, created for `/about` two days ago) remain in the
 project, so this is one attribute per page to reverse.
+
+### The Office/Lab second line now sits on the email baseline — one new text style, and a half-leading correction (2026-10-20, PUBLISHED AND VERIFIED LIVE)
+
+Shak: *"increase spacing for office and lab 2nd line to match rfi and rfq email address"*.
+
+**THE FOUR COLUMNS USE TWO DIFFERENT MECHANISMS TO STACK TWO LINES, WHICH IS WHY THEY DISAGREED:**
+
+| | structure | what sets the pitch | pitch |
+|---|---|---|---|
+| Office / Lab | **one `<p>` with a `<br>`** | the preset's `line-height` | **14** |
+| RFI / RFQ | **two `<p>`s in two `Details Row`s** | the `Details` stack's own gap | **24** |
+
+So the addresses were never "spaced too tightly" by a gap value — there is no gap between them to change. The
+only lever on a `<br>`-separated pair is **line-height**.
+
+**THE PRESET IS UNTOUCHABLE: `Body Tag` (`SJt7fXVzX`) HAS 60 USES PROJECT-WIDE**, including the
+`Customer Service` and `Estimating` lines in the very columns being matched. Editing it would have moved the
+target as well as the thing being moved.
+
+**AND A TEXT NODE EXPOSES NO `lineHeight`** — only `font` and `inlineTextStyle` (a live `TextStyle`). Direct
+text formatting is the documented API blind spot. So the only scriptable route is a **new text style**:
+**`Body Tag - Address` (`jkeGErSLz`)** — a copy of `Body Tag` at `lineHeight: 24px`, assigned to the six
+address text nodes (2 columns x 3 breakpoints).
+
+**!!! RAISING LINE-HEIGHT ALONE IS NOT ENOUGH — HALF-LEADING MOVES LINE 1 DOWN BY `(new - old) / 2`. !!!**
+At `24px` the first line dropped `14 -> 19px` below the heading, i.e. **+5px**, breaking the one alignment all
+four columns already shared. Compensated by taking the two address `Column`s' gap **`18px -> 13px`**, which is
+the same 5px back. Both halves are required; either alone is a regression. Verified live — `gapTitleToLine1`
+is **16 on all four columns at every breakpoint**, so the heading relationship is untouched and only the second
+line moved.
+
+**THE PRESET'S COLOUR IS IRRELEVANT HERE, AND THE PUBLISHED MARKUP IS WHAT PROVED IT.** `/contact` is black
+with white text while `Body Tag` carries `color: rgb(0, 0, 0)` — because the white is an **inline
+`--framer-text-color` override on the `<p>` itself**, not inherited from the preset. Checking that before
+writing is what stopped a plausible black-on-black ship. The new style was still given `rgb(255, 255, 255)` as
+defence, so it is correct whether or not the inline override survives a preset swap. It did survive, and
+Framer re-emitted it **per `<span>`** around each line.
+
+**`createTextStyle` takes `color: ColorStyle | string` and `font: Font`** — borrow the live `Font` off the
+style being copied **in the same `exec`**, and pass only the base `font` (the bold/italic slots on these
+styles are a mismatched family and are rejected).
+
+**!!! A GLOBAL PRIOR-STATE GUARD CANNOT ALSO SERVE AS THE IDEMPOTENT RE-RUN CHECK — mine aborted, and the
+abort WAS the confirmation. !!!** The script refused to write unless all six nodes read `SJt7fXVzX` and all six
+Columns read `18px`. Re-issuing it afterwards aborted with `ABORT: zVvokwyVl style is jkeGErSLz` — which is
+evidence from the live document that the write landed, but it short-circuits before reaching the per-item
+`ALREADY` branches, so the other eleven nodes went unconfirmed by that run. **Put the prior-state test
+per-item rather than up front if the script is to double as its own verifier**; a separate read-only pass was
+needed here instead (it returned 6 x `gap=13px`/`jkeGErSLz` and 6 x `gap=18px`/`SJt7fXVzX`, the email columns
+correctly untouched).
+
+**!!! `browser_run_code_unsafe` FAILED ALL SESSION WITH `TypeError: __fn__ is not a function` ON THE
+DOCUMENTED `async (page) => {...}` SHAPE. !!!** Three attempts, varying the body each time. The fallback is the
+dedicated `mcp__playwright__browser_navigate` / `browser_evaluate` / `browser_resize` / `browser_take_screenshot`
+tools, which work — **but their file access is confined to the workspace root**, so the recorded advice to
+"pass an absolute path" is not available: `C:\...\scratchpad\x.png` is refused as *"outside allowed roots"*.
+They write into **`.playwright-mcp/` in the repo** (a YAML snapshot per navigation, plus any screenshot).
+**Copy what you need out, `rm -rf .playwright-mcp`, and confirm `git status` is clean** — this is the stray-file
+hazard already recorded for `page.screenshot`, now unavoidable rather than merely easy to trigger.
+
+Measured on the published page (`195,569 -> 197,110` bytes, byte-stable over three fetches, fresh
+`Last-Modified`): all four columns read lines at **`[237, 261]`, pitch 24**, on desktop, tablet and phone, with
+phone stacking correctly at the same pitch. Confirmed by eye as well — a capture of the block shows
+`New York, NY 10016`, `Ridgewood, NY 11385`, `orders@alkimiworks.com` and `quotes@alkimiworks.com` on one
+baseline.
+
+**Note the layer name still reads `Tommy Jacobson` on all four address/label text nodes** — stale Ora naming,
+already recorded, and the reason these columns must be identified structurally (the address ones are the
+`Column`s whose `Details` holds **one** `Details Row`, not two).
