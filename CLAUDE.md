@@ -8012,3 +8012,94 @@ investigating a small unexplained delta**, and confirm with the content sweep (w
 here: 11x `1.17458`, 0 stale `1.180xx`, both Elements ratios, 2 hero overlays, `#f7f6f2` 2 /
 `#f6f4f0` 0, `Methodology` 2, 0 stale `View Case Study`, `lossless=1` 0, badge 0, 58 Gellix,
 `href="./about"` 5, `projects-list` 0, orb byte-exact at `4,280,052`, footer links 3/3).
+
+### Phone footer verified — correct, with one layout observation (2026-10-20)
+
+Checked at **five widths** (320 / 360 / 390 / 393 / 430) on **four pages** (`/`, `/about`, `/news`,
+`/products`). Everything functional is right.
+
+```
+390x844, identical on all four pages
+footer 0-390, padding 60px 15px 15px, height 657
+  Row Top      60..194  (h134)   Contact / Let's start a conversation / subtext / Get in touch
+     gap 90
+  Row Bottom  284..512  (h228)   logo 299..322 | Sitemap 299..313 .. Privacy 494..508
+     gap 120
+  Details     632..642  (h10)    © Alkimi 2026 | Made in The Shire | Back to top
+```
+
+- **All three rows at `15..15` at every width tested**, logo flush at `15`, `docOverflowX` **0**.
+- **Zero clipping on all 15 rendered leaves** at every width, measured as ink extent
+  (`Range.getClientRects()`) against each leaf's nearest `overflow: hidden|clip` ancestor.
+- **No comma leaf anywhere**, and the Follow column is correctly absent — 7 sitemap links plus the
+  heading.
+
+**THE FOOTER IS GENUINELY RESPONSIVE, AND PROVING THAT NEEDED ABSOLUTE EDGES RATHER THAN OFFSETS.**
+The first sweep returned **byte-identical geometry at all five widths** — logo `15..142`, sitemap at
+`157`, height `657`, rows `15..15` — which is exactly what a stale render would also produce, so it
+could not be accepted as-is. Re-measuring absolute rects settled it:
+
+```
+vw 320   footer 0-320   rows 15-305 (w290)   Back to top 239-305
+vw 390   footer 0-390   rows 15-375 (w360)   Back to top 309-375
+vw 430   footer 0-430   rows 15-415 (w400)   Back to top 349-415
+```
+
+The identical offsets were correct: `Left Content` is `fit-content` (the 127px logo) with a fixed
+15px gap, so everything on the left is width-invariant **by design** and only the right edge tracks.
+**A suspiciously invariant measurement is worth one confirming probe in absolute coordinates** — the
+cost is one call and it distinguishes "correct by construction" from "never re-laid out".
+
+**!!! EVERY SCREENSHOT AND PAINT-STACK PROBE FROM THIS PLAYWRIGHT PROFILE CARRIES FRAMER'S "EDIT
+CONTENT" PENCIL — A 30x30 FIXED BUTTON AT `z-index: 2147483647`. !!!**
+
+A circular pencil control appeared at the right edge inside the footer band, and
+`document.elementsFromPoint(365, 422)` returned it as the **topmost element**:
+
+```
+BUTTON#__framer-editorbar-button   30x30 at 350,407   bg rgba(34,34,34,0.8)
+DIV#__framer-editorbar-container   position: fixed    z-index: 2147483647
+```
+
+**It is not ours and visitors do not see it.** It is absent from the served HTML on every page (0
+occurrences of `__framer-editorbar` or `Edit Content`) and is injected client-side by
+**`https://framer.com/edit/init.mjs`**, Framer platform code the published page loads. The gate is
+`localStorage['__framer_force_showing_editorbar_since']`.
+
+**The control that settled it: load a Framer site we do NOT own.** The stock Ora template
+(`energized-personalization-419445.framer.app`) renders the identical button in this browser — so it
+is a property of the profile, not of our project, and nothing about it is evidence about our footer.
+Same technique as using `Alkimi (teaser)` to prove the Framer outage was platform-wide.
+
+**The hazard to remember is the measurement one, not the cosmetic one:** that button sits at a fixed
+viewport position with the maximum possible z-index, so it is returned as the topmost element by any
+`elementsFromPoint` / `elementFromPoint` probe near `(~365, ~410)` and appears in every screenshot
+taken through this profile. **A paint-stack check that lands there will report "something is covering
+my element" and be right about the pixel and wrong about the cause.**
+
+**ONE LAYOUT OBSERVATION, RAISED NOT ACTED ON — 190px of empty left column under the wordmark.**
+`Row Bottom` is a two-column row whose left column is one 23px logo and whose right column is an
+8-line sitemap, so the row is 228px tall and the left half is empty below `y 322`:
+
+```
+logo          299..322   (23px tall)
+sitemap       299..508   (209px tall, Sitemap heading through Privacy)
+empty left column under the logo:  190px
+```
+
+Nothing is broken and it is the same structure that reads correctly on desktop and tablet, where the
+row is wide. On a 390px phone it reads as a large void beside the links. **Two obvious options if it
+should change — stack the logo above the sitemap on Mobile, or vertically centre it in the row** —
+both one attribute on the Mobile variant. Not touched; it is a design call.
+
+**Also worth knowing: the CTA heading has only 9px of headroom at 320px.** "Let's start a
+conversation" measures **281px of ink** against a **290px** content box at `vw 320` (and 49px spare at
+360). One line at every width tested, so it is correct today — but it is the tightest fit in the
+footer, and longer copy or a larger accessibility text size would wrap it.
+
+**CORRECTION — `browser_run_code_unsafe` WORKS. The 2026-10-20 note saying it "failed all session"
+with `TypeError: __fn__ is not a function` was situational, not permanent.** The documented
+`async (page) => {...}` shape ran fine here and did a five-width, fresh-context-per-width sweep in a
+single call. It also reaches `page.context().browser().newContext()`, which the dedicated tools
+cannot — so the fresh-context-per-breakpoint rule **is** available through it, contrary to the
+earlier note. Prefer it for any multi-width sweep; fall back to the dedicated tools if it errors.
