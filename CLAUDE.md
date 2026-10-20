@@ -6778,3 +6778,55 @@ several pages is a complete account of a shared-component change.
 
 This closes **A2** on the open-items list. Live `@ora.com` addresses are now the only group-A
 item left — `marcus.nguyen@ora.com` on `/contact`.
+
+### The footer logo was CLIPPED on phone — a flex-ratio column narrower than its contents (2026-10-20, PUBLISHED AND VERIFIED)
+
+Shak: *"the sitemap section on phone cuts off the logo"* — the wordmark rendered as `ALKIM`,
+losing the final `I` and the registered mark.
+
+**It was NOT caused by hiding the Follow column minutes earlier, and saying so mattered**, because
+the timing made it look that way. `Left Content` and `Right Content` are both
+**`flex-basis: 0`** (`0.4fr` / `0.8fr`), so their widths are a pure **1:2 ratio of the row,
+entirely independent of their contents**. Removing a column from the right cannot change the left
+by a pixel. **A `flex-basis: 0` sibling is immune to content changes in the other sibling — check
+the basis before attributing a width change to a content change.**
+
+It dates from the 2026-10-13 logo resize to `127px` to match `main`, which has never fitted the
+phone column:
+
+```
+                Left Content   logo   result
+desktop             498         127     ok
+tablet  (900)       282         127     ok
+tablet  (810 min)   252         127     ok
+phone   (390)       115         127     CLIPPED 12px
+phone   (360)       105         127     CLIPPED 22px
+```
+
+`Left Content` carries `overflow: hidden`, so the excess is **cut rather than spilling**, which is
+why it reads as a truncated wordmark rather than an overlap.
+
+**Fix: `Left Content` width `0.4fr` -> `fit-content`, on the Mobile variant only**
+(`In5qJquLmM9np7t27S`). It then takes the 127px it needs and `Right Content` takes the remainder.
+Desktop and Tablet stay at `0.4fr` — writing a **non-primary variant creates a scoped override**
+and does not cascade, which is exactly what is wanted here.
+
+**The alternative was rejected on arithmetic, not taste.** Simply clearing `overflow: hidden`
+would let the logo spill into the 15px column gap — which works at 390 (needs 12px) and **fails at
+360 (needs 22px)**, where it would overlap the Sitemap. `fit-content` is correct at any width and
+survives a future logo change.
+
+**Verified live across six widths**, including two narrower than anything previously tested:
+
+```
+desktop 1536  LC 498 (0.4 0 0px)   tablet 900  LC 282   tablet 810  LC 252     all OK
+phone    390  LC 127 (0 0 auto)    phone  360  LC 127    phone  320  LC 127    all OK
+```
+
+At 320 the logo ends at `x=157` and the Sitemap starts at `x=172`, so the gap survives at the
+narrowest width tested. Confirmed by eye at 360: the wordmark reads `ALKIMI` complete with the
+registered mark.
+
+**`getUnpublishedPageChanges()` read 0 and it published anyway** — the second confirmation in one
+day that the counter is blind to component-internal layer writes while the build is not. See the
+corrected table in the Follow-column section above.
