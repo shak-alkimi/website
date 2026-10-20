@@ -6879,3 +6879,58 @@ paints, confirmed by the leaf-element paint test rather than by grep:
   the markup cannot distinguish content from layer names and serialised payload.
 
 **Group A on the open-items list is now empty** — nothing on the live site is outright wrong.
+
+### THE MENU DIVIDER STAGGER HOLE IS CLOSED (2026-10-20, NEEDS A PUBLISH)
+
+When Projects left the nav on 2026-10-14 the row **and its paired `Line`** were hidden together —
+correctly, so the 60px pitch and the even sub-pixel phase survived. What did **not** survive was
+the cascade timing: the surviving divider variants are **1, 2, 4, 5, 6**, whose delays were
+`0.2 / 0.35 / 0.65 / 0.8 / 0.95`, so the gap between the 2nd and 3rd rendered line was **300ms**
+against 150ms everywhere else.
+
+Three `Delay` edits on `Global / Line Animation Global` (`lw0LfyniE`):
+
+| variant | was | now |
+|---|---|---|
+| `Line Mobile Menu 4 Active` | `0.65` | **`0.5`** |
+| `Line Mobile Menu 5 Active` | `0.8` | **`0.65`** |
+| `Line Mobile Menu 6 Active` | `0.95` | **`0.8`** |
+
+Final sequence `0.2 / 0.35 / 0.5 / 0.65 / 0.8` — **uniform 150ms**. `Time 1.2` and the Bezier
+`0.65, 0, 0.13, 1` are untouched on all five, so the draw duration and easing are unchanged; only
+the stagger moved. **Desktop and mobile share these variants**, so one edit covers both
+breakpoints — which is also why this could not be scoped to one.
+
+**I RE-PROBED THE API BEFORE ACCEPTING "EDITOR ONLY", AND THAT IS WORTH THE ONE `exec`.** A full
+key dump of `Line Mobile Menu 4 Active` returns `__class, aspectRatio, backgroundColor, … zIndex`
+with **no `transition` / `delay` / `duration` / `ease` key at any depth**. So variant transitions
+join appear effects, vectors, CMS bindings, conditional visibility and canvas text on the
+blind list. The recorded verdict was right, but a verdict built on one failed attempt has been
+wrong here before (`variant` controls), so re-probing is cheap insurance.
+
+**`Line Mobile Menu 3 Active` still carries `0.5`, now equal to Menu 4 Active. Leave it.** Its row
+is hidden, so it never renders and the duplicate is invisible. **If Projects ever returns to the
+nav, this renumbering has to be undone along with the `01-05` row labels** — the two are a pair,
+and both are editor work.
+
+**THE DELAY FIELD IS THE DOCUMENTED SILENT-FAILURE CASE, SO EVERY EDIT WAS RE-READ ON A FRESH
+POPOVER.** Reading an input's `value` back is worthless here — the field happily reports what you
+typed while the app state never took it. The reliable check is to **close the popover, re-select
+the variant, re-open Transition, and `zoom` the rendered field**, with the cursor parked away from
+it (the pointer graphic sits exactly over the value and twice looked like an empty field). All
+five were confirmed that way.
+
+**Driving it:** deep-link the component, Layers, select the variant row by synthetic pointer
+events, click the **Style** tab, scroll the panel down ~10 ticks, click the **Transition** chip,
+then `triple_click` the Delay field and type. **The chips need a real `computer left_click`** —
+synthetic events work on layer-tree rows and not on Style-panel popovers, the split already
+recorded for the Appear-effect chips.
+
+**`getUnpublishedPageChanges()` returns 1**, so these variant-property edits DO register as a page
+change and will ship on the next publish — unlike the `/404` instance `variant` write, which never
+did. That keeps the corrected table intact: **component-internal layer properties publish;
+instance `variant` controls do not.**
+
+**To verify live:** open the menu on a foregrounded tab and sample each divider's inner `Line`
+width with a `requestAnimationFrame` loop. Expect starts ~150ms apart across all five, with the
+same `+130ms` mount overhead the 2026-10-05 measurement found.
