@@ -7955,3 +7955,60 @@ survives.
 **Left alone deliberately: the DESKTOP footer margin is still `14px` against the page's `15px`.** It
 was measured as invisible when the defect was first recorded, and changing it was not part of either
 finding. One character on the Desktop variant if it should match the other two.
+
+### The DESKTOP footer margin follows to 15px — all three breakpoints now match the page (2026-10-20, PUBLISHED AND VERIFIED LIVE)
+
+Shak's call, closing the 1px discrepancy flagged when D was fixed. `100px 14px 14px 14px` ->
+**`100px 15px 14px 15px`** on the Desktop variant root. The footer's side margin now equals the page
+content margin on every breakpoint.
+
+| | before | after |
+|---|---|---|
+| Desktop | `100px 14px 14px 14px` | **`100px 15px 14px 15px`** |
+| Tablet | `100px 15px 14px 15px` | unchanged |
+| Mobile | `60px 15px 15px 15px` | unchanged |
+
+**!!! THIS WRITE TARGETED THE PRIMARY VARIANT, SO THE REAL RISK WAS A CASCADE ONTO MOBILE, WHOSE TOP
+AND BOTTOM DIFFER. !!!** A cascaded full padding string would have taken Mobile from
+`60px 15px 15px 15px` to `100px 15px 14px 15px` — phone top padding `60 -> 100` and bottom
+`15 -> 14`, a real regression invisible at desktop width. **It did not happen, because Mobile already
+carries its own override and an override is exactly what blocks a cascade** — but that was *predicted
+and then checked*, not assumed. The guard printed every variant's padding before and after and
+flagged any non-target that moved; the separate-`exec` read-back is what actually proves it, since
+the in-call reads are stale by construction.
+
+**!!! EVERY PAGE GOT 24 BYTES SMALLER, AND THE REASON IS THE INTERESTING PART. !!!** `14px` and `15px`
+are the same length, so the prediction was byte-identical pages with a fresh `Last-Modified` — the
+documented "the change lives in a same-length declaration" case. Instead all five dropped exactly
+`-24`. Reading the emitted CSS explains it:
+
+```
+.framer-7MSee.framer-12ty59o{ … padding:100px 15px 14px … }          <- base, now Desktop AND Tablet
+.framer-7MSee.framer-v-p4t8j6.framer-12ty59o{ … padding:60px 15px 15px }   <- Mobile, still scoped
+```
+
+**The Tablet override rule is GONE.** Tablet previously needed its own `padding:100px 15px 14px`
+against a base of `100px 14px 14px`; making the base equal to it deleted the override entirely.
+So: **bringing a breakpoint into line with the base does not merely change a value, it removes a
+rule — expect a page to shrink, not to stay the same size.** A byte drop after a padding change can
+mean an override was eliminated rather than that content left the page.
+
+**Verified live on all three widths** (page re-measured in a fresh context per breakpoint):
+
+```
+desktop 1536  pad 100px 15px 14px   Row Top / Row Bottom / Details all 15..15   logo 15  copyright 15
+tablet   900  pad 100px 15px 14px   all three rows 15..15                        logo 15  stray commas 0
+phone    390  pad  60px 15px 15px   Details 15..15                               logo 15  stray commas 0
+```
+
+and the footer's left edge now coincides with the page's own content column, read off `/about`'s
+sections in the same pass (`pageContentLefts: [0, 15]` — the `0` is a full-bleed section).
+
+**A 2-byte drift between two reads of the same build is the post-publish OPTIMIZER, not a content
+change.** Home read `278,148` seconds after publishing and `278,146` on three later fetches. The page
+carries `data-framer-page-optimized-at="2026-10-20T23:23:02.575Z"` — an optimization pass that lands
+*after* the build, so the first read caught the pre-optimized copy. **Check that attribute before
+investigating a small unexplained delta**, and confirm with the content sweep (which was identical
+here: 11x `1.17458`, 0 stale `1.180xx`, both Elements ratios, 2 hero overlays, `#f7f6f2` 2 /
+`#f6f4f0` 0, `Methodology` 2, 0 stale `View Case Study`, `lossless=1` 0, badge 0, 58 Gellix,
+`href="./about"` 5, `projects-list` 0, orb byte-exact at `4,280,052`, footer links 3/3).
