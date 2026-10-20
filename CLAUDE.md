@@ -7229,3 +7229,70 @@ Replay Yes` the variant is a pure function of scroll position**, so an explicit 
 a settle fully resets it — which `browser_run_code_unsafe` can do, where `browser.newContext()` is
 not available to it at all. **The rule still holds for one-way effects; it simply does not apply to
 a state with no memory.**
+
+### The `/contact` fill now starts at 40px — a dedicated trigger layer, and `Offset Y` is a SUBTRACTION (2026-10-20, NEEDS A PUBLISH)
+
+Shak asked for the fill to start sooner than the 196px the `#links` anchor gives. **The recorded claim that
+`#links` is "the earliest usable anchor" was true only of anchors that already existed** — a Scroll section
+is a property of any layer, so the real question was what layers sit above it. Measured: **nothing does.**
+`Section Contacts` spans docY 0-460 with `padding-top: 150`, so the 0-150 band is padding and holds no
+layer at all; the first child, `Container`, starts at 150. So the full set of candidates was `Container`
+(150), the 1px divider (150), and `#links` (196) — a best case of 150, which is 46px and not what was asked.
+
+**!!! THE SITE ALREADY HAD AN IDIOM FOR THIS AND `/contact` SIMPLY NEVER GOT ONE !!!** `/products` carries a
+**`Navigation Scroll Trigger`** — a `1px x 1px`, `position: absolute`, `top: 120px`, `left: 0` frame at
+`Main > Products Sections`, named `products-nav-state` — and `/about` has `Section Header - Trigger`, also
+1px. **Before inventing a mechanism, sweep the other pages for one**; a `[id]` dump of four pages found it
+in one pass.
+
+**Built by copying that layer rather than creating one**, because `createFrameNode` with a `parentId` is
+silently relocated to Home on a published page. Ctrl+C on `/products`, Ctrl+V onto `/contact`'s
+`Section Contacts` — **and the paste propagated to all three breakpoints by itself** (`VgjtCOv_F` plus the
+`lc_ppdu3J` / `sRIHrtJLm` copies).
+
+**!!! `Offset Y` ON A SCROLL SECTION IS SUBTRACTED FROM THE TRIGGER POINT — `fire = top - OffsetY` !!!**
+
+The paste carried the source's scroll-section config across, including **`Offset Y: 100`**, which I had never
+seen because nothing in this project had needed it. Measured on `/products` rather than guessed: its trigger
+sits at docY **120**, its `Offset Y` is **100**, and its nav fires at scroll **20**.
+
+**That measurement caught a defect before it shipped.** I had already set `top: 40px` intending a 40px fire
+point; with the inherited offset that is `40 - 100 = -60`, i.e. **true at rest** — the nav would have been
+black from the top and never reverted, which is precisely the defect this whole thread exists to remove.
+Corrected to **`top: 140px`**, giving `140 - 100 = 40`.
+
+**Offset Y was left at 100 deliberately.** Setting it to 0 and `top` to 40 is equivalent and reads more
+directly, but it costs an extra write into a panel number field — the documented silent-failure case — where
+`top` is scriptable and verifiable. **Prefer the arithmetic you can verify over the arithmetic that reads
+nicely.**
+
+| | value |
+|---|---|
+| layer | `Navigation Scroll Trigger`, `1px x 1px`, `absolute`, `left 0`, **`top 140px`** |
+| scroll section | **`contact-nav-state`** (renamed from the pasted `products-nav-state`), `Offset Y 100` |
+| effect | `Section in view / Viewport top / Replay Yes`, Section **`#contact-nav-state`** |
+| fires at | **40px**, reverting above it |
+
+**The rename matters beyond tidiness:** the pasted layer arrived still called `products-nav-state`, and the
+Section dropdown on `/contact` now lists **two entries named `#trigger`** (the dangling hidden one and
+`Section CTA`). **Select by index or by the option's `value`, never by text** — the option's value turned out
+to be the trigger node's own id (`VgjtCOv_F`), which is the cleanest possible confirmation that the effect is
+bound to the right layer.
+
+**PHONE DID NOT INHERIT THE SECTION; DESKTOP AND TABLET DID.** Setting Desktop cascaded to Tablet, but Phone
+still read `#links` and had to be set explicitly — it drives `Navigation Mobile`, a different component. That
+is the fourth time the `Section` reference specifically has not cascaded. **Changing only `Section` does NOT
+reset `To`** (both `Fill Black` and `Navigation Black` survived); the documented reset is caused by changing
+the trigger *type*.
+
+**!!! THE PENDING COUNTER DOES NOT SHOW THIS CHANGE, AND THAT IS UNRESOLVED !!!** `getUnpublishedPageChanges()`
+returns **1** on three independent sessions, and that single entry is `{}` with **no keys** — the phantom that
+has persisted across every publish today, not this edit. By the 2026-10-19 `/404` finding the counter is the
+**build input**, so a change it cannot see may never be built. But yesterday's `/contact` effect edit took it
+`1 -> 2` and did publish, so the counter is not uniformly blind to this page.
+
+**Do not try to out-reason it — the byte count after a publish is the authority.** `/contact` was `215,632`
+bytes at the 17:38 build. **If it comes back byte-identical, the page was not rebuilt** and the remedy is the
+documented editor round trip (change a page-level property to a value equal to what is already live, then
+back) to force it dirty. If it grew, the change shipped and the counter was simply wrong again — which this
+file already records it being, in both directions.
