@@ -7054,3 +7054,60 @@ and its paired `Line`, rename `5 -> 6`, `4 -> 5`, `3 -> 4` and the spare back to
 end of the chain first, i.e. the reverse of the order used here), and re-edit the six row-number
 text layers. **The spare's name records its original number precisely so that undo does not need
 this file.**
+
+### RENUMBERING PUBLISHED AND VERIFIED — the variant number now equals the row number (2026-10-20)
+
+Measured on the opened menu, each divider paired with the row **52px above it** rather than by
+list index:
+
+```
+Line Mobile Menu 1 Active -> Fixtures 01  ./products
+Line Mobile Menu 2 Active -> Elements 02  ./elements
+Line Mobile Menu 3 Active -> About    03  ./about
+Line Mobile Menu 4 Active -> News     04  ./news
+Line Mobile Menu 5 Active -> Contact  05  ./contact
+```
+
+Pitch `60 / 60 / 60 / 60`, all five `1506px`, **`Spare` renders 0 times** (its row is hidden, so it
+emits nothing). The chunk agrees: `Line Mobile Menu 6` and `6 Active` are **gone**, `1…5` each
+appear 2x idle + 3x Active, and the five transitions still read `delay .2 / .35 / .5 / .65 / .8`
+at `duration 1.2` — unchanged, as expected, since only names moved.
+
+**!!! THE BYTE DELTA RECONCILES EXACTLY, WHICH IS A COMPLETE ACCOUNT OF THE DIFF !!!**
+
+The chunk went `175,936 -> 176,020`, **+84**. `4->3`, `5->4` and `6->5` are all same-length renames
+contributing nothing; the only length change is `Line Mobile Menu 3` (18 chars) becoming
+`Line Mobile Menu - Spare (was 3)` (32), i.e. **+14 per occurrence**. `84 / 14 = 6`, and that name
+occurs exactly 6 times. **So nothing in the chunk changed except the eight names** — no need to
+diff 176KB of minified JS.
+
+It also corrected the baseline: the pre-publish count recorded 2 idle occurrences because it
+anchored on a trailing backtick, and the arithmetic says there were 3. **When a byte delta does not
+divide cleanly by the expected per-occurrence change, the occurrence COUNT is the thing to
+re-check, not the change.**
+
+**Home's HTML is byte-identical at `279,198` across three fetches** — exactly as predicted, because
+these names live only in the JS chunk. **A page byte-identical across a publish normally means it
+was never rebuilt**, which is the recorded failure signature; here it is the correct result, and
+the distinction is that the *chunk* changed. **Check the artifact the change actually lives in
+before reading a byte-identical page as a failed build.**
+
+**!!! PAIRING ROWS TO DIVIDERS BY LIST INDEX GAVE A GARBLED, CONFIDENT-LOOKING RESULT !!!** A first
+pass zipped the sorted anchors against the sorted dividers and reported `About 03 -> Menu 5` with
+gaps of `98`, `158`, `172` — which reads like the renumbering having gone wrong. It had not:
+**Home's own Fixtures and Elements category cards are anchors in the same y-range**, so the anchor
+list had 7 entries for 5 menu rows. Pairing on the measured `52px` offset instead resolved it
+immediately and unambiguously.
+
+That is this project's standing positional rule biting from a new angle: it usually appears as
+"do not infer row order from sibling index", and the same applies to **zipping two independently
+collected lists** — a list of "all anchors on the page" is not a list of menu rows. **Pair by a
+measured geometric relationship, never by position in two arrays.**
+
+`getUnpublishedPageChanges()` still reads **1** with an empty, unidentifiable entry, before and
+after this publish — unchanged and still not attributable to anything outstanding.
+
+Full Home sweep passes: 11x `aspect-ratio:1.17458` with 0 stale `1.180xx`, both Elements ratios,
+2 hero overlays, `#f7f6f2` 2 with `#f6f4f0` 0, `Methodology` 2 with 0 stale `View Case Study`,
+`lossless=1` 0, badge 0, 58 Gellix, `href="./about"` 5, `projects-list` 0, orb `4,280,052` and
+hero video `4,009,893` byte-exact.
