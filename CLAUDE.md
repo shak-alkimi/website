@@ -7336,3 +7336,121 @@ all still `Hide black`. Home is byte-identical at `279,198` with its full sweep 
 `aspect-ratio:1.17458` with 0 stale `1.180xx`, both Elements ratios, 2 hero overlays, `#f7f6f2` 2 with
 `#f6f4f0` 0, `Methodology` 2 with 0 stale `View Case Study`, `lossless=1` 0, badge 0, 58 Gellix,
 `href="./about"` 5, `projects-list` 0.
+
+### THE NAV FILL NOW FIRES AT 40px ON 24 OF 27 SURFACES — and the three exceptions are Home, deliberately (2026-10-20, PUBLISHED AND VERIFIED)
+
+Shak: *"now update the other pages to fire at 40px is for all 3 surfaces?"*, scoped by him to
+**"Everything, including phone"**. Measured on the published site, 9 pages x 3 breakpoints:
+
+```
+desktop   / (30)  /about  /products  /elements  /news  /contact  /terms  /privacy  /404     all <=40 except Home
+tablet    / (120) /about  /products  /elements  /news  /contact  /terms  /privacy  /404     all <=40 except Home
+phone     / (--)  /about  /products  /elements  /news  /contact  /terms  /privacy  /404     all <=40 except Home
+```
+
+Every one of the 24 rests transparent, fills by 40px and **reverts on scroll-up** (`Replay: Yes`).
+
+**THE PHONE WAS THE BIG CHANGE: six pages had NO transition at all.** `/products`, `/elements`,
+`/news`, `/terms`, `/privacy` and `/404` rested on **`Navigation White`** — a solid white bar from
+the top — so there was nothing to time. Each moved to **`Navigation Transparent Black`** at rest
+with a `Scroll -> Variant` effect filling to `Navigation White` at the page's own anchor.
+
+**Content clearance was checked BEFORE making them transparent, not after.** A transparent bar
+means content scrolls *under* it during the 0-40px window. Measured first content on each page:
+`/products` and `/elements` at docY **128**, `/news` 221, `/terms` and `/privacy` 180, `/404` 230 —
+against a 75px nav, so at the 40px fire point the nearest content sits at viewport 88. **Nothing
+can show through on any of them.** That one measurement is what made the change safe to make at
+all, and it cost one call.
+
+**!!! `/about` SHIPPED FILLED-AT-REST FOR ONE PUBLISH, AND THE CAUSE WAS `Viewport: middle` !!!**
+
+Repointing its Section to `#about-nav-state` turned the nav solid white at scroll 0, covering the
+top of its hero. The anchor and offset were identical to the pages that worked (`docY 140`,
+`Offset Y 100`), so the geometry was not the problem — **the effect was set to `Viewport: middle`,
+which every other page has on `top`.**
+
+```
+top     fire = anchorDocY - offsetY                    = 140 - 100       =   40
+middle  fire = anchorDocY - offsetY - viewportHeight/2 = 140 - 100 - 427 = -387   <- true at rest
+```
+
+**`middle` and `bottom` are viewport-HEIGHT dependent, so a value that looks sane on one window
+size goes negative on another.** That is the same hazard already recorded for choosing an anchor
+near the fold, now seen on the control rather than the anchor. **`Viewport: top` is the only
+height-independent setting; read it on every effect you touch, not just the Section.**
+
+**!!! THE `Section` REFERENCE DOES NOT CASCADE TO TABLET — now confirmed on FOUR pages in one
+pass. !!!** After the first publish, desktop was perfect and **tablet fired late on `/terms` (200),
+`/privacy` (200), `/404` (500) and `/about` (800)**. Opening each tablet instance showed it still
+on the **old** anchor (`#trigger`, `#trigger`, `#trigger`, `#section-header`). This file already
+said to treat `Section` as per-breakpoint; **four for four is now the evidence, and it should be
+read as "always set it explicitly on every breakpoint", never as "check whether it cascaded".**
+
+**!!! AND THE REASON I THOUGHT `/about` TABLET WAS ALREADY CORRECT: THE RIGHT PANEL'S OWN
+COMPONENT LABEL MATCHES THE LAYER-NAME REGEX AND SHIFTS THE INDEX. !!!**
+
+Selecting "the tablet row" with `rows.filter(name).sort(byY)[1]` picked **Desktop**, because the
+properties panel renders the selected layer's component path (`Navigation / Navigation Desktop`)
+as a leaf element too — at `x 1287`, which sorts into the middle of the three tree rows at `x 80`.
+So the read that reported tablet as `#about-nav-state` was a second read of Desktop.
+
+**The fix is one predicate: restrict to the tree column.**
+
+```js
+.filter(e => /Navigation \/ Navigation Desktop/.test(e.textContent.trim())
+          && e.getBoundingClientRect().x < 300)      // tree rows only, not the panel label
+.sort((a,b) => a.getBoundingClientRect().y - b.getBoundingClientRect().y)
+```
+
+**The tell is the match count changing with selection** — 3 rows with nothing selected, 4 with
+something selected. **Assert the expected count before indexing into a filtered list**; the same
+class of error as pairing two sorted lists by index.
+
+**TWO 4-OPTION SELECTS WITH IDENTICAL OPTIONS SIT IN THE SAME PANEL — discriminate by position,
+not by shape.** The Overlays `On open` variant and the component's own `Variant` both offer
+exactly `Navigation Transparent White / White / Black / Transparent Black`. A filter on
+"4 options containing Navigation Black" matched the **wrong one** on `/news`, where `On open` was
+already set. **Find the `Variant` label in the component section and take the select on its row:**
+
+```js
+const lbl = [...document.querySelectorAll('*')].find(e => !e.children.length
+  && e.textContent.trim() === 'Variant'
+  && e.getBoundingClientRect().x > 1280 && e.getBoundingClientRect().x < 1340);
+const v = selects.find(s => Math.abs(s.getBoundingClientRect().y + 15 - (lbl.getBoundingClientRect().y + 8)) < 14);
+```
+
+**The effect popover is likewise distinguished by x, and that check prevented a real mistake:** it
+opens at **`x ~1120`** while the panel sits at **`x ~1391`**, so a `Set variant...` in the panel is
+the overlay's `On open` — the **open-menu close button**, which must stay `Navigation White`.
+Setting it would have broken the menu on every page.
+
+**`End` is the whole keystroke for the resting variant.** `Navigation Transparent Black` is the
+**last** of four options, so focus the select and press `End` once — no counting, and `End` is
+inert if the click missed and focus went to the canvas, unlike arrow keys which reorder layers.
+
+**!!! THE SCREENSHOT-TO-CSS FACTOR CHANGED MID-SESSION AND A CLICK LANDED ON THE CANVAS. !!!** The
+frame went `1459x812 -> 1512x787` while `innerWidth` stayed `1536`, so the factor moved
+`0.9499 -> 0.9844`. **Derive `F = frameWidth / innerWidth` from the CURRENT screenshot on every
+call** — the constant is not a property of the session.
+
+**Inherited state found along the way, worth knowing because the three clones disagree:**
+`/privacy` and `/404` already carried a phone `Scroll -> Variant` effect with its Section left at
+**`Select...`** — configured and then orphaned — while `/terms`, cloned from the same page, had
+none at all. **Check for an existing effect before adding one**; a second effect on the same node
+would have been invisible until it fought the first.
+
+**HOME IS THE DELIBERATE EXCEPTION AND SHOULD NOT BE "FINISHED".** Its fill is tied to the dark
+hero ending (`#projects`), not to "has the user scrolled": at 40px a solid **white** bar would sit
+across the dark hero video for its whole height. Its trigger layer exists and is renamed
+`home-nav-state`, so the change is one dropdown away if that is ever wanted.
+
+**But Home is inconsistent across breakpoints and that IS worth raising:** it fires at **30 on
+desktop, 120 on tablet and never on phone**, because `#projects` sits at the foot of a `100vh`
+hero and therefore moves with the viewport. That is precisely what the fixed-pixel trigger layer
+exists to eliminate.
+
+**The verification that mattered was behavioural, not panel-reading.** The editor panel reported
+`/about` tablet as correct when it was not, and reported nothing at all about `Viewport: middle`
+being wrong. **Measure rest -> fire point -> scrolled -> back on the published page; three states
+plus a threshold, because two states cannot see a missing revert and no state can see a wrong
+threshold.**
