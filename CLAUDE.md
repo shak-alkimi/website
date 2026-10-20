@@ -6934,3 +6934,64 @@ instance `variant` controls do not.**
 **To verify live:** open the menu on a foregrounded tab and sample each divider's inner `Line`
 width with a `requestAnimationFrame` loop. Expect starts ~150ms apart across all five, with the
 same `+130ms` mount overhead the 2026-10-05 measurement found.
+
+### THE DIVIDER STAGGER IS LIVE AND VERIFIED FROM THE PUBLISHED JS — no rAF sampler needed (2026-10-20)
+
+Published and confirmed. **The decisive evidence is a grep of the page's own JS chunk**, which is
+cheaper, exact, and does not depend on animation frames:
+
+```
+{delay:.2,duration:1.2,ease:[.65,0,.13,1],type:`tween`}
+{delay:.35,…}  {delay:.5,…}  {delay:.65,…}  {delay:.8,…}
+```
+
+**Exactly five, uniform 150 ms, all `duration: 1.2` on the recorded bezier, and `delay:.95` is
+absent from the chunk entirely.** The dividers live in the single chunk that contains the string
+`Line Mobile Menu` — find it with `grep -l` across every `.mjs` the page references, then match
+`{delay:[0-9.]*,duration:1.2,ease:\[\.65,0,\.13,1\]}`.
+
+**A VARIANT TRANSITION IS COMPILED INTO THE PUBLISHED JS AS A PLAIN OBJECT LITERAL, SO IT IS
+STATICALLY VERIFIABLE.** This file has said repeatedly that variant transitions are invisible to
+the node API and that timing can only be confirmed by a human watching a foregrounded tab. The
+first half is still true; **the second half is not.** Numeric literals survive minification (the
+same reason the recorded bundle-scanning method works for overrides), so the delay, duration and
+easing of any variant transition can be read off the served chunk. **Reach for this before any
+animation measurement** — it answers "did the value ship" directly, where a sampler only infers it.
+
+**!!! `requestAnimationFrame` RUNS AT 2 FPS IN HEADLESS PLAYWRIGHT WHILE REPORTING
+`visibilityState: "visible"` AND `hasFocus: true` !!!**
+
+Measured directly: 2 callbacks in 1000 ms. The documented tell for a frozen rAF was
+`visibilityState === "hidden"`; **that predictor is wrong here, and in the more dangerous
+direction** — everything says the page is live and the frames simply do not come. A first sampler
+run collected **4 frames over 3,027 ms** and produced start times of `0,0,0,0,1020`, which reads
+like four dividers firing simultaneously. That is pure sampling artifact.
+
+**So: measure the rAF rate before trusting any frame-based measurement, and never infer it from
+visibility or focus.** Playwright's viewport emulation remains excellent for layout; it is not a
+timing instrument.
+
+**`browser_run_code_unsafe` takes `async (page) => {…}` — a bare script fails.** A top-level
+`const` or `return` raises `SyntaxError`, and an IIFE raises `__fn__ is not a function`; the body
+is invoked as `await (<your code>)(page)`. **`page` is provided; `browser`, `context` and
+`require` are NOT**, so a fresh browser context cannot be created from inside it — which matters
+because the recorded fresh-context-per-breakpoint rule cannot be followed there. Also
+**`waitUntil: 'networkidle'` times out on this site** (the hero video keeps the connection busy);
+use `domcontentloaded` plus a fixed wait.
+
+**The five dividers were independently confirmed from the opened menu**: a DOM query after a real
+Playwright click returned exactly `Line Mobile Menu 1/2/4/5/6 Active`, each reaching `1506px`.
+So the surviving set is right, the labels read `01-05`, and only the variant numbers still skip 3
+— which remains harmless and is the documented consequence of hiding Projects.
+
+**`getUnpublishedPageChanges()` RETURNED 1 BOTH BEFORE AND AFTER THE PUBLISH**, with an entry
+whose keys are empty. It is not attributable to this change and did not block it. **That counter
+has now been wrong in both directions on this project** — blind to changes that shipped, and
+reporting pending work that is not identifiable. **Treat it as a hint only; the published artifact
+is the authority.**
+
+Full Home sweep passes on the new build (byte-stable `279,198` across three fetches): 11x
+`aspect-ratio:1.17458` with 0 stale `1.180xx`, both Elements ratios, 2 hero overlays, `#f7f6f2` 2
+with `#f6f4f0` 0, `Methodology` 2 with 0 stale `View Case Study`, `lossless=1` 0, badge 0,
+58 Gellix, `href="./about"` 5, `projects-list` 0, orb `4,280,052` and hero video `4,009,893`
+byte-exact.
