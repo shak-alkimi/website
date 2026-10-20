@@ -6668,3 +6668,62 @@ box*, or the container's own `padding-bottom`, both of which gave 120 immediatel
 third artifact in two days from measuring the wrong quantity (after the horizontal stroke run and
 the downscaled ink bbox), and the common thread is the same: **the number was right about what it
 measured and wrong about what was being asked.**
+
+### The four unreachable pages are DRAFTED — published and verified 2026-10-20
+
+Shak: *"careers is not a live page - do not include any non-live pages in our to do list"*, then
+*"draft the careers and projects pages so they're not reachable"*.
+
+**Re-deriving the reachable set rather than acting on the one page he named found FOUR, not one.**
+Counting inbound `href`s across every published page:
+
+| page | inbound links from anywhere on the site |
+|---|---|
+| `/careers` | **0** |
+| `/projects/:slug` | **0** |
+| `/projects-grid` | 1 — only from `/projects-list` |
+| `/projects-list` | 1 — only from `/projects-grid` |
+
+The projects pair was a **closed loop with no entry point** — the toggle pill links them to each
+other and nothing else reaches either. That is the residue of removing Projects from the nav and
+the footer sitemap on 2026-10-14 and repointing the Home wide card at `/about` on 2026-10-15.
+**An orphaned page is not visible in any per-page check; only a site-wide inbound-link count finds
+one.**
+
+All four set `draft: true`. `/news/:slug` is a live CMS template and was the thing that must not
+be caught by a loose match, so the guard tested `TARGETS.includes(p.path)` on exact strings and
+refused to run unless all four resolved.
+
+**The listing printed inside the write call still read `draft=false` on all four** — the
+documented same-`exec` staleness, and it would read as a total failure. A **separate `exec` on the
+same session** showed all four `true`, a re-issued write answered `ALREADY` ×4, and
+`getUnpublishedPageChanges()` returned **4**. Drafting is a page-node property, so unlike an
+instance-control write it does mark the page dirty and genuinely ships.
+
+**Verified live after the publish:**
+
+```
+404:  /careers  /projects-grid  /projects-list
+      /projects/belmont-park  /projects/resorts-world  /projects/tuft-barber
+200:  /  /about  /products  /elements  /news  /contact  /terms  /privacy
+      /news/cauda  /news/kimi  /news/debut
+```
+
+**Zero dangling links** — every live page re-fetched and swept for `careers`, `projects-grid`,
+`projects-list` and `projects/` hrefs: **0 of each**. That was predictable from the inbound count
+being zero beforehand, which is exactly why the count was worth taking *before* drafting rather
+than discovering a dead link afterwards.
+
+**`sitemap.xml` dropped them automatically** and now lists exactly the twelve live surfaces. That
+closes the indexing side, which was the only real argument for drafting over simply unlinking —
+an unlinked but published page stays reachable by URL and indexable.
+
+**The `Projects` CMS collection is untouched** — 3 live items, 7 drafts. Drafting the template
+stops pages being generated; it does not delete content, so this is reversible with one attribute.
+
+**What this removed from the open-items list, and the reason it matters:** the two `/careers`
+items were carrying the **last two `ena-supply.b-cdn.net` videos on the site**, so that whole
+class of finding went to zero — not because anything was fixed, but because the page stopped
+being in scope. **Re-scoping is as legitimate a way to close a finding as repairing it, provided
+the scope change is itself verified** rather than asserted. Live `@ora.com` addresses likewise
+fell from two pages to one.
