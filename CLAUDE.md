@@ -7725,3 +7725,71 @@ baseline.
 **Note the layer name still reads `Tommy Jacobson` on all four address/label text nodes** — stale Ora naming,
 already recorded, and the reason these columns must be identified structurally (the address ones are the
 `Column`s whose `Details` holds **one** `Details Row`, not two).
+
+### The `/404` Return Home button removed — and the hide had to be compensated (2026-10-20, PUBLISHED AND VERIFIED LIVE)
+
+Shak: *"remove the return home button from the 404 page."* It is a page-level
+`Utilities / Primary Button` instance, one per breakpoint (`PI4P6PKft` + the `yWysTZn2M` / `frkqLd9KP`
+copies), carrying `XqpXZUGU6: "Return Home"` / `NhREodF7M: "/"`. **Hidden, not deleted** — the usual
+asymmetry, and it keeps the label and href recoverable. **It was the only `Return Home` button in the
+project**, confirmed by a walk of every page before writing, so nothing else could be affected.
+
+**!!! THE HIDE MOVED THE HEADING, AND THE PAGE'S OWN LAYOUT IS WHY. !!!**
+
+```
+Main > Container   h = 75vh (FIXED)   align-items: center   dir row (desktop/tablet), column (phone)
+         Left Content    h 145   "404" + "You're lost."
+         Right Content   h 150   gap 30   = Heading Wrapper 84 + gap 30 + button 36
+```
+
+`Container` is a **fixed `75vh`**, so unlike the project-page hides this could not change the page
+height or the footer gap. But it is `align-items: center`, so **each column is independently centred**:
+`(642-145)/2 = 248` and `(642-150)/2 = 246`. That near-equality is the only reason the small "404"
+label currently sits level with "You're lost." — it is a coincidence of the two heights, not an
+alignment setting.
+
+Hiding the button drops `Right Content` to 84, which recentres it to `(642-84)/2 = 279` — **the
+heading falls 33px while "404" stays at 248**, leaving the label floating detached above it.
+
+**Fix: `Right Content` padding `0px` -> `0px 0px 66px 0px`** (button 36 + gap 30), restoring its
+height so it centres exactly where it did. **One uniform value works on all three breakpoints**, which
+was measured rather than assumed — phone stacks vertically and moves *both* columns, but the shrink is
+the same 66px there, so the same compensation holds.
+
+Verified live, every value identical to the pre-change measurement:
+
+| | Left Content | Right Content | Heading Wrapper |
+|---|---|---|---|
+| desktop | 248 / 145 | **246 / 150** | **246** |
+| tablet | 303 / 145 | **302 / 146** | **302** |
+| phone | 230 | **259 / 144** | **259** |
+
+**!!! THE METHOD WORTH KEEPING: SIMULATE A HIDE IN THE LIVE DOM BEFORE PUBLISHING. !!!** Walk up from
+the element to the flex child of its stack parent, set `display: none`, and re-measure — a hidden Framer
+layer emits no markup, so that is layout-equivalent. It gave the exact 33px shift and the exact 66px
+delta **with no publish and no guesswork**, and a screenshot of the simulated state is what showed the
+detached "404" at a glance. This is the same family as the recorded class-swap trick for variants, and it
+should be the default move before hiding anything inside a stack.
+
+**Measure the SHRINK, not the element.** The wrapper's own `getBoundingClientRect().height` read `0`
+(the `ssr-variant` div collapses around an absolutely-positioned child), so sizing the compensation from
+the button would have given nothing. The authoritative number is the parent's height before minus after.
+
+**TWO READING TRAPS, both already in this file and both hit again:**
+
+- **The padding ships as `padding:0 0 66px`** — Framer normalises `0px` to `0` and drops the redundant
+  fourth value, so a grep for the literal written finds nothing. Match on the number.
+- **`grep -c` returning 0 EXITS 1 and aborts an `&&` chain**, so the padding check never ran and the
+  change looked unshipped. **Separate a count from the checks that follow it**, or use `|| true`.
+
+**The page dropped `~30KB` (`199,208` -> `169,259`) for one hidden button, and that is correct.**
+`Primary Button` now appears **0** times on `/404`, so the component's entire markup and all twelve
+variants' CSS left with it. **A byte delta far larger than the element suggests is the signature of a
+shared component leaving a page entirely** — worth recognising rather than treating as a red flag.
+
+The nav logo's `href="./"` remains and is now the only route home, which is the standard affordance on
+every page. Home is byte-identical at `279,553` and every other page matches its last-recorded size, so
+only `/404` rebuilt — as the publish preview named.
+
+**If the heading should instead recentre in the shorter box, delete that one padding value** — nothing
+else depends on it.
