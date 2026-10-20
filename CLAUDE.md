@@ -6830,3 +6830,52 @@ registered mark.
 **`getUnpublishedPageChanges()` read 0 and it published anyway** — the second confirmation in one
 day that the counter is blind to component-internal layer writes while the build is not. See the
 corrected table in the Follow-column section above.
+
+### `/contact` quotes column — A1 closed, and group A is now EMPTY (2026-10-20, PUBLISHED AND VERIFIED)
+
+Shak: *"change marcus email to quotes@alkimiworks.com"*, then edited the two text lines himself.
+
+**Live state of the contacts block:**
+
+```
+Office    Lab    RFI  | Customer Service | orders@alkimiworks.com
+                      RFQ  | Estimating       | quotes@alkimiworks.com
+```
+
+**The email is an instance CONTROL and was scriptable; the two text lines were not.**
+`Text Link / Text Link - Underline Reverse` instance `vOioQ5UFb` carries `m9pJu2SY2` (label) and
+`KRqq0kK1a` (href) — both already overridden, so the write was an UPDATE and landed first time.
+**Change both or the visible text and the `mailto:` disagree.** Writing Desktop cascaded to
+Tablet and Phone.
+
+**THE STALE LAYER NAMES PREDICTED THE RIGHT ANSWER.** The two columns are named `RFI` and `RFQ`
+while rendering "Information" and "Careers / Jobs" — so the Ora text had never been replaced on
+column 4, and the names recorded the intent. Offering `RFQ / Estimating` on that basis matched
+what Shak independently chose. **A stale layer name is useless as content but can be good
+evidence of what a layer was FOR** — the opposite conclusion from the seeding incident, where a
+name was wrongly used as a value.
+
+**`getUnpublishedPageChanges()` returned 2 for this instance-control write**, where the
+Follow-column write returned 0. So the counter is not uniformly blind to `controls`:
+
+| write | counter | published |
+|---|---|---|
+| page-level layer property | sees it | yes |
+| component-internal layer property | **blind** | **yes** |
+| page-level instance control (`m9pJu2SY2`, `KRqq0kK1a`) | **sees it** | yes |
+| page-level instance control **`variant`** (`/404`) | blind | **no** |
+
+**So `variant` looks like the genuine special case**, which was the original 2026-10-07 suspicion
+before it was generalised too far. Three of the four rows are now evidenced; treat `variant` as
+the one needing an editor round trip.
+
+**Verified across all 12 live surfaces:** `marcus` 0, `Marcus Nguyen` 0, `ena.supply` 0,
+`ena-supply` 0, and **zero RENDERED `@ora.com`**. Two strings survive in the payload and neither
+paints, confirmed by the leaf-element paint test rather than by grep:
+
+- `hello@ora.com` x1 in `/contact`'s hidden `Section Hero`
+- **`Tommy Jacobson` x4 — a stale `data-framer-name`**, on nodes whose real text is the address,
+  `Customer Service` and `Estimating`. Invisible, and another reminder that counting a string in
+  the markup cannot distinguish content from layer names and serialised payload.
+
+**Group A on the open-items list is now empty** — nothing on the live site is outright wrong.
