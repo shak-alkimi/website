@@ -6506,3 +6506,119 @@ exceed the `x1.85` ceiling at which four previous brightened drawings were rejec
 [briefs/2026-10-20-line-drawing-pen-spec.md](briefs/2026-10-20-line-drawing-pen-spec.md).**
 Framer-side work (flatten, square, size to the hierarchy, ink-normalise, upload, rebind, publish)
 is deliberately **not** delegated and waits for corrected files to land in `Web Ready v2`.
+
+### `Web Ready v2` ARRIVED — two of three asks landed, and the pen came back UNIFORM (2026-10-20)
+
+Twelve files, same `7009x4955` frame, dated 19 Oct 18:39 — **a genuinely new export, not a
+re-save of `Web Ready`** (every byte count is a fifth of v1's and no md5 matches). They were
+sitting in Drive while the vendor brief was being written against v1, so **check the destination
+folder before analysing the source one.**
+
+**Two of the three asks are fully met:**
+
+| | v1 | **v2** |
+|---|---|---|
+| background | RGBA, transparent | **`rgb24`, opaque, corner `255`** |
+| ink | varied | **darkest pixel `0` on all twelve** |
+
+So the flatten step the pipeline used to have to do is no longer needed, and the lightbox
+problem cannot recur for this set.
+
+**!!! THE PEN IS NOW ONE GLOBAL VALUE, WHICH IS THE ONE THING THAT CANNOT WORK !!!**
+
+Stroke as a percentage of the product's longest dimension, measured direction-agnostically
+(see the metric correction below), against the per-file targets in the brief:
+
+```
+E-5  Flow Straight      0.195%  target 0.183%   ON TARGET
+E-12 Driver 5-1         0.157%  target 0.164%   ON TARGET
+E-1  Prisma Multiplier  0.173%  target 0.131%   x0.76  (slightly thick)
+E-6  Vena               0.176%  target 0.267%   x1.51
+E-7  Vena Corner        0.187%  target 0.283%   x1.51
+E-8  Flow Spine         0.098%  target 0.165%   x1.69
+E-9  Flow 20            0.184%  target 0.408%   x2.22
+E-4  Vena Mini          0.216%  target 0.494%   x2.29
+E-2  Vena Round Mini    0.206%  target 0.528%   x2.57
+E-11 Liga W             0.192%  target 0.462%   x2.41
+E-10 Liga T             0.175%  target 0.422%   x2.42
+E-3  Vena Corner Mini   0.178%  target 0.826%   x4.64
+```
+
+**Every file lands in `0.098% - 0.216%`, clustered on ~`0.18%`.** That is the signature of a
+single export setting applied to the batch. The targets span `0.131% - 0.826%`, so a uniform pen
+is arithmetically incapable of satisfying them; the two that are right are simply the two whose
+targets happened to sit near `0.16%`. **The brief's per-file table is unchanged and still the
+spec** — it was right, and v2 is the demonstration of why one number cannot serve.
+
+**!!! A HORIZONTAL RUN-LENGTH STROKE MEASURE IS WRONG ON SHALLOW DIAGONALS — IT READ E-5 AS
+4x TOO THICK !!!**
+
+The first pass measured stroke width as the median horizontal ink run and reported
+**E-5 at `0.78%`**, i.e. the one file that needed no change had supposedly overshot by `4.3x`.
+It had not. `Flow Straight` is a near-horizontal isometric extrusion, so a horizontal scan line
+runs **along** the stroke rather than across it and returns its length, not its width. This is
+the same geometry that already made ink weight "phase-sensitive for near-horizontal strokes".
+
+**The correct metric is the MINIMUM run through each ink pixel across four directions**
+(horizontal, vertical, both diagonals, with diagonal steps scaled by `sqrt(2)`), then the median
+over sampled ink pixels. A stroke's true width is its narrowest crossing:
+
+```js
+const DIRS = [[1,0],[0,1],[1,1],[1,-1]]
+let best = Infinity
+for (const [dx,dy] of DIRS) {
+  let w = 1
+  for (let k=1;k<60;k++){ if(!ink(x+dx*k,y+dy*k)) break; w++ }
+  for (let k=1;k<60;k++){ if(!ink(x-dx*k,y-dy*k)) break; w++ }
+  const eff = (dx&&dy) ? w*Math.SQRT2 : w
+  if (eff < best) best = eff
+}
+```
+
+That returned `0.195%` for E-5 — and **the fact that it reproduces v1's `0.1951%` to three
+decimals is what confirms the method**, since that drawing's geometry did not change. Had the
+horizontal reading been believed, the vendor would have been told to halve a pen that was
+already correct. **Validate a geometry metric against a case whose answer is already known
+before reporting it.**
+
+**E-9 Flow 20 is at the RESOLUTION FLOOR and cannot be fixed by pen alone.** Its ink bbox is
+`1086x758` inside the 7009px frame, against `2300-5700` for everything else, so its stroke is
+**2 pixels**. The next value up is 3px — a 50% jump — so there is no fine adjustment available
+at any setting. It needs to be drawn larger, or supplied as vector.
+
+### THE SET IS MOVING TO SVG (decided 2026-10-20)
+
+The exporter asked, unprompted, whether SVG would make more sense now that he is exporting
+straight from CAD rather than through the mesh-based renderer. **Yes, and the v2 result is the
+argument** — a uniform pen is essentially all a CAD export can give, while this site needs a
+different figure per drawing.
+
+With vector source, **stroke width stops being a vendor round trip**: it is an attribute we set
+per file, exactly, in seconds. It also dissolves two problems this file has spent weeks on —
+the **frame/scale coupling** (in raster, shrinking the frame to make a product read larger also
+thickens its line, which is why Flow 20 was re-sized three separate times) and the **ink-gain
+ceiling** (the `x1.85` threshold at which four brightened drawings were rejected exists only
+because we were amplifying pixels after the fact).
+
+**SVG is the SOURCE format, not the delivery format.** The CMS keeps taking PNG exactly as now
+— we rasterise once, at the final size, after setting stroke width and applying the size
+hierarchy. Shipping SVG to the browser would be worse: hairline rendering varies between
+engines, and the crop-to-frame and flatten steps are both easier on raster.
+
+**What the export must do, in priority order:**
+
+1. **Strokes must remain strokes** — a real `stroke-width` on the paths. If the exporter
+   expands/outlines them into filled shapes, or embeds a raster inside the SVG, the entire
+   benefit is lost. **This is the one thing to verify on the first file before accepting a batch.**
+2. `viewBox` on the root, whole part inside it, no clipping.
+3. Same views and framing as the E-series.
+4. One consistent real-world scale across the set if possible; otherwise each drawing's scale
+   stated. **Any single pen value is acceptable — the vendor should not tune line weight at all.**
+
+**STEP files were offered and declined** — there is no CAD in this environment, so they cannot
+be processed here. They stay as the vendor's master.
+
+**A side benefit worth keeping:** the CAD export presents a different line set from the old
+mesh-based renders (which is why the shape matcher flags these as different artwork rather than
+re-exports). In vector that becomes an editable question — a designer can add or remove lines —
+instead of a re-export request.
