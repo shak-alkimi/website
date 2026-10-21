@@ -9243,3 +9243,101 @@ Home is **byte-identical at `278,093`**, untouched by this publish, and its full
 **The verification script was written escape-free per the standing rule** (`s.split(x).length-1`, no
 regex, no backslash anywhere) and syntax-checked before running. The rule earned itself the previous day
 when a lost backslash made a check report `0` hero overlays on a page that plainly has two.
+
+### THE SPEC SHEET BUTTONS — fields created, Manual/IES hidden, and FILE BYTES CANNOT BE PUSHED FROM AN EXEC (2026-10-21, PUBLISHED)
+
+The `Spec Sheet` / `Manual` / `IES` buttons on `/products` and `/elements` were **completely dead** — 54
+instances, **0** with a `Link` control set, rendering an `<a>` with no `href`. Three independent problems sat
+behind them, and only two are now closed.
+
+**All 54 are REMOTE-MODULE instances of `Utilities / Primary Button`** from **ena — Workspace**, the Ora
+template author — `module:dGP0PpDpJf2SzWXgXNJo/.../dzNJ99hkN.js:default`, not
+`local-module:canvasComponent/dzNJ99hkN:default`. Same trap as the `/products` + `/elements` footer in
+October, on the same two structurally-older pages.
+
+**Pre-state recorded before touching anything: [repair/download-buttons-prestate.json](repair/download-buttons-prestate.json)** — all 54 rows with
+controls, variant, visibility and geometry (`titles {"Spec Sheet":18,"Manual":18,"IES":18}`,
+`variants {"PQb6JRcY1":54}`, `origin {"REMOTE":54}`). The footer swap reset `variant` on every instance it
+touched, so a swap here needs this to restore from.
+
+**SHIPPED:** `Spec Sheet` **file** fields on both collections (`Fixtures gNOAfNupG`, `Elements CHPbySFRS`,
+`allowedFileTypes ["pdf"]`), and **36 Manual/IES instances hidden** until they have content. Verified live —
+`/products` renders `Spec Sheet` 11 / `Manual` 0 / `IES` 0, `/elements` 5 / 0 / 0, both byte-stable.
+
+**THE COMPONENT SWAP WAS DEFERRED, AND THE REPLACE-ALL DIALOG IS WHY.** It reports **19** instances, not the
+18 these pages hold: the extra are **3 in `Footer / Footer`** and **20 in `Home / Home - Projects Row 2`**,
+including the three **Methodology** buttons with their tuned `IsPmXClw2` variant, `pointer-events: auto`
+overrides and 60px rise. **Cancel a replace-all whose count you cannot account for** — the number is the only
+warning you get. The swap is also **avoidable**: a remote instance's `Link` control *is* API-writable, proven
+by the Methodology button's `/about` link, which was written through the API and is live.
+
+**!!! FILE BYTES CANNOT BE PUSHED FROM AN `exec` BY ANY ROUTE — this NARROWS the 2026-10-11 `uploadImage`
+correction rather than extending it. !!!**
+
+That note established `uploadImage({ image: "data:image/...;base64,..." })` works and marshals payloads up to
+3.76M characters. **`uploadFile` does NOT behave the same way**, measured on a 243,555-byte PDF (324,768
+base64 chars — a *fifth* of a payload `uploadImage` has carried):
+
+| shape | result |
+|---|---|
+| `{ file: "data:application/pdf;base64,..." }` | **`Assets upload from URL ... is not a HTTP(S) URL`** — the string is treated as a URL to FETCH, not as inline data |
+| `{ file: { bytes: Uint8Array, mimeType }, name }` | **`Asset input must be a URL string, File, or { bytes: Uint8Array, mimeType: string }`** — the exact shape passed, so the typed array does not survive the relay |
+| `File` | no filesystem in the exec context |
+
+**The decode was provably correct**, which is what makes the second row a marshalling finding rather than a
+bug in my own code: the array measured `len=243555` — byte-exact against the file — with `b0..b3 = 37,80,68,70`,
+i.e. `%PDF`.
+
+**`atob` DOES NOT EXIST in the exec context.** A first attempt returned `ABORT: no atob`; the base64 had to be
+decoded with a hand-written table. Worth knowing before assuming any browser global is available there.
+
+**So a PDF reaches Framer only two ways: a PUBLIC HTTPS URL that Framer fetches server-side, or a hand drop in
+the editor.** Localhost will not do — the fetch is server-side, as already recorded for `uploadImage`. This is
+the same wall as video, and the practical consequence is identical: **the asset step needs Shak, the rest is
+scriptable.**
+
+**A `file` field is still the right shape despite that**, and the reasoning is worth keeping: if the PDF has to
+be dropped in by hand regardless, dropping it into the CMS cell is strictly better than hosting it elsewhere
+and pasting a URL into a `link` field. The failed upload route does not argue for changing the field type.
+
+**STILL OPEN, AND IT IS ONE EDITOR CHECK: can a button's `Link` control bind to a `file` field?** The recorded
+binding rule is strict type matching — a `string` control takes `string` fields, an `Image` control takes
+`image` fields, and a Video's `Source: Upload` **File** control binds **nothing at all**. By that pattern a
+`file` field may not be offered to a Link control either. **The binding menu answers it instantly and the ARROW
+is the tell** — arrow-less means bindable, an arrow means predicates only. If it is not offered, the fallback
+is a `link` field holding the PDF URL, which is certainly bindable.
+
+**A per-product link MUST be a CMS binding, so the API cannot finish this.** `setAttributes` can only write a
+literal — the same URL on every instance. That is the whole reason this ends in the editor.
+
+**!!! A NEW EDITOR FAILURE SIGNATURE: the renderer can report HEALTHY while being unusable. !!!** Mid-session
+the editor went to **`innerWidth: 0, innerHeight: 0`** with `document.visibilityState: "visible"`,
+`hasFocus(): true`, `readyState: "complete"` and **3,278 divs** — so every liveness check passes.
+`Page.captureScreenshot` timed out repeatedly, and `getBoundingClientRect` returned garbage (page layers at
+`x: -222, y: 30024`). **A zero-sized viewport makes every coordinate meaningless while the DOM still reads as
+live**, so the recorded "assert the document contains the tree" check does NOT catch it. **Read `innerWidth`
+before driving the panel, and stop when it is 0** — with no screenshot to verify against, a click lands
+somewhere unknown, and this is the condition under which stray keystrokes delete layers.
+
+**`Alkimi_SpecSheet_Master.pdf` IS A BLANK TEMPLATE, not a product sheet.** 5 pages, custom `654 x 834pt`,
+Gellix throughout (so it is genuine Alkimi artwork), no images, 243 KB. Its text is `PRODUCT NAME`,
+`PRODUCT DESCRIPTOR`, `Insert Text` x60, `0.0 W/ft`, `00 lm/ft`, `0000k`, lorem ipsum, and the InDesign slug
+`Alkimi_SpecSheet_Master.indd` printed on each page. Structure: cover -> product specifications -> compatible
+extrusions -> driver -> driver specifications, with *"Find compatible extrusions on the following page"*.
+
+**That structure says the deliverable is a COMBINATION sheet, not a per-SKU one** — a light source paired with
+extrusions and a driver. It matches the filenames already in `Downloads`:
+`Alkimi — Rimi COB + Prisma Multiplier Spec Sheet.pdf` and `Alkimi — Rimi COB + Vena 1 Profile Spec Sheet.pdf`.
+A per-product library also exists under `Marketing/Alkimi_Munayki/Spec Sheets/`. **So the CMS field will not
+map one-to-one onto products, and that should be settled before 16 PDFs are collected.**
+
+**Extracting PDF text: scan for string literals manually, do not regex.** A `(...)` literal can nest and can
+contain escaped parens, and every regex attempt here lost a backslash crossing the heredoc. A character scan
+tracking depth, with `String.fromCharCode(92)` for the backslash, has no escapes in it at all and worked first
+time. Content streams are `FlateDecode`, so inflate each `stream`/`endstream` span and keep the ones
+containing `Tj`/`TJ`.
+
+**The generated-escape trap fired TWICE more in one session**, both caught by the syntax check before reaching
+the relay. The standing rule held: **emit no escape sequences at all** — a `"   /   "` separator needs none
+where a newline cannot survive. **`sed` is not the fix** — patching the generator with `sed` produced a worse
+break than the original. Rewrite the generator from a quoted heredoc instead.
