@@ -9030,3 +9030,64 @@ Products render `93.8–99.7%` of their former size (the Prisma Links most, at `
 (`11.4%` of frame) where the other ten bleed off the edge at `0`. Measured on the live asset *before* this
 change, so it predates it; the standing "all 11 are flush left" note is wrong. It needs a re-crop of its own
 and was left alone.
+
+### THE FLOW 20 "LEFT MARGIN" DOES NOT EXIST — my own recorded finding was an instrument artifact (2026-10-21)
+
+The end-cap alignment pass closed with: *"PRE-EXISTING AND NOT INTRODUCED HERE: `Flow 20` is not flush
+left. It carries a **191px left margin** (`11.4%` of frame) where the other ten bleed off the edge at
+`0`… it needs a re-crop of its own."* **That is wrong in every part and is withdrawn.** The product
+bleeds off the left edge exactly like its neighbours, the crop is correct, and there is nothing to
+re-crop.
+
+**THE DISCRIMINATOR IS A PER-COLUMN CONTRAST PROFILE, NOT A BBOX.** A product that runs off the frame
+holds roughly constant contrast all the way to `x = 0`; a glow or shadow ramps up from nothing. Max
+deviation from background, per column, on the live cards:
+
+```
+                 col:   0    1    2    5   10   20   40   80  120  160  200
+Flow 20          max:  31   31   31   31   31   31   31   31   31   31   81
+Vena             max: 148  222  222  222  222  148  222  222  222  222  222
+Flow Straight    max: 106  106  106  106  106  106  106  106  106  106  106
+Vena Corner      max: 231  231  231  231  231  231  231  231  231  231  231
+```
+
+**Flow 20 is dead flat at 31 from column 0 to column 160.** That is product. It is simply *pale* —
+`Flow 20` is a flexible silicone tape whose thin tail is near-white, so it registers **31** where the
+solid extrusions register **106-231**. The alignment pass measured the left edge with a `TOL 36` ink
+bbox, and `31 < 36`, so the instrument reported the tape as background for 178px and invented a margin.
+
+**THE SAME THRESHOLD LIES ABOUT THE SOURCE, WHICH IS HOW IT SURVIVED A SECOND CHECK.** Scanning all
+nine vendor renders at `TOL 36` appears to single `E-13` out, and that table is seductive:
+
+```
+E-13   Flow 20            left 730  (9.13%)     <- the apparent odd one out
+E-14   Flow Spine         left   0  (0.00%)
+E-15   Flow Straight      left   0  (0.00%)
+E-17..E-22  Vena family / Prisma Multiplier    left 0 (0.00%)
+```
+
+But the same file read at `TOL 6/10/16` gives `left = 0` for `E-13` too. **A sweep that reports a
+plateau is trustworthy; one whose answer moves from `0` to `730` as the threshold crosses 36 is
+reporting the threshold, not the geometry.**
+
+**WHAT SETTLED IT WAS LOOKING, AT 4x-8x DARKNESS.** Boosting the live card shows the tape continuous
+across the card's left edge and cut by it, with the supposed "191px margin" line sitting plainly inside
+the product. At true card size the tail is visible but faint.
+
+**THE GENERAL RULE, AND IT IS THE THIRD TIME AN INK-THRESHOLD BBOX HAS LIED ABOUT A PRODUCT EDGE IN THIS
+PROJECT:** a single-threshold bbox measures opaque solids and nothing else. It failed on `Vena Round
+Mini`'s round cap (tangent point, no stable edge), it failed on the shadowed `/products` renders (shadow
+read as product), and it fails here on a pale translucent tape (product read as background). **Before
+reporting any edge as misplaced, sweep the threshold AND profile the contrast toward the edge — and
+render the thing at 4x boost and look at it.** The bbox answers "where does ink exceed T", which is a
+different question from "where is the product".
+
+**Nothing was changed.** Flow 20's photo is correct as published: cap on the `83.33%` line, bottom on its
+drawing, product bleeding off the left. **The ten-of-eleven "flush left" convention is actually
+eleven of eleven.**
+
+**What IS true, and is a composition observation rather than a defect:** Flow 20's left band reads
+emptier than its neighbours' because its tail is pale (contrast 31) where theirs are solid (106-231).
+That is the product — a white flex tape — faithfully rendered. Making it darker would misrepresent it;
+cropping the tail away to start the card at the curve would enlarge the product ~13% against the other
+ten and discard the detail that shows the tape is continuous and flexible. Neither was done.
