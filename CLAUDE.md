@@ -8813,3 +8813,114 @@ srcset refs each). `/products` byte-identical, draft counts clean, publish previ
 **The batch is now fully consumed: ten files, eleven CMS rows.** Still without replacement artwork:
 `Liga T`, `Liga W`, `Driver 5-1`, and the two Prisma Links — the latter correctly, since those were done
 from the `Viper` folder on 2026-10-13.
+
+### VENA ROUND MINI'S RIGHT EDGE WAS GENUINELY SHORT — correcting a verdict recorded in this file (2026-10-21, PUBLISHED AND VERIFIED)
+
+Shak: *"fix vena round mini's right edge"*. **He was right, and this file said the opposite.**
+
+**!!! THE RECORDED "MEASUREMENT ARTIFACT" VERDICT IS WRONG AND IS WITHDRAWN. !!!** An earlier pass measured
+`Vena Round Mini` at `92.0%` against its siblings' `86.9%`, swept the threshold, saw `99.8 -> 92.0 -> 83.3 ->
+81.8` with no plateau, and concluded: *"a soft-falloff measurement artifact, not a misplaced product — its
+hard edge sits with its siblings."* **The premise was sound and the conclusion was backwards.** The absent
+plateau did prove the edge is soft; it did **not** prove the product is correctly placed. The product was
+`1.9 points` short, and it is visible on the card.
+
+**THE INSTRUMENT WAS THE WHOLE PROBLEM. An ink-threshold bbox cannot measure a ROUND cap.** Every sibling
+is a flat cap presenting a straight vertical silhouette — a hard step, so its bbox stabilises. A circular
+cap's rightmost extent is a single tangent point where the surface turns edge-on and shades smoothly into
+the backdrop, so **no threshold ever finds a stable edge**:
+
+```
+TOL                 6     10     16     24     36     54     80    110    140
+Vena              88.6   88.6   87.0   85.8   85.1   84.8   84.7   84.6   84.6   <- plateau
+Vena Mini         88.3   87.0   87.0   86.1   85.7   85.1   85.1   85.0   85.0   <- plateau
+Flow 20           88.2   86.9   86.9   85.9   85.2   84.5   84.5   84.5   84.5   <- plateau
+Vena Round Mini  100.0  100.0   86.6   84.1   82.7   81.5   80.6   79.9   79.6   <- never settles
+```
+
+**Note the `100.0` at low tolerance on a product with NO cable** — the tell that something faint reaches
+the frame edge. Only `Flow Spine` and `Flow Straight` otherwise read `100.0`, and those genuinely bleed.
+
+**THE RIGHT INSTRUMENT IS THE GRADIENT TEST ALREADY RECORDED HERE FOR SEPARATING A PRODUCT FROM ITS
+SHADOW — applied horizontally.** A silhouette is a sharp transition; a glow is smooth. Rightmost column
+where `>= N` pixels show a luminance step `> STEP` across `SPAN` px:
+
+```
+                  g25/4/20  g20/4/12  g15/3/8
+Vena                 85.07     85.07     85.01
+Vena Corner          83.81     83.81     83.99
+Vena Mini            85.24     85.30     85.24
+Vena Corner Mini     84.77     84.77     84.71
+Flow 20              84.71     84.71     84.71
+Prisma Multiplier    84.17     84.17     84.29
+Vena Round Mini      74.07     82.74     82.74
+```
+
+The six contained siblings are **stable across all three settings and cluster in `83.81 - 85.30`**. That is
+a real silhouette. `Vena Round Mini` read `82.74` — about `1.9` points short of the `84.63` mean.
+
+**`74.07` at the strictest setting is not a third reading, it is the round cap defeating the pixel COUNT.**
+A curved silhouette presents only a short vertical run of steeply-stepping pixels, so `N >= 20` is not met
+until far left. At `N = 12` it resolves to `82.74` and holds. **On a curved edge, tune the count, not the
+step.**
+
+**THE ROOT CAUSE: the original alignment pass measured an edge definition that INCLUDES the soft contact
+shadow.** That is self-consistent across flat-capped products, whose shadows are proportionally similar —
+which is why the other eight are fine. A round cap's falloff is proportionally much larger, so aligning on
+the shadow-inclusive edge pushed the **body** short while the measurement reported success.
+
+**Looking at it is what settled it in two seconds.** Rendering the right-hand 28% of four cards at the true
+`587` device-px card size with a line at the target: the three flat caps land on the line, the round one
+stops visibly short. **Any time a metric and a user disagree, render the thing at real card size and look
+before re-deriving the metric.**
+
+**THE FIX: rebuilt from the 8000px vendor original, not from the delivered asset.**
+
+```
+source E-17 8000x8000     cap right silhouette px 4776     product bottom px 5228
+was   crop 5773x5773 +0+1810  -> 1674    R 82.736%   B 59.200%
+now   crop 5643x5643 +0+1887  -> 1674    R 84.648%   B 59.080%  (bottom fraction preserved)
+```
+
+`F_new = R_src / 0.84630` to land on the sibling mean; `cy = B_src - B_frac * F_new` so the bottom fraction
+is unchanged and the drawing alignment is untouched. Anchored at `x = 0`, preserving the left bleed.
+
+**THE REPRODUCTION IS THE PART WORTH COPYING: I rebuilt the CURRENT asset from source first and measured
+it.** `repro.png` came back at `82.736%` — matching the live hosted asset to the digit. That proved the
+whole source -> crop -> scale model before anything was changed, so the correction could be computed with
+confidence rather than iterated by publish. **Reproduce the existing artifact before replacing it; if the
+reproduction does not match, the model is wrong and the correction will be too.**
+
+**It also isolated an instrument difference that would otherwise have read as a regression.** The hosted
+*old* asset measured bottom `59.200` while the local reproduction of it measured `59.080` — a `0.12pt`
+delivery re-encode difference. Since `repro` and `fixed` both measure `59.080`, **the bottom provably did
+not move**; comparing the hosted old (`59.200`) against the hosted new (`59.08`) alone would have looked
+like a `0.12pt` drift I had caused.
+
+**Verified on the hosted asset:** `84.65%` against a built `84.648` — the delivery re-encode preserved it.
+Left flush `0`, corners exactly `247,246,242`, frame `1674`. All six contained siblings re-measured
+unchanged, so nothing else moved.
+
+**THE BYTE DELTA RECONCILED TO THE CHARACTER.** The new id is one character longer at 8 srcset refs:
+`/products` `289,700 -> 289,708`, **+8 predicted, +8 observed**, byte-stable over three fetches.
+`/elements` and Home **byte-identical**, correctly — `Vena Round Mini` is a Fixture. Publish preview showed
+exactly one `CollectionItem` change (`fixtures/vena-round-mini`), with the publish guarded to abort on any
+other count or type. Draft counts clean on all eight collections; full Home sweep passes.
+
+**!!! THE GENERATED-ESCAPE TRAP FIRED TWICE IN ONE SESSION, AND THE SECOND TIME I HAD ALREADY FIXED IT
+ONCE. !!!** Building the upload script with `node -e '...'` mangled the nested quoting and produced a
+syntax error; I moved the generator into a file with a **quoted heredoc**, which fixed it. Twenty minutes
+later I wrote the Home regression sweep as `node -e '...'` again and hit the identical failure.
+
+**So the rule is not "be careful with escapes" — it is: never put JavaScript inside `node -e` in this
+project. Write it to a file with a quoted heredoc (`<<'EOF'`), every time, however short.** The quoted
+heredoc passes the body through verbatim; `node -e` puts it through a shell layer that eats backslashes and
+breaks on any inner quote. Syntax-check generated scripts before sending them — a malformed script takes
+the relay down:
+
+```bash
+{ printf 'async function __w(){\n'; cat upload.js; printf '\n}\n'; } > _chk.js && node --check _chk.js
+```
+
+**Still without replacement artwork:** `Liga T`, `Liga W`, `Driver 5-1`, and the two Prisma Links (the
+latter correctly — those were done from the `Viper` folder on 2026-10-13).
