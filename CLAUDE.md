@@ -8242,3 +8242,118 @@ is Vena x5, Prisma x3, Flow x3, Liga x2, Rima x2, Driver — no PIKO, REGULOR or
 batch is either **new products** needing new CMS items, or the vendor's internal names for existing
 ones. That has to be settled before any of it is bound, and it is a content question, not a drawing
 one.
+
+### THE SIX SVGs ARE EXISTING PRODUCTS, NOT NEW ONES — and they are now live (2026-10-20, PUBLISHED AND VERIFIED)
+
+**!!! THE `B2` FINDING RECORDED EARLIER TODAY WAS WRONG. These are NOT six new products. !!!** The note said
+*"these are six product names that do not exist in the CMS… either new products needing new CMS items, or the
+vendor's internal names for existing ones"*. It is the second, and it was answerable in two cheap steps rather
+than left as a content question for Shak:
+
+| SVG (vendor part name) | is | CMS dims | SVG back-computed |
+|---|---|---|---|
+| `Corner Tape Channel` | **Vena Corner** | `0.63 x 0.63"` | `0.630 x 0.630"` |
+| `PIKO-O - A01167` | **Vena Round Mini** | `0.41" dia` | `0.413 dia` |
+| `PIKO - A08288` | **Vena Mini** | `0.39 x 0.28"` | `0.394 x 0.291"` |
+| `Straight Tape Channel` | **Vena** | `0.67 x 0.39"` | `0.669 x 0.413"` |
+| `REGULOR - A18068` | **Prisma Multiplier** | `0.63 x 0.71"` | `0.630 x 0.689"` |
+| `PIKO-45 - A00014` | **Vena Corner Mini** | `0.39 x 0.39"` | `0.444 x 0.444"` |
+
+**Dimensions got it to a shortlist; SHAPE settled it.** Rendering each SVG beside the drawing it would replace
+gave six exact matches — the quarter-round with its diagonal brace, the 45-degree rotated square, the circle,
+the domed multi-slot body. **`PIKO-45` is the one the numbers alone would have rejected** (`0.444` against
+`0.39`, 14% out, the weakest row in the table) and the shape match is unambiguous. **On a shortlist built from
+measurements, render the candidates before believing or rejecting any of them.**
+
+**And the six are exactly the six CROSS-SECTIONS** — the complete contained-profile half of `/products`. The ten
+untouched drawings are the five bleeding extrusions plus the Rimas, Ligas and Driver. That the vendor's batch
+lands precisely on one of this file's two documented drawing classes is itself corroboration of the mapping.
+
+**WHAT SHIPPED.** All six `Technical Drawing` fields rebound to vector-sourced `2000x2000` PNGs. Verified on the
+**hosted** copies, which is the check that proves delivery:
+
+```
+                     geo (target)        centre      perStroke   minAlpha  corners
+Vena Mini            17.68 (17.57)       49.9/49.9     0.389       255      255,255,255
+Vena Corner Mini     19.25 (19.09)       49.9/49.9     0.393       255      255,255,255
+Vena Round Mini      19.59 (19.57)       49.9/49.9     0.415       255      255,255,255
+Vena                 21.99 (21.85)       49.9/49.9     0.377       255      255,255,255
+Vena Corner          24.36 (24.26)       49.9/49.9     0.391       255      255,255,255
+Prisma Multiplier    25.10 (25.00)       49.9/50.0     0.401       255      255,255,255
+```
+
+**THE SIZE POLICY WAS CONFIRMED LIVE BEFORE BEING REUSED, NOT TAKEN FROM THIS FILE.** Measuring the six existing
+drawings at card size returned `17.61 / 18.65 / 19.68 / 21.99 / 24.36 / 24.19`, against the recorded policy's
+`17.57 / 19.09 / 19.57 / 21.85 / 24.26 / 25.00` — and recomputing `real^0.5` with `SEC_ANCHOR 25%` reproduced
+the recorded table exactly. **Two independent derivations agreeing is what made it safe to reuse rather than
+re-derive**, and it is the first time the section-sizing policy has been checked against the live site.
+
+**!!! STROKE WIDTH IS AT THE 1px FLOOR ON EVERY CROSS-SECTION, SO IT CANNOT BE THE CONTROL VARIABLE. !!!**
+A min-run stroke measure returned **exactly `1.00px` on all six at every threshold from 180 to 245** — these
+drawings render as genuine sub-pixel hairlines, because the frames are `1902-2908` and the product fills only
+~18-25% of them. So the recorded **phase-2 target of "a uniform 2 device px stroke" is not reachable for the
+sections at their current sizes**, and pursuing it would have meant enlarging the products, i.e. changing the
+design. **Per-stroke ink is the control here**, exactly as this file prescribes.
+
+Target `0.404` — the recorded reference, and the middle of what five of the six already rendered at
+(`0.395 / 0.447 / 0.491 / 0.395 / 0.604`). **`Prisma Multiplier` was the documented outlier at `0.165`**, the
+too-thin source accepted on 2026-10-19; it is now in line with its neighbours. Spread across the six closed
+from **3.66x to 1.10x**.
+
+**THE SOLVER MEASURED THROUGH A REAL PNG ROUND-TRIP, which is the recorded rule and not optional here.** Each
+binary-search candidate was rasterised to a PNG blob, decoded via `createImageBitmap`, drawn at the true `587`
+device-px card and measured — the identical path the final hosted verification uses. Built values landed
+`0.400-0.408`; hosted re-measured `0.377-0.415`, i.e. the delivery re-encode moves it by about the +/-5%
+granularity this file already records. **Had the solver measured its own canvas instead, the recorded
+80-level divergence between `drawImage(canvas)` and `drawImage(ImageBitmap)` would have applied.**
+
+**THE VECTOR SOURCE DELIVERED EXACTLY WHAT THE SVG DECISION PROMISED.** Stroke width became a solved input
+rather than a vendor round trip: six binary searches, no ink gain, no `x1.85` ceiling, and **the frame/scale
+coupling is gone** — size and weight were set independently for the first time in this pipeline.
+
+**Visible improvements beyond the metrics, confirmed by eye at card size before uploading:** `Vena`'s top arc
+was a broken dashed line in the raster (the documented shallow-arc faceting) and is now solid; `Prisma
+Multiplier` was faint and patchy and now reads with its neighbours. Everything else is the same size, same
+position, slightly crisper.
+
+**!!! EXTRACTING SVG GEOMETRY: TAKE THE `<polyline>` ELEMENTS, NEVER A SLICE FROM THE FIRST ONE. !!!** These
+files nest **six `<g>` groups**, with the geometry inside a `stroke-width="5"` group and a white background
+`<rect>` in its own group. Slicing from the first `<polyline>` to the end and stripping `</g>` closers leaves
+**opening `<g>` tags unbalanced**, and the browser then fails the SVG with an `img.onerror` Event whose
+`.message` is `undefined` — reported as the uninformative **`ERR undefined`**. Matching the polyline elements
+directly gives balanced markup; assert `g-open === g-close === 0` on the extracted body before using it.
+
+**THREE SELF-INFLICTED FAILURES IN THIS PASS, ALL ALREADY DOCUMENTED HERE:**
+
+- **`http-server` cache served a stale `items.json`.** The recorded advice is to cache-bust an edited *page*;
+  **the data file it fetches needs it too**, and that is the easier one to forget.
+- **Patching a file with `node -e` put a REAL NEWLINE inside a string literal** (a lost backslash in
+  `split("\\n")`), producing `Invalid or unexpected token` and a blank page. The recorded rule is to avoid
+  escape sequences in generated code; **here the right move was to rewrite the file from a heredoc rather than
+  patch it.**
+- **A `sed` substitution silently did not apply** (escaping), and the next step still "worked" because the old
+  extraction happened to contain the right polylines — a false pass. **Grep the file for the change after a
+  `sed`, before trusting the step that follows.** Replacing the line with `node` plus an explicit `ABORT if not
+  found` is what actually fixed it.
+
+**Node on Windows resolves a Git-Bash `/g/...` path as `C:\g\...`.** Pass Drive paths as `G:/My Drive/...`.
+
+**THE -768 BYTE DELTA ON `/products` IS NOT FULLY RECONCILED, and is recorded as such rather than explained
+away.** Asset ids account for only **16** bytes (`159 -> 157` chars across six ids, 8 references each), the
+srcset shape is unchanged (`512 / 1024 / full`, no `2048` candidate before or after) and every dimension is
+still four digits. The publish preview listed **only my six `CollectionItem` changes**, so the remainder is
+build-side. **I did not save the pre-publish HTML, so a real diff was impossible** — which is precisely the
+failure this file already records (*"worth saving the served page before a publish"*). Content checks are what
+settle correctness here: 6 new assets at 8 references each, **6 old assets at 0**, the other five drawings
+untouched, and `/elements` **byte-identical** (correct — all six are Fixtures).
+
+Home byte-stable at `278,094` and its full sweep passes unchanged: 11x `aspect-ratio:1.17458` with 0 stale
+`1.180xx`, both Elements ratios, 2 hero overlays, `#f7f6f2` 2 with `#f6f4f0` 0, `Methodology` 2, 0 stale
+`View Case Study`, `lossless=1` 0, badge 0, 58 Gellix, `href="./about"` 5, `projects-list` 0, orb byte-exact
+at `4,280,052` and hero video at `4,009,893`. Draft counts clean on all eight collections.
+
+**The ten remaining drawings are unchanged and still raster.** Four of them (`Prisma Link 1`, `Prisma Link 2`,
+`Rima 5`, `Rima 10`) have no replacement in any batch received so far; the five extrusions plus the Ligas and
+Driver are covered by the `Web Ready v2` raster set, which the SVG decision supersedes. **When the vendor sends
+the rest as SVG, this exact pipeline applies** — with the extrusion half of the size policy (end-cap height,
+right-anchored at `57.3%` or `62.9%`) rather than the cross-section half used here.
