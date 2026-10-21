@@ -1,0 +1,924 @@
+{
+ "capturedAt": "2026-10-21T18:16:45.677Z",
+ "count": 54,
+ "rows": [
+  {
+   "page": "/products",
+   "breakpoint": "Desktop",
+   "id": "stIKMsMKQ",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Spec Sheet"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/products",
+   "breakpoint": "Desktop",
+   "id": "jqD3jWjJ7",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Manual"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/products",
+   "breakpoint": "Desktop",
+   "id": "ZYMSrVvgC",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "IES"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/products",
+   "breakpoint": "Desktop",
+   "id": "smraK0Gaf",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Spec Sheet"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/products",
+   "breakpoint": "Desktop",
+   "id": "Bh82PV_WP",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Manual"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/products",
+   "breakpoint": "Desktop",
+   "id": "e1x4kc9H6",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "IES"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/products",
+   "breakpoint": "Desktop",
+   "id": "huTLqJQtH",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Spec Sheet"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/products",
+   "breakpoint": "Desktop",
+   "id": "gqDA4smrx",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Manual"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/products",
+   "breakpoint": "Desktop",
+   "id": "eY2OH3YPg",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "IES"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/products",
+   "breakpoint": "Tablet",
+   "id": "jeBJOTditstIKMsMKQ",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Spec Sheet"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/products",
+   "breakpoint": "Tablet",
+   "id": "jeBJOTditjqD3jWjJ7",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Manual"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/products",
+   "breakpoint": "Tablet",
+   "id": "jeBJOTditZYMSrVvgC",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "IES"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/products",
+   "breakpoint": "Tablet",
+   "id": "jeBJOTditsmraK0Gaf",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Spec Sheet"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/products",
+   "breakpoint": "Tablet",
+   "id": "jeBJOTditBh82PV_WP",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Manual"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/products",
+   "breakpoint": "Tablet",
+   "id": "jeBJOTdite1x4kc9H6",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "IES"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/products",
+   "breakpoint": "Tablet",
+   "id": "jeBJOTdithuTLqJQtH",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Spec Sheet"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/products",
+   "breakpoint": "Tablet",
+   "id": "jeBJOTditgqDA4smrx",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Manual"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/products",
+   "breakpoint": "Tablet",
+   "id": "jeBJOTditeY2OH3YPg",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "IES"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/products",
+   "breakpoint": "Phone",
+   "id": "I3zkCZprdstIKMsMKQ",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Spec Sheet"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/products",
+   "breakpoint": "Phone",
+   "id": "I3zkCZprdjqD3jWjJ7",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Manual"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/products",
+   "breakpoint": "Phone",
+   "id": "I3zkCZprdZYMSrVvgC",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "IES"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/products",
+   "breakpoint": "Phone",
+   "id": "I3zkCZprdsmraK0Gaf",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Spec Sheet"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/products",
+   "breakpoint": "Phone",
+   "id": "I3zkCZprdBh82PV_WP",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Manual"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/products",
+   "breakpoint": "Phone",
+   "id": "I3zkCZprde1x4kc9H6",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "IES"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/products",
+   "breakpoint": "Phone",
+   "id": "I3zkCZprdhuTLqJQtH",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Spec Sheet"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/products",
+   "breakpoint": "Phone",
+   "id": "I3zkCZprdgqDA4smrx",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Manual"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/products",
+   "breakpoint": "Phone",
+   "id": "I3zkCZprdeY2OH3YPg",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "IES"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/elements",
+   "breakpoint": "Desktop",
+   "id": "vKI7IZXhe",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Spec Sheet"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/elements",
+   "breakpoint": "Desktop",
+   "id": "y_dPHArdw",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Manual"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/elements",
+   "breakpoint": "Desktop",
+   "id": "oDcu3W8iQ",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "IES"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/elements",
+   "breakpoint": "Desktop",
+   "id": "wWnQjVY8X",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Spec Sheet"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/elements",
+   "breakpoint": "Desktop",
+   "id": "qidyya6kQ",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Manual"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/elements",
+   "breakpoint": "Desktop",
+   "id": "g5OrSzRvF",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "IES"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/elements",
+   "breakpoint": "Desktop",
+   "id": "SbL0hWfjh",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Spec Sheet"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/elements",
+   "breakpoint": "Desktop",
+   "id": "sY3OvtaqD",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Manual"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/elements",
+   "breakpoint": "Desktop",
+   "id": "u0WqluePl",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "IES"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/elements",
+   "breakpoint": "Tablet",
+   "id": "xWl5j5Y7LvKI7IZXhe",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Spec Sheet"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/elements",
+   "breakpoint": "Tablet",
+   "id": "xWl5j5Y7Ly_dPHArdw",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Manual"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/elements",
+   "breakpoint": "Tablet",
+   "id": "xWl5j5Y7LoDcu3W8iQ",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "IES"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/elements",
+   "breakpoint": "Tablet",
+   "id": "xWl5j5Y7LwWnQjVY8X",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Spec Sheet"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/elements",
+   "breakpoint": "Tablet",
+   "id": "xWl5j5Y7Lqidyya6kQ",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Manual"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/elements",
+   "breakpoint": "Tablet",
+   "id": "xWl5j5Y7Lg5OrSzRvF",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "IES"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/elements",
+   "breakpoint": "Tablet",
+   "id": "xWl5j5Y7LSbL0hWfjh",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Spec Sheet"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/elements",
+   "breakpoint": "Tablet",
+   "id": "xWl5j5Y7LsY3OvtaqD",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Manual"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/elements",
+   "breakpoint": "Tablet",
+   "id": "xWl5j5Y7Lu0WqluePl",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "IES"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/elements",
+   "breakpoint": "Phone",
+   "id": "x4KFl0JfnvKI7IZXhe",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Spec Sheet"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/elements",
+   "breakpoint": "Phone",
+   "id": "x4KFl0Jfny_dPHArdw",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Manual"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/elements",
+   "breakpoint": "Phone",
+   "id": "x4KFl0JfnoDcu3W8iQ",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "IES"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/elements",
+   "breakpoint": "Phone",
+   "id": "x4KFl0JfnwWnQjVY8X",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Spec Sheet"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/elements",
+   "breakpoint": "Phone",
+   "id": "x4KFl0Jfnqidyya6kQ",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Manual"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/elements",
+   "breakpoint": "Phone",
+   "id": "x4KFl0Jfng5OrSzRvF",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "IES"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/elements",
+   "breakpoint": "Phone",
+   "id": "x4KFl0JfnSbL0hWfjh",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Spec Sheet"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/elements",
+   "breakpoint": "Phone",
+   "id": "x4KFl0JfnsY3OvtaqD",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "Manual"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  },
+  {
+   "page": "/elements",
+   "breakpoint": "Phone",
+   "id": "x4KFl0Jfnu0WqluePl",
+   "name": "Utilities / Primary Button",
+   "componentIdentifier": "module:dGP0PpDpJf2SzWXgXNJo/TJwweP7YojbJWpDrAqAC/dzNJ99hkN.js:default",
+   "remote": true,
+   "controls": {
+    "variant": "PQb6JRcY1",
+    "XqpXZUGU6": "IES"
+   },
+   "visible": true,
+   "width": "fit-content",
+   "height": "fit-content",
+   "position": "absolute",
+   "opacity": 1
+  }
+ ]
+}
