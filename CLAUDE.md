@@ -8623,3 +8623,147 @@ Vena Round Mini    1T0EfUHjHVzFf4mPLfkGOi30I0.png   Prisma Multi  cuk83VjwNeYU3f
 **All three earlier weights stay hosted** — `0.20px`, `0.70px` and `0.40px` black — so any is one rebind
 away. **The ten raster drawings are untouched.** When the remaining ten arrive as SVG, build them at
 **1.00px / grey 153** from the start rather than solving a black stroke to an ink target.
+
+### NINE FIXTURE RENDERS REPLACED, AND THE VENDOR NOW MATCHES THE CARD COLOUR HIMSELF (2026-10-21, PUBLISHED AND VERIFIED)
+
+`…/Products/Product Renders/Web Ready` holds ten files, `Revision Round E-13 … E-22`, continuing the
+line-drawing batch's numbering. All **`8000x8000`, `rgb24`** (opaque), and — the headline — **every one
+has a background of exactly `247,246,242` = `#f7f6f2`**, the card colour. The normalisation pass the
+previous batch needed is gone, and with it the risk of the self-inflicted left-edge strip that came from
+padding with a hand-sampled colour.
+
+**MAPPING, DERIVED BY END-CAP CROSS-SECTION — not by filename, and not by dimension.** The filenames say
+nothing, and the CMS dimensions cannot separate the corner profiles (`Vena Corner 0.63 x 0.63` and
+`Vena Corner Mini 0.39 x 0.39` are both square). Cropping a `0.26`-of-frame window around each subject's
+right end and looking at it settles every case in one image:
+
+```
+E-13 Flow 20          E-17 Vena Round Mini   E-21 Vena Corner       (true quarter circle)
+E-14 Flow Spine       E-18 Vena Mini         E-22 Vena              (notch on the cap)
+E-15 Flow Straight    E-19 Vena Corner Mini  (45-degree chamfer)
+E-16 a Rima           E-20 Prisma Multiplier (arched/domed cap)
+```
+
+**`E-19` vs `E-21` is the case worth keeping**: indistinguishable at thumbnail size, unmistakable at the
+cap — one is a flat 45-degree chamfer with notches, the other a true quarter circle. **For a product
+family that differs only in cross-section, crop the end cap; nothing else discriminates.**
+
+**`E-20` IS A DIFFERENT COMPOSITION, NOT A RE-EXPORT.** The live Prisma Multiplier was an exploded view
+with the end cap detached and the black LED channel exposed; the new one is the assembled fixture,
+consistent with the other eight. A content improvement, flagged rather than assumed.
+
+**!!! `E-16` CANNOT BE ASSIGNED TO Rima 5 OR Rima 10 FROM THE IMAGE, AND THE REASON IS STRUCTURAL. !!!**
+The 2026-10-08 record establishes that `Rima 5`'s asset is `Rima 10`'s render at `0.753x` — **the same
+artwork at two scales** — so composition carries no information about which product a new tape render is
+meant for. Measured: both live assets are aspect `~2.0` while `E-16` is `0.98`, which rules out "a
+re-export of one of them" but not which one it replaces. **Left for Shak; the other nine shipped without
+it.**
+
+### THE RIGHT-EDGE TARGET ONLY EMERGES ABOVE THE SHADOW — sweep the threshold before trusting a bbox
+
+A first measurement put every live photo's right edge at `99.9%`, contradicting the recorded `86.6%` and
+reading exactly like the alignment having been lost. It had not: **the soft drop shadow is ink at a low
+threshold.** Sweeping the background-deviation tolerance shows the real edge appear and then hold:
+
+```
+TOL    6    10    16    24    36    54    80   120
+R   99.9  99.9  99.9  94.6  86.7  86.7  86.6  86.5     <- Vena
+R   99.9  99.9  99.9  96.3  86.8  86.7  86.7  86.7     <- Flow 20
+```
+
+**`TOL 36-54` is the operating band**: above the shadow, below the product. At `120` Flow 20's *top* starts
+clipping (`30.5 -> 46.8`), so higher is not safer. **Settle on the plateau, and watch both ends of the
+bbox for where the plateau breaks.**
+
+**The existing alignment was still intact, which is what made the targets trustworthy.** Photo bottom
+against its own drawing's bottom, on the current assets: `58.7/58.7`, `62.2/62.2`, `57.7/57.6`,
+`59.8/59.6`, `60.1/59.8`, `59.8/59.7`, `63.2/63.1`. So the drawings' four rebuilds since the photos were
+aligned to them moved nothing material, and **the drawing bottoms are the right thing to re-derive from**
+rather than copying the outgoing photos.
+
+### CROP THE FRAME, DO NOT SCALE THE CONTENT — nine lossless repositions
+
+Targets: left flush at `0`, right edge `86.6%` (body-right `87.5` / `88.1` for the two trailing cables),
+bottom on the drawing's bottom. Reaching them by **shrinking the frame** rather than enlarging the subject
+keeps the whole operation free of resampling:
+
+```
+F  = 8000 * R_new / R_target            square crop anchored at x = 0
+cy = B_new/100*8000 - B_target/100*F    vertical offset so the bottom lands on target
+```
+
+Eight of nine fit inside the source frame. **`Flow 20` overflowed by 62px**, and the fix was free because
+**its bottom 200 rows measure `min = max = 247,246,242`** — genuinely uniform background — so padding with
+that exact colour extends flat with flat and cannot seam. **Check uniformity before padding; where it
+holds, a flat pad beats edge replication.**
+
+Verified on the hosted assets after rebinding: right edges `86.4 - 86.8` (a `0.4pt` spread against the
+outgoing set's `0.9`), every bottom within `0.2pt` of its drawing, all flush left, backgrounds exactly
+`247,246,242` at all four corners.
+
+**!!! MY CORNER CHECK WAS WRONG AND BRIEFLY LOOKED LIKE A COLOUR REGRESSION. !!!** Sampling "the corners"
+with `scale=4:4:flags=area` reported `249,245,240` on eight of nine masters — a plausible `+2,-1,-2` shift
+matching the documented ffmpeg colour traps almost too well. **It was averaging each 418x418 quadrant,
+product and shadow included.** Re-running every pipeline step on a real `200x200` background patch showed
+`247,246,242` preserved identically through crop, lanczos, bicubic and `accurate_rnd`. **A four-pixel
+image has no corners — sample a patch; and when a measurement incriminates a tool this file already warns
+about, check the measurement before believing the warning.**
+
+### THE GENERATED-ESCAPE TRAP FIRED AGAIN, AND THE SYNTAX CHECK IS WHAT CAUGHT IT
+
+A generator emitting `url.replace(/.*\//, "")` into its output lost the backslash crossing the heredoc, so
+all nine upload scripts carried `replace(/.*//, "")` — **a syntax error, and a malformed script takes the
+relay down.** Three attempts to patch the escape failed in different ways: the anchor needs a different
+number of backslashes at each layer, and an over-broad `replace(/` guard then matched the generator's
+*own* legitimate regex and aborted a correct patch.
+
+**The fix is the one already recorded and should be reached for first: emit no escape sequences at all.**
+`url.split("/").pop()` needs none. The template was also rebuilt as an array of plain lines joined by a
+newline rather than a template literal, so nothing in the emitted text passes through a second layer of
+interpretation.
+
+**Syntax-check every generated script before sending it**, wrapping it so top-level `await` and `return`
+are legal:
+
+```bash
+{ printf 'async function __w(){\n'; cat "$f"; printf '\n}\n'; } > _chk.js && node --check _chk.js
+```
+
+That turned a relay crash into a ten-second fix, on all nine at once.
+
+### PNG, not JPEG — and the masters are tiny
+
+Per the 2026-10-09 correction the "upload JPEG for anything photographic" rule is retired, and a PNG
+master avoids the one generation of loss a JPEG master bakes in. These renders are mostly flat background
+around a smooth product and compress extremely well: **the nine `1674x1674` PNG masters are
+`0.09 - 0.40 MB`**, against `0.05 - 0.07 MB` as JPEG. Both sit far below the `data:` URI ceiling, so there
+was no transport reason to prefer JPEG.
+
+Each upload script carried a **prior-asset-id guard placed before `uploadImage`**, so a re-run aborts
+without creating a permanent orphan. Re-issuing two of them returned `ABORT: Vena expected PouKLVUlh0…
+but has 214DWzyuIj…` — evidence from the live document that the write landed. **Put the guard before the
+upload, not after it; assets cannot be deleted.**
+
+### THE BYTE DELTA RECONCILED TO THE CHARACTER
+
+`/products` went `289,716 -> 289,700`, **−16**. Every old asset id occurs `8` times (the srcset
+candidates) and every new one likewise, so the delta is purely the ids' own lengths:
+
+```
+Vena +8   Vena Corner -8   Vena Mini 0   Vena Corner Mini -16   Vena Round Mini +8
+Flow 20 +8   Flow Spine -8   Flow Straight -8   Prisma Multiplier 0        net -16
+```
+
+**Predicted −16, observed −16** — a complete account of the diff with no build-metadata residue to explain
+away, because the ids were the only thing that moved. `/elements` and Home came back **byte-identical**,
+which is correct: all nine are Fixtures. Old ids `0` occurrences, new ids `8` each.
+
+Live verification: all 11 photo cards render, nine on the new `.png` assets with the two Prisma Links
+untouched on `.jpg`; every row pairs its photo with the right drawing at the same row top; draft counts
+clean on all eight collections. The publish preview showed exactly **9 `CollectionItem` changes, no
+errors, no warnings**, and the publish was guarded to abort on any other count or any non-`fixtures/`
+item. Full Home sweep passes unchanged.
+
+**Still outstanding: `E-16`.** The other four Elements photos (`Liga T`, `Liga W`, `Driver 5-1`, and
+whichever Rima `E-16` is not) have no replacement in this batch, and nor do the two Prisma Links — which
+is consistent, since those were done from the `Viper` folder on 2026-10-13.
