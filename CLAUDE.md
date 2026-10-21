@@ -8928,3 +8928,105 @@ the relay down:
 
 **Still without replacement artwork:** `Liga T`, `Liga W`, `Driver 5-1`, and the two Prisma Links (the
 latter correctly — those were done from the `Viper` folder on 2026-10-13).
+
+### ALL 11 `/products` PHOTO END CAPS ALIGNED TO 83.33%, THE CENTRE OF THE RIGHT THIRD (2026-10-21, PUBLISHED AND VERIFIED)
+
+Shak asked for the photos to sit better against the card's horizontal thirds. Products cannot be moved
+*into* the right third without new artwork (their ink centroids span `40.8–58.7%`, geometry-driven), but
+their **end caps were already within ~1.1pt of the right third's centre**, so formalising that line was
+the available win. Final spread **`83.30 – 83.35`**, from **`83.57 – 85.07`** — `1.50pt → 0.05pt`.
+
+**TWO METHODS, SPLIT BY WHETHER THE CORD REACHES THE FRAME EDGE.** The intended move is "grow the frame
+to the right, pad the top so the bottom fraction holds":
+
+```
+F_new = F × cap/0.83333      d = F_new − F      padTop = bottom_frac × d
+```
+
+A pad is **lossless**, so it was used for the six products whose rightmost column is exactly background
+(`rEdgeDev 0`) — those outputs are **bit-identical to the live masters** (`PSNR inf`). The other five
+(`Vena Round Mini`, both Flows, both Prisma Links) have cord or glow reaching the right edge
+(`rEdgeDev 16–215`); padding those with flat background would make the cord **stop short against empty
+colour**, so they were re-cropped from the vendor source, where the cord continues naturally.
+
+**!!! `body50` AND THE 2%-OF-PEAK `bottom` ARE PEAK-RELATIVE, SO THEY ARE NOT COMPARABLE BETWEEN TWO
+DIFFERENTLY-CROPPED IMAGES. THIS PUT THE FIRST BUILD 7pt WRONG VERTICALLY. !!!**
+
+Both instruments threshold against the **peak** of their own profile, so the answer depends on the
+composition in frame. Deriving a crop by measuring the **source** (8000px, whole product visible) and
+mapping to a **target** measured on the live asset is therefore invalid — the two readings are not the
+same feature. For `Prisma Link 2` the source `body50` landed on a different module of a repeating chain
+and produced a window **twice too wide**; for both Flows the mapped bottom was off by `~7pt`.
+
+**The `grad` cap instrument is NOT peak-relative** (`lastIdx(g2, 12)` — a fixed count of rows carrying a
+luminance step), which is why the caps looked fine while the vertical was badly wrong. **Check whether a
+metric is absolute or peak-relative before comparing it across two framings.**
+
+**THE FIX IS REGISTRATION, NOT THRESHOLDS — recover the live asset's actual crop window by template
+search.** Downscale the source to a working plane, downscale the live asset to a template, and grid-search
+`(F, cx, cy)` by SSD, coarse-to-fine. The recorded Home-card technique, applied to a 3-parameter problem.
+
+**Constrain it, and keep a GROUND-TRUTH CONTROL in the set.** `Vena Round Mini`'s window was known exactly
+(`F=5643, cx=0, cy=1887`, built by hand six hours earlier), so it measured the search's accuracy directly:
+free 3-parameter search `F=5563` (**1.4% off**), constrained `cx=0` → `F=5624` (**0.34%**). Constraints came
+from the record — the E-batch crops are anchored at `x=0`, and the Viper pair are 1:1 crops (`PL1` recovered
+`F=1024` against a 1025px output, `PL2` exactly `900`).
+
+**A REPEATING SUBJECT HAS MANY LOCAL MINIMA AND WILL LOCK ONTO THE WRONG PHASE.** `Prisma Link 2` fitted at
+`rms 12.6` where everything else was `1.4–2.9`, and a free `F` had drifted to `872`. Pinning `F=900` and
+scanning position exhaustively gave `rms 2.37`. **An rms several times the rest of the batch is the tell.**
+
+**VALIDATE REGISTRATION BY REPRODUCTION, NOT BY rms.** Rebuilding each live asset from source at the
+recovered window and diffing gave **`46 / 54 / 42 / 53 / 51 dB`** — the first attempt scored `14–21 dB`,
+which is what exposed the whole problem. The interior check is stronger still: crop the new build at
+`(0, t)` to the old frame size and compare to live — the six pads returned **`inf`** and the five crops
+`42–58 dB`, proving every build is the live content exactly repositioned. **That makes the vertical correct
+by construction**, so the residual bottom drift on `Flow Straight` (`+0.51`) and `Prisma Link 2` (`+2.36`)
+is genuinely more cord entering the wider frame — **do not chase it**.
+
+**THEN SOLVE THE CAP ON THE OUTPUT, WITH THE INSTRUMENT USED FOR THE TARGET.** One Newton step closed
+`83.03–83.61` to `83.30–83.35`:
+
+```
+F_src_new = (cap_measured/100 × F_src) / 0.833333
+cy_new    = (cy + bottom_measured/100 × F_src) − bottom_measured/100 × F_src_new
+```
+
+**`t` IS IN SOURCE PIXELS AND THE INTERIOR CHECK NEEDS IT IN OUTPUT PIXELS** (`t_out = t_src × F_out/F_src`).
+Using the source value depressed `PL1`/`PL2` to `28–32 dB` and read exactly like JPEG loss; corrected, they
+are `53` and `51`.
+
+**THE BYTE DELTA RECONCILES TO THE CHARACTER, AND THE RESIDUAL REVEALED SOMETHING WORTH KNOWING.**
+`/products` `289,708 → 289,817`, **+109**: `+52` from asset id lengths (8 srcset refs each, 6 for `PL2`),
+and **`+57` from the serialised CMS payload's dedup table**. Framer pools repeated values, and previously all
+eleven frames were `1674`, so `pixelWidth`/`pixelHeight` deduped to a single one-digit pool index (`:10`);
+with eleven distinct frame sizes each needs its own entry and those indices grow to two and three digits.
+A token-level diff summed the differences to exactly `57`. **Expect a page to grow when a change makes
+previously-identical values distinct, independently of the values' own lengths.** `/elements` and Home came
+back byte-identical, correctly — all eleven are Fixtures.
+
+**A HOSTED ASSET'S BANDING IS THE DELIVERY DERIVATIVE, NOT YOUR MASTER.** `Vena Corner` measured `86.06`
+hosted against `83.32` locally — a 2.7pt "regression" that did not exist. Its soft shadow is quantised by the
+re-encode into discrete levels: the old asset into five (`50/33/18/9/0`, max step 15) and the new into four
+(`50/33/11/0`, max step 22), and only the latter crosses the `grad` instrument's step threshold of 20. **Both
+assets carry the same shadow at the same max deviation (50); the local file is a smooth gradient
+(`43,42,41,40…`).** At `N ≥ 25` both read `83.32`. The rendered page shows no banding. **Sweep the instrument's
+own threshold before believing a hosted-vs-local discrepancy.**
+
+**!!! THE ESCAPE TRAP FIRED AGAIN, THIS TIME IN A VERIFICATION SCRIPT — WHICH IS WORSE THAN IN A BUILD ONE.
+!!!** `c("rgb\(8, ?2, ?0\)")` lost a backslash crossing the heredoc, so JS read `\(` as `(`, the regex became
+a **capture group**, and the hero-overlay check reported `0` on a page that plainly has 2. A build script that
+breaks fails loudly; **a check that breaks reports a defect that is not there, or passes one that is.**
+Rewritten with plain substring counts (`s.split(x).length-1`) and **no backslash anywhere in the file** —
+16/16 clean. The standing rule is now: **verification scripts get escape-free string matching, never regex.**
+
+**Delivered:** 11/11 bound and verified on a fresh session, draft counts clean on all eight collections,
+publish preview guarded to exactly 11 `CollectionItem` changes all under `fixtures/`, published as
+`f79b2f9cd`. Every live card measured at 391px renders its cap on the line with cords running through.
+Products render `93.8–99.7%` of their former size (the Prisma Links most, at `−6.2%`), still
+`1.63–2.92×` oversampled at the 587 device-px card.
+
+**PRE-EXISTING AND NOT INTRODUCED HERE: `Flow 20` is not flush left.** It carries a **191px left margin**
+(`11.4%` of frame) where the other ten bleed off the edge at `0`. Measured on the live asset *before* this
+change, so it predates it; the standing "all 11 are flush left" note is wrong. It needs a re-crop of its own
+and was left alone.
