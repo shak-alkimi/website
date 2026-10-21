@@ -8170,3 +8170,75 @@ moved away      White to Black          white / black label   opacity 0   y 744 
 clickability fix is intact), and a capture of the hovered state shows a black pill with white
 `Methodology` over the facade image. **Phone is unchanged in appearance** — `opacity: 1` always, white
 pill with a black label, since a touch device never reaches the hover variant.
+
+### THE FIRST SVG BATCH IS GOOD — accepted, with the facts the pipeline will need (2026-10-20)
+
+`G:\My Drive\Marketing\Website\Framer\Products\Extrusion Channels` — six channel profiles as SVG
+(`Corner Tape Channel`, `PIKO - A08288`, `PIKO-45 - A00014`, `PIKO-O - A01167`, `REGULOR - A18068`,
+`Straight Tape Channel`) plus one dimensioned reference. **Every requirement in the brief is met.**
+
+| check | result |
+|---|---|
+| **strokes stay strokes** | **YES** — `<polyline>` + `fill="none"`, stroke on the parent `<g>` |
+| outlined into fills / embedded raster | **none** — 0 `<path>`, 0 `<image>`, 0 `clip-path` |
+| `vector-effect` | **`none`** on every polyline — so stroke scales with the drawing, which is what we want |
+| `viewBox` | `0 0 3508 2480` on all six — A4 landscape @ 300dpi, `1 unit = 0.08467 mm` |
+| clipping | **none** — ink sits 1,100+ units inside every sheet edge |
+| pen | **one uniform `stroke-width="5"`** on the geometry group of all six |
+| background | an opaque white `<rect>` covering the sheet, drawn *before* the geometry |
+
+**THE 6:1 SCALE IS CONFIRMED BY MEASUREMENT, NOT TAKEN ON TRUST.** The dimensioned sheet states **10**
+across the PIKO profile; PIKO's ink measures **709 units = 60.03 mm** on the sheet, and
+`60.03 / 6 = 10.005 mm`. Every drawing then back-computes to a plausible channel size with that one
+divisor — and several land on exact round numbers, which is the corroboration:
+
+```
+Corner Tape    1134x1134 u =  96.0 x  96.0 mm  -> 16.0 x 16.0 mm real
+PIKO            709x 524 u =  60.0 x  44.4 mm  -> 10.0 x  7.4
+PIKO-45         799x 799 u =  67.7 x  67.7 mm  -> 11.3 x 11.3
+PIKO-O          744x 744 u =  63.0 x  63.0 mm  -> 10.5 x 10.5
+REGULOR        1134x1240 u =  96.0 x 105.0 mm  -> 16.0 x 17.5
+Straight Tape  1205x 744 u = 102.0 x  63.0 mm  -> 17.0 x 10.5
+```
+
+**They are CROSS-SECTIONS, not isometric extrusions** — confirmed by rendering them. So the
+cross-section half of the size policy applies: size by `sqrt(W x H)` of the box, centre on both axes,
+`SEC_ANCHOR`. Do **not** reach for the end-cap/right-anchor convention here.
+
+**PROVED END TO END BEFORE ACCEPTING, rather than inspected and assumed.** All six were pushed through
+the real pipeline — crop to the ink bbox, square frame at `FILL = 0.25`, render at the true `587`
+device-px card — with the stroke set per drawing to land on a uniform 2 device px:
+
+```
+stroke_units = TARGET_PX * frameUnits / 587        Corner 15.45  PIKO 9.66  PIKO-45 10.89
+                                                   PIKO-O 10.14  REGULOR 16.90  Straight 16.42
+```
+
+All six came out crisp and correctly framed. **That is the whole benefit arriving: one source pen,
+and the rendered weight set by us per drawing in one arithmetic step — no vendor round trip, no ink
+gain, no `x1.85` ceiling, and the frame/scale coupling gone** (frame size and stroke width are now
+independent inputs rather than one lever fighting the other).
+
+**!!! `tr '<' '\n<'` SILENTLY DELETES THE `<` — every `^<tag` count built on it is a FALSE ZERO. !!!**
+`tr` maps character-to-character and cannot replace one character with two, so the second character of
+the replacement set is discarded. A composition scan built on it reported **`path=0 polyline=0
+line=0`** on files that are nothing but polylines, which read as "the geometry is missing". **Use
+`sed 's/</\n</g'`.** This idiom appears in earlier passes in this file, so any element count taken
+with it should be re-derived.
+
+**Naming is a real improvement and should be asked for every time.** These arrive as
+`PIKO Extrusion - A08288.svg` — product plus part number. The raster batches arrived as
+`Revision Round E-1 .png`, which forced identification by shape-matching; that cost two passes and
+produced **one wrong mapping** (the Liga pair inverted). A named file removes the step entirely.
+
+Minor, not blocking, worth mentioning to the vendor: the dimensioned reference is a **PNG** rather
+than an SVG; `REGULOR Extrusion -  A18068.svg` carries a **double space** and
+`Extrusion Channel Scale .png` a **space before the extension**, both of which trip scripted matching.
+Sheet placement also varies slightly between drawings (centres differ by up to ~55 units ≈ 0.8 mm
+real) — **irrelevant, because we crop to the ink bbox**, so he should not spend effort centring.
+
+**For Shak, not the vendor: these are SIX PRODUCT NAMES THAT DO NOT EXIST IN THE CMS.** The catalogue
+is Vena x5, Prisma x3, Flow x3, Liga x2, Rima x2, Driver — no PIKO, REGULOR or Tape Channel. So this
+batch is either **new products** needing new CMS items, or the vendor's internal names for existing
+ones. That has to be settled before any of it is bound, and it is a content question, not a drawing
+one.
