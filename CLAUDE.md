@@ -8458,3 +8458,89 @@ with the full sweep passing.
 
 **`page.screenshot({clip})` wants `width`/`height`, not `w`/`h`** — recorded before, repeated here, and it
 fails loudly rather than silently.
+
+### THE SIX CROSS-SECTIONS SETTLED AT A 0.40px STROKE — midway, and it is where they belong (2026-10-20, PUBLISHED AND VERIFIED)
+
+Shak, after seeing Zaid's weight shipped: *"is there a level lighter than this but not as light as before?"*
+Yes, and the sweep that answered it is the reusable part.
+
+**Four levels rendered at the true `587` device-px card, measured and looked at:**
+
+```
+px     perStroke      coverage       darkest px
+0.20   0.307-0.405    1.17-1.69%     58-82     <- as first shipped
+0.40   0.594-0.731    2.22-3.24%      0-6      <- CHOSEN
+0.55   0.772-0.957    3.16-4.24%      0
+0.70   0.959-1.173    3.98-5.25%      0        <- Zaid's level
+```
+
+**`0.40px` IS NOT MERELY THE MIDPOINT — it is the only level that puts the six inside the band the ten
+raster drawings occupy** (`0.149 - 0.674`). At `0.55` and `0.70` they sit above every raster drawing on the
+page. That is tolerable today only because the extrusions fill their cards and carry more total ink, and it
+stops being true the moment those are replaced with vector too. **Choosing the level that lands in the
+existing band is a decision that survives the rest of the set being redrawn; choosing by eye against today's
+neighbours is not.**
+
+**THE RENDER SHOWED TWO THINGS THE NUMBERS DID NOT:**
+
+- **At `0.20px` parts of the drawing were DROPPING OUT, not merely reading light.** `Vena Corner`'s right
+  vertical and bottom edge all but vanished, leaving an arc floating in the card. That is a different defect
+  from "too faint", and it is the real reason the first ship was wrong.
+- **Darkest pixel saturates at `0` by `0.40px`**, so past that the line is already fully black and the only
+  thing still changing is its width. **The useful part of this range is almost entirely below `0.55`** —
+  which is why `0.55` reads much closer to `0.70` than to `0.40`.
+
+**THE SWEEP IS THE CHEAP INSTRUMENT AND IT SHOULD BE THE DEFAULT ANSWER TO "CAN WE GO LIGHTER/HEAVIER".**
+Rendering four candidates at real card size, measured *and* displayed side by side, cost one page and one
+screenshot — against a publish round trip per guess. **This session has twice shown the metric and the eye
+disagreeing, so a weight question should never be answered from a number alone.**
+
+**Verified on the hosted copies after rebinding:**
+
+```
+                   geo (target)      centre     perStroke  stroke   cov     darkest  minAlpha
+Vena Mini          17.68 (17.57)    49.9/49.9     0.723    1.00px   3.15%     25       255
+Vena Corner Mini   19.25 (19.09)    49.9/49.9     0.667    1.00px   3.03%     30       255
+Vena Round Mini    19.59 (19.57)    49.9/49.9     0.629    1.00px   2.70%     15       255
+Vena               21.99 (21.85)    49.9/49.9     0.675    1.00px   2.26%     12       255
+Vena Corner        24.36 (24.26)    49.9/49.9     0.584    1.00px   2.29%     13       255
+Prisma Multiplier  25.18 (25.00)    49.9/49.9     0.719    1.00px   2.53%     11       255
+```
+
+Built values were `0.594 - 0.731`, hosted re-measured `0.584 - 0.723` — the documented +/-5% delivery
+granularity. Frames held byte-identical, so stroke width was again the only variable; `minAlpha 255` and
+white corners on all six, so the lightbox requirement is intact.
+
+**THE BYTE DELTA RECONCILES TO ZERO CONTENT CHANGE — the baseline was saved again and it paid off twice
+over.** `/products` went `289,741 -> 289,740`, and **that one byte is the publish comment alone**:
+`12:54 AM` (8 chars) against `1:06 AM` (7). Normalising that comment and mapping the six asset ids back
+leaves the two pages **exactly the same length**, with **24 differing runs, every one build metadata**:
+
+```
+searchIndex-* names rotating                3 runs
+data-framer-page-optimized-at timestamp     4 runs
+chunk hash BBNavmR8 -> CipI0JiL             1
+script_main.CZahK0vf -> .mUkY-KQy           1
+a CMS payload UUID, 9c398be0… -> 4e5a241b…  3 x 5 runs
+```
+
+**Normalise the publish comment BEFORE diffing or the whole comparison is worthless** — a one-character
+difference at byte 85 misaligns everything after it, and a naive common-prefix diff reported **8,458
+differing runs** where there are 24. That trap is already recorded in this file and it fired again here.
+
+**The asset ids happened to total `157` chars both times, exactly as in the previous round** — which is
+coincidence rather than a property of Framer ids, and should not be relied on when predicting a delta.
+
+**Verified live:** six new assets at 8 srcset refs each, six old at **0**, `/elements` carries none of the
+twelve (correct — all six are Fixtures), draft counts clean on all eight collections, Home byte-stable at
+`278,093` with the full sweep passing (11x `aspect-ratio:1.17458`, 0 stale `1.180xx`, both Elements ratios,
+2 hero overlays, `#f7f6f2` 2 with `#f6f4f0` 0, `Methodology` 2, 0 stale `View Case Study`, `lossless=1` 0,
+badge 0, 58 Gellix). Confirmed by eye on the published page: a strip of a raster drawing beside three new
+SVG ones and Prisma Multiplier reads as one family, with no card heavier or lighter than its neighbours.
+
+**`framer.agent.publish({action:"preview"})` named exactly 6 `CollectionItem` changes and nothing else**,
+and the publish script was guarded to abort on any other count or any non-CMS type. **That guard is worth
+putting on every publish** — it is the only pre-publish check that can catch an unrelated edit riding along.
+
+**Both earlier weights stay hosted**, so `0.20px` and Zaid's `0.70px` are each one rebind away with no
+upload and no re-encode. **The ten raster drawings are untouched.**
