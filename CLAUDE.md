@@ -9341,3 +9341,77 @@ containing `Tj`/`TJ`.
 the relay. The standing rule held: **emit no escape sequences at all** — a `"   /   "` separator needs none
 where a newline cannot survive. **`sed` is not the fix** — patching the generator with `sed` produced a worse
 break than the original. Rewrite the generator from a quoted heredoc instead.
+
+### THE SPEC SHEET BUTTONS ARE BOUND — a `file` field DOES bind to a Link control (2026-10-21, PUBLISHED `fca900c24`)
+
+All 18 `Spec Sheet` buttons on `/products` and `/elements` now take their href from the CMS. The open
+question recorded in the previous section is answered.
+
+**!!! A `file` CMS FIELD BINDS TO A COMPONENT'S `Link` CONTROL. !!!** The previous note reasoned from the
+strict type-matching rule — a `string` control takes `string` fields, an `Image` control takes `image`
+fields, and a Video's `Source: Upload` **File** control binds **nothing at all** — and concluded a `file`
+field might not be offered either, with a `link` field holding a URL as the fallback. **It is offered.**
+In the `Set variable >` submenu `Spec Sheet` was the **only arrow-less entry** among ~18 fields; every
+neighbour (`Product Photo >`, `Technical Drawing >`, `Created >`) carried the arrow that means predicates
+only. **The arrow is the whole test and it costs one menu open** — so check it before designing a
+workaround, as the fallback here would have meant a second field and a hand-pasted URL per product.
+
+**SIX BINDINGS, NOT ONE — a Collection List scopes its own button instance.** `/products` has three lists
+(Flex, Profile, Optic) and `/elements` three (Connector, Driver, LED); each holds one button template, and
+a binding on one reaches none of the others.
+
+**THE CASCADE HOLDS: bind on Desktop only.** Verified by selecting a button in each frame and reading its
+Link row — `/elements` Connector on **Desktop, Tablet and Phone**, and `/products` Flex on **Tablet** — all
+showing the blue `Spec Sheet` pill without being touched. 6 bindings cover all 18 instances.
+
+**!!! THE PANEL'S TOP-RIGHT "Phone" TEXT IS NOT THE SELECTED NODE'S BREAKPOINT — I nearly reported Tablet
+as Phone on the strength of it. !!!** A DOM read of the right panel returned `34 Phone` above the
+`Agent`/`Style` tabs, which looks exactly like a breakpoint indicator for the selection. It is not; it was
+a hidden element. **The two things that actually identify the frame are the canvas FRAME LABEL
+(`Desktop 1200` / `Tablet 1199 — 810` / `Phone`) and the blue SELECTION OUTLINE** — zoom the clicked button
+and confirm the outline sits in the frame you meant. Scroll up on the canvas to bring the labels into view;
+they are the only unambiguous signal.
+
+**THE PROOF THAT A BINDING SHIPPED IS THE FIELD-ID COUNT, and it is decisive.** Framer serialises a
+collection's field into a page only when that page is bound to it:
+
+| | before | after |
+|---|---|---|
+| `gNOAfNupG` on `/products` | **0** | **14** |
+| `CHPbySFRS` on `/elements` | **0** | **8** |
+
+`/products` `266,336 -> 266,928` (+592) and `/elements` `221,073 -> 221,473` (+400) — the CMS payload
+growing by 11 and 5 items' worth of field entries. Buttons still render 11 and 5, `Manual` and `IES` still
+**0**, `.pdf` **0** (no files yet). Home byte-identical at `278,093`, untouched.
+
+**!!! NEW-TAB BEHAVIOUR IS NOT CONTROLLABLE ON THIS BUTTON. !!!** A full key dump of a Spec Sheet instance
+returns `id, originalId, __class, name, visible, locked, componentIdentifier, insertURL, componentName,
+controls, rotation, opacity, position, top, right, bottom, left, centerX, centerY, width, height,
+max/min*, aspectRatio` — **no `link`, `target`, `href`, `linkOpenInNewTab` or anything similar**, and the
+panel offers only `Variant / Trigger / Title / Link`. So the original ask ("open a new browser tab") cannot
+be satisfied from the instance. **It may not need to be**: a Framer file asset is often served with a
+download disposition, in which case the visitor keeps the page and gets the PDF. **That is observable only
+once a real PDF is in a cell**, so it is a question for the first upload, not a blocker now. If a genuine
+new tab turns out to be required, it needs the component made local — and the replace-all dialog counts
+**19** instances, including the three Methodology buttons with their tuned variant and overrides.
+
+**`node.controls` STILL CANNOT VERIFY THESE BINDINGS, and the reason is worth being precise about.** A
+bound control disappears from `controls`, but `Link` was never set on these buttons, so it was absent
+before and after — the dump reads `{"variant":"PQb6JRcY1","XqpXZUGU6":"Spec Sheet"}` either way. **The
+editor pill and the published field-id count are the only two oracles.**
+
+**`Page.captureScreenshot` FROZE TWICE and the DOM read carried the session.** Reading the right panel's
+leaf elements by position (`r.x > 1215`) returns the row labels and values directly — `677 Link` /
+`677 Spec Sheet` for a bound control, `Add…` for an unbound one — and it worked instantly both times
+capture timed out. **Prefer it over a screenshot for reading panel state**; keep the screenshot for the
+canvas, where it is the only way to see a selection outline.
+
+**`session new` PRINTS "Creating session…35" ON ONE LINE, so a naive capture yields a bogus id.**
+`$(npx ... | tr -d '[:space:]')` gives `Creatingsession…35` and the next call dies with *"Session
+Creatingsession…35 is invalid or has expired"* plus the libuv assertion. **The session is created
+regardless** — read the trailing integer and reuse it, or extract with `grep -oE '[0-9]+' | tail -1`.
+
+**STILL NEEDED FROM SHAK: 16 PDFs, one per product** (11 Fixtures + 5 Elements), dropped into each item's
+`Spec Sheet` cell. Bytes cannot be pushed from an `exec` by any route, so this step is his. Until a cell is
+filled the button renders with no href — exactly as it did before this work, so nothing regressed and
+nothing is half-shipped.
