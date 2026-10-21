@@ -9167,3 +9167,79 @@ libuv assertion. **Dump `for (const k in obj)` before calling anything on an unf
 real shape is `id, name, slugFieldName, slugFieldBasedOn, readonly, managedBy`, and a `CollectionItem`
 carries `id, nodeId, createdAt, updatedAt, slug, slugByLocale, draft, fieldData`. The Fixtures
 `Product Photo` field is **`QsOmllQby`**.
+
+### THE `cut 400` FLOW 20 CROP IS LIVE — published by Shak, verified 2026-10-21 (build `20:21:45 GMT`)
+
+Three byte-stable fetches per page, no known-bad truncation signature.
+
+**My change shipped exactly, and the asset-set diff is the complete account of it:**
+
+```
+8m1qJT9mumqkVoVeVDqy0CEBaI.png   pre 0  ->  post 8 srcset refs
+4Yr0yro5hj5zh7U9N73uNvS6zHM.png  pre 8  ->  post 0
+only in PRE:  4Yr0yro5hj…    only in POST: 8m1qJT9mum…    (22 distinct assets both sides)
+```
+
+**Diffing the ASSET SET rather than counting one id is what makes that conclusive** — it proves not
+merely that the new asset arrived but that **nothing else in the imagery moved**, in one comparison.
+Worth preferring over a pair of greps whenever a change should touch exactly one asset.
+
+The card renders `391x391` on the live page, first row, paired with its drawing at the same row top.
+
+**THE END-CAP LINE SURVIVED THE RE-CROP — measured on all eleven hosted photos at the true 587 device-px
+card**, which is the check that matters rather than re-reading the one asset I built:
+
+```
+flow-20 (mine)     83.82        vena 83.82   vena-corner 83.82   vena-mini 83.82
+flow-spine         83.99        vena-corner-mini 83.82           vena-round-mini 83.65
+flow-straight      84.50        prisma-multiplier 83.82
+prisma-link-1      90.97   <- cord, not cap        prisma-link2  98.64   <- cord, not cap
+```
+
+Nine flat-capped photos in **`83.65 - 84.50`** with Flow 20 dead centre, all `leftInk = 0`. The band
+sits ~0.4pt above the `83.33%` target because the delivery re-encode quantises the soft shadow into
+steps the `grad` instrument counts — the documented `Vena Corner` effect, uniform across all nine, so it
+is an instrument offset and not drift.
+
+**THE TWO "OUTLIERS" ARE THE DOCUMENTED APPENDAGE CASE AND MUST NOT BE "FIXED".** `grad` finds the
+rightmost strong vertical step, which on a trailing cord is the **cord**, not the body cap. Their
+recorded targets were body-right `87.5` / `88.1`, never the 83.33 line. **Identify an outlier before
+treating it as one** — a CMS lookup mapping asset id to slug settled it in one `exec`, where the
+markup-proximity guess returned nothing.
+
+**The drawings are correctly on their own convention in the same sweep** — caps `60.1 - 64.6`, left
+margins `210 - 237` — so a single pass over every image on the page reads as two clean families rather
+than one noisy set. **Measure both conventions together; the separation is itself the verification.**
+
+**!!! THE PUBLISH ALSO CARRIED THE OTHER SESSION'S WORK, AND IT IS A VISIBLE CONTENT REMOVAL. !!!**
+
+`/products` `289,817 -> 266,336` (**-23,481**) and `/elements` `231,874 -> 221,073` (**-10,801**) — far
+beyond the `-8` my one-character-shorter asset id accounts for. The cause, read off the markup:
+
+| | `/products` | `/elements` |
+|---|---|---|
+| `Spec Sheet` | 11 -> **11** | 5 -> **5** |
+| **`Manual`** | 11 -> **0** | 5 -> **0** |
+| **`IES`** | 11 -> **0** | 5 -> **0** |
+| `Button Blue to White` | 36 -> **14** | — |
+
+**32 download buttons removed**, Spec Sheet kept, and `Button Blue to White` falls by exactly `22`
+(11 Manual + 11 IES) — the arithmetic confirms the attribution without needing to inspect the canvas.
+Not my change and not investigated further; recorded because it shipped in the same build and is a
+visible change to two live pages.
+
+**So the preview guard's refusal was correct and the collision was real.** Publishing when I wanted to
+would have shipped that removal mid-flight. **A preview whose change set exceeds your own is a stop, and
+this is the first time that rule has paid.**
+
+**A LARGE BYTE DROP ON SEVERAL PAGES IS THE SIGNATURE OF A SHARED COMPONENT LEAVING THEM** — already
+recorded for the `/404` `Return Home` button (30KB for one hidden button, because the whole component's
+CSS left with it). Recognising the signature is what turned an alarming `-23,481` into a two-minute
+attribution rather than a hunt.
+
+Home is **byte-identical at `278,093`**, untouched by this publish, and its full sweep passes 15/15.
+`/elements` carries 0 references to the Flow 20 asset, correctly — it is a Fixture.
+
+**The verification script was written escape-free per the standing rule** (`s.split(x).length-1`, no
+regex, no backslash anywhere) and syntax-checked before running. The rule earned itself the previous day
+when a lost backslash made a check report `0` hero overlays on a page that plainly has two.
