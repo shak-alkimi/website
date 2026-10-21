@@ -9091,3 +9091,79 @@ emptier than its neighbours' because its tail is pale (contrast 31) where theirs
 That is the product — a white flex tape — faithfully rendered. Making it darker would misrepresent it;
 cropping the tail away to start the card at the curve would enlarge the product ~13% against the other
 ten and discard the detail that shows the tape is continuous and flexible. Neither was done.
+
+### Flow 20's photo re-cropped 400px off the left — BUILT AND BOUND, DELIBERATELY NOT PUBLISHED (2026-10-21)
+
+Shak's call after seeing the options, and it is a **composition choice, not a defect fix** — the "left
+margin" was withdrawn as an instrument artifact in the section above. Cutting 400 source px off the
+left lets the product read `x1.07` larger in the card while the tape still bleeds off the left edge.
+
+**The new window is a PURE CROP, where today's asset needed padding.** Solving both conventions against
+the live card's own measurements gives:
+
+```
+cx=0    crop 6956 at (0,1144)    bottom+F = 8100  > 8000   <- overflows the render, must be padded
+cx=400  crop 6479 at (400,1426)  bottom+F = 7903  <= 8000  <- entirely inside the source
+```
+
+So the published asset of the morning was padded at the bottom because its window ran past the edge of
+the 8000px render; `cut 400` invents nothing. One pass, single input, no compositing:
+`crop=6479:6479:400:1426,scale=1697:1697:flags=lanczos`, `format=rgb24` in and `-pix_fmt rgb24` out.
+
+**Verified on the HOSTED copy, two agreeing reads** — cap `83.500%`, bottom `59.753%`, both exactly the
+live card's values under the same instruments; `leftInk` column `0`; left contrast profile flat at `31`;
+all four corners `247,246,242`; `minAlpha 255`. New asset `8m1qJT9mumqkVoVeVDqy0CEBaI.png`.
+
+**TWO NEWTON STEPS WERE NEEDED AND THEY INTERACT — do not treat cap and bottom as independent.**
+`ffmpeg`'s lanczos and the browser's resampler disagree by about `0.06pt` on the cap, so the first build
+landed at `83.441%`. Correcting `F` for that then moved the **bottom** to `59.635%`, because the bottom
+fraction is `(botY - cy)/F` and `F` had just changed. Correcting `cy` in turn overshot to `59.811%`.
+**Solve cap first, then re-solve the vertical against the new `F`, and re-measure after each.**
+
+**THE VERTICAL IS QUANTISED AT ONE OUTPUT ROW, SO SUB-ROW TARGETING IS MEANINGLESS.** At `1697px` one
+row is `0.0589pt`, and `cy = 1426` and `cy = 1427` both land on row `1014` — the target — while `1428`
+drops to `1013` and `1424` rises to `1015`. **Scan the neighbourhood and take the middle of the band that
+hits the target row**, rather than iterating toward a precision the instrument cannot express.
+
+**!!! NOT PUBLISHED — THE PREVIEW GUARD CORRECTLY REFUSED, AND THIS IS THE FIRST TIME IT HAS CAUGHT A
+CROSS-SESSION COLLISION !!!**
+
+`framer.agent.publish({action:"preview"})` returned **3** changes where exactly **1** was expected:
+
+```
+WebPage        | /elements        | updated
+WebPage        | /products        | updated
+CollectionItem | fixtures/flow-20 | updated   <- mine, the only one I made
+```
+
+**A second Claude Code session is live in this project**, mid-way through swapping the 54 Spec Sheet /
+Manual / IES buttons off a remote `Primary Button` module on those exact two pages (its local, unpushed
+commit `bdacc4c` records the pre-swap state). Publishing would have shipped its in-progress work.
+
+**The two page changes are NOT the button swap, which has not been applied.** A read-only sweep found all
+**54** buttons still on the remote module with `variant=PQb6JRcY1` intact and none missing a variant —
+so whatever dirtied those two pages is something else that session did, most likely an edit to a shared
+component, since `/products` and `/elements` share nearly everything. **I did not investigate further and
+did not touch it.**
+
+**`getUnpublishedPageChanges()` was useless here, exactly as recorded** — it returns `count=2` with both
+entries as bare `{}`, unattributable. **The publish preview is the only instrument that names what is
+pending, and in a shared project it is also the only collision detector.** Treat a preview whose change
+set exceeds your own as a stop, not as something to publish through.
+
+**The change is safe where it sits.** A CMS rebind needs no page to be dirty; it will ship with whatever
+publish comes next, by either session. The old asset `4Yr0yro5hj5zh7U9N73uNvS6zHM.png` stays hosted, so
+reverting is one rebind with no upload.
+
+**The upload guard was placed BEFORE `uploadImage` and earned it** — re-issuing the script answered
+`ABORT: expected 4Yr0yro5hj5zh7U9N73uNvS6zHM.png but has 8m1qJT9mumqkVoVeVDqy0CEBaI.png`, which is both
+the idempotency proof and the reason no orphan asset was created. Draft counts re-verified clean on all
+eight collections (Home 3/3, Fixtures 11/11, Elements 5/5, Projects 3/10, News 3/7, About 1/1,
+Clients 8/8, Testimonials 4/4), and the other ten photo bindings are untouched at `resolution: auto`.
+
+**Two small API facts cost a relay crash between them:** `Collection` exposes **`name` and `id` as plain
+properties** — `c.getName()` does not exist, and calling it throws *and* takes the session down with the
+libuv assertion. **Dump `for (const k in obj)` before calling anything on an unfamiliar API object**; the
+real shape is `id, name, slugFieldName, slugFieldBasedOn, readonly, managedBy`, and a `CollectionItem`
+carries `id, nodeId, createdAt, updatedAt, slug, slugByLocale, draft, fieldData`. The Fixtures
+`Product Photo` field is **`QsOmllQby`**.
