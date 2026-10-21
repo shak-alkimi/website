@@ -8767,3 +8767,49 @@ item. Full Home sweep passes unchanged.
 **Still outstanding: `E-16`.** The other four Elements photos (`Liga T`, `Liga W`, `Driver 5-1`, and
 whichever Rima `E-16` is not) have no replacement in this batch, and nor do the two Prisma Links — which
 is consistent, since those were done from the `Viper` folder on 2026-10-13.
+
+### `E-16` RESOLVED — it drives BOTH Rimas, and the subject size is what identified it (2026-10-21, PUBLISHED)
+
+Shak's call: bind `E-16` to `Rima 10` at full size and derive `Rima 5` from it at the established `75%`,
+so both Elements rows get the new artwork and the relative scale he settled on in October is preserved.
+
+**The subject size had already answered the identification question — the earlier reading was taken at the
+wrong threshold.** At the shadow-contaminated `TOL 10` the live Rimas measure aspect `~2.0` against
+`E-16`'s `0.98`, which is what made them look like different compositions. At the correct `TOL 40`:
+
+```
+LIVE Rima 5    24.2 x 24.4 of frame        ratio 5:10 = 0.751
+LIVE Rima 10   32.2 x 32.4                 recorded relative scale 0.753
+NEW  E-16      32.1 x 32.5                 <- essentially IDENTICAL to Rima 10
+```
+
+**So the vendor rendered it at Rima 10's scale**, and the "it is a genuinely new framing" conclusion was
+an artifact of measuring the glow rather than the product. **A threshold wrong enough to move a bbox by
+a factor of two will also invent and destroy identifications** — sweep it before drawing any conclusion
+from a subject's shape, not just before measuring its position.
+
+**Built by matching the live framing exactly, so nothing moves on the page.** The source was padded
+`8000 -> 12000` with `#F7F6F2` first (all four edges measure uniform `247,246,242` across a 150px band,
+so the pad is exact on every side), then cropped twice from that one canvas:
+
+```
+Rima 10   F = 7975   at (2160, 2248)      target width 32.2% of frame, centre 49.9 / 47.6
+Rima 5    F = 10612  at ( 823,  950)      target width 24.2% of frame, centre 50.1 / 48.0
+```
+
+`Rima 5`'s frame is **larger than the 8000px source**, which is why the pad is load-bearing rather than
+a convenience — a smaller subject in the same canvas means a bigger crop window. Verified on the hosted
+assets: every edge within `0.1pt` of the outgoing asset, corners exactly `247,246,242`, and the derived
+relative scale `24.2 / 32.3 = 0.752` against the recorded `0.753`.
+
+**Both targets were measured with the same instrument as the result**, so the match holds regardless of
+where the absolute threshold sits — the recorded 2026-10-12 "re-centred to 50/50" figures read `47.5` and
+`48.0` here, and chasing the recorded number instead of the measured one would have moved both rows.
+
+`/elements` `231,906 -> 231,874`, **−32 predicted, −32 observed** (both ids two characters shorter at 8
+srcset refs each). `/products` byte-identical, draft counts clean, publish preview exactly 2
+`CollectionItem` changes with the guard set to abort on any non-`elements/` item.
+
+**The batch is now fully consumed: ten files, eleven CMS rows.** Still without replacement artwork:
+`Liga T`, `Liga W`, `Driver 5-1`, and the two Prisma Links — the latter correctly, since those were done
+from the `Viper` folder on 2026-10-13.
