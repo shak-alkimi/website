@@ -9471,3 +9471,125 @@ template, not a finished sheet.
 `278,093 -> 278,073` (-20), with Gellix **58**, `H1 Hero` **2**, `H1 Hero - Style` **2**, the old shared
 `sA1pdkMlu` **0**, `--framer-font-size:72px` **2**, `Measured` **2**, `lighting objects.` **2**. The hero is
 intact on its own presets; nothing regressed.
+
+### The Spec Sheet buttons go GREEN → BLACK on hover — scoped to them alone (2026-10-21, PUBLISHED AND VERIFIED LIVE)
+
+Shak's screenshot of a white "Spec Sheet" pill was the button's **hover** state, not its rest state — measured before
+anything was changed. Rest was already green; the ask was to replace the white hover with black, **without** touching
+the footer `Get in touch`, which shares the same variant and must keep green→white.
+
+**THE COMPONENT EXISTS IN THREE SEPARATE MODULES, AND THAT IS WHAT MAKES SCOPING POSSIBLE AT ALL.** A full
+93-instance walk (`controls.variant` against the 12 known variant ids, plus `componentIdentifier` containing
+`dzNJ99hkN`):
+
+| module | instances | contents |
+|---|---|---|
+| `module:dGP0PpDpJf2SzWXgXNJo/…/dzNJ99hkN.js` | **57** | 18 Spec Sheet + 18 Manual + 18 IES + 3 `Get in touch` |
+| `local-module:canvasComponent/dzNJ99hkN` | 16 | `/404`, `/careers`, Section CTA, grid cards |
+| `module:iwulOY7vxTPBNW5DchJh/…/dzNJ99hkN.js` | 20 | Home Row 2 — **Methodology x3** + `View Case Study` x17 |
+
+**CORRECTION: this file recorded the Methodology buttons as local. They are not — they are on a THIRD remote module.**
+That matters because it means a replace-all on the download buttons cannot reach them, which is what made the whole
+job safe. Pre-state at [repair/primary-button-prestate-2026-10-21.json](repair/primary-button-prestate-2026-10-21.json).
+
+**!!! THE 2026-10-07 "`variant` CONTROL CANNOT BE WRITTEN" EPISODE IS NOW FULLY EXPLAINED, AND BOTH HALVES WERE
+MISDIAGNOSED. !!!** That note recorded two walls — the control is unwritable, and an `addVariant` variant is never
+offered to instances. The real rule, demonstrated here:
+
+- **`variant` IS writable**, to any variant that exists in the target instance's **own compiled module**.
+- An **`addVariant`-created** variant is never compiled in, so it is offered to nothing — that is the single cause.
+- A variant created by **editor `Ctrl+D`** IS compiled in, and instances take it first time.
+
+So the one-token `Ora Blue` repoint that turned **9 buttons green site-wide** when the ask was scoped to one was
+unnecessary. **Re-test a "not possible" verdict built on one failed attempt before designing around it.**
+
+**THE PLAN, AND WHY EACH STEP WAS FORCED.** The 12 stock variants hold no green→black pair, and a new variant can only
+live in the local component — so the 57 remote instances had to be swapped to local first, then pointed at it.
+
+1. `Ctrl+D` on `Button White to Black` → rename `Button Blue to Black` (`KaTzNfkSG`), fill = the live `Alkimi Green`
+   ColorStyle **borrowed off `PQb6JRcY1` in the same `exec`** (a literal fails silently), label → white.
+2. Replace all instances → `Project / Utilities / Primary Button`.
+3. Write the 18 Spec Sheet instances to `KaTzNfkSG`.
+4. Give the new variant its own hover partner (see below).
+
+**THE REPLACE-ALL DIALOG SAID "19 INSTANCES" AND 19 RECONCILES EXACTLY.** Framer counts **logical** instances and
+treats breakpoint copies as derived: `/products` 3 Collection Lists x 3 button types = 9, `/elements` the same = 9,
+plus 1 footer `Get in touch` = **19 logical = 57 instances**. The standing rule is to cancel a replace-all whose count
+you cannot account for; **account for it by dividing by 3 and counting Collection List templates**, not by assuming.
+
+**!!! THE SWAP GIVES EVERY INSTANCE A NEW ID — a per-id restore from the pre-state is impossible. !!!** All 57 recorded
+ids came back `MISSING`, which reads exactly like catastrophic loss. Nothing was lost: the nodes were replaced.
+**Diff by (root, title, variant, visible, origin) instead of by id** — that showed the only change across all 93
+instances was `REMOTE → LOCAL` on exactly the 57, with **36 instances in byte-identical groups**.
+
+**AND THIS TIME THE SWAP PRESERVED EVERYTHING — contradicting the 2026-10-13 footer swap, which reset `variant` on
+all 6.** Titles, variants, visibility and — the real risk — **the six CMS Link bindings** all survived, confirmed by
+the blue `Spec Sheet` pill on two separate Collection List templates and by the published field-id count
+(`gNOAfNupG` still **14** on `/products`, `CHPbySFRS` **8** on `/elements`). **So a replace-all's collateral damage is
+not predictable from precedent; capture the pre-state and diff, every time.**
+
+**!!! A HOVER VARIANT IS HARD-WIRED TO ONE REST PARTNER BY AN EXPLICIT `Leave` INTERACTION — borrowing another pair's
+hover variant leaves the button on the WRONG rest state. !!!**
+
+The first publish looked right and was wrong in a way no static check could see:
+
+```
+REST     Button Blue to Black          rgb(53, 121, 11)   green    correct
+HOVER    Button White to Black - Hover rgb(0, 0, 0)       black    correct
+UNHOVER  Button White to Black         rgb(255, 255, 255) WHITE    <- defect
+```
+
+Reading the hover variants' panels explains it: **every one carries `Leave → <its own rest variant>`**
+(`Button White to Black - Hover` → `Button White to Black`; `Button Blue to White - Hover` → `Button Blue to White`).
+The return is **not** automatic. So a new rest variant needs its **own** duplicated hover partner, with `Leave`
+repointed at it and the rest variant's `Enter` repointed at the partner. Built `Button Blue to Black - Hover`
+(`xDpnhBaOq`): black fill and white label inherited, two dropdown edits.
+
+**The interaction target IS a native `<select>` listing every variant by id**, so the native-setter route works — but
+`select.value` reads back stale immediately after, so **close the popover and reopen it to verify** (the panel then
+read `Leave → Button Blue to Black` and `Enter → Button Blue to Black - Hover`).
+
+**!!! I DUPLICATED THE WRONG VARIANT BY REUSING A LAYER-TREE COORDINATE ACROSS A SELECTION. !!!** Selecting a row
+auto-expands it and shifts everything below; my second click landed on `Button White to Black` instead of its hover
+partner, and the duplicate came out **white** (`bg=rgb(255,255,255)`) rather than black. This file already warns
+"re-derive row positions after every selection" — **the concrete discipline is: read rows, click, verify the selection
+by a property only the intended row has, and only then press the key.** Verifying by the zoomed row label is NOT
+enough: the panel truncates to `Button White t...`, which matches four variants. The `Leave → Button White to Black`
+reading is what identified it unambiguously.
+
+**A COMPONENT VARIANT CAN BE DELETED FROM THE EDITOR WITH THE `Delete` KEY**, even though `removeNodes` and
+`node.remove()` both fail on component internals through the API. The stray was renamed `DELETE ME - wrong copy`
+first (names are API-writable) so the tree row was unmistakable, then selected, confirmed by the purple highlight, and
+deleted — 13 variants again. **So an API-created stray does not have to wait for Shak; mark it, verify, delete.**
+
+**`inlineTextStyle` ON A VARIANT'S TEXT NODE FAILS SILENTLY.** The write reported success and the canvas was unchanged
+after a 10s wait at two zoom levels. The editor route works: select the text layer **from the Layers panel** (a
+canvas double-click plus a panel scroll opened the component's variables dialog instead), then the `Color` row — whose
+hex field **does not exist as an `<input>` until clicked**, at which point a colour popover opens with the hex and an
+alpha field. `ctrl+a` is safe there only because `document.activeElement` was asserted to be that input first.
+
+**!!! THE PUBLISH PREVIEW IS SUBJECT TO SESSION STALENESS, AND A STALE SESSION REPORTS `changesCount=0`. !!!** After
+the interaction edits an older session returned **0** — indistinguishable from "this change will never publish", the
+documented `/404` failure. A **brand-new session returned `changesCount=1` on two agreeing reads**. This file has
+leaned on the preview as the trustworthy instrument where `getUnpublishedPageChanges()` is not; **it is trustworthy
+only on a fresh session.** Both publishes were guarded to an exact expected change set and aborted otherwise.
+
+**A BYTE-IDENTICAL PAGE WAS THE CORRECT RESULT FOR THE SECOND PUBLISH** — `/products`, `/elements` and Home all
+unchanged to the byte, because **a variant interaction lives in the JS chunk, not the markup** (the hover variant's
+name appears **0** times in the HTML; only the resting variant is serialised). The tells that the build really ran:
+`script_main.DiqTTh-E.mjs` → `script_main.D4LP-AhH.mjs`, and the chunks carry `xDpnhBaOq` x9, `KaTzNfkSG` x11.
+
+**VERIFIED LIVE WITH A REAL POINTER, which is the only way to observe a Framer variant interaction:**
+
+| | rest | hover | back |
+|---|---|---|---|
+| **Spec Sheet** (18) | green `rgb(53,121,11)`, white label | **black `rgb(0,0,0)`**, white label | **green** |
+| `Get in touch` (3) | green, white label | white, black label | green |
+
+**The rest and back screenshots are BYTE-IDENTICAL (same md5) while the hover one differs** — the cleanest available
+proof that the return is exact rather than approximately right. **Prefer an md5 comparison of two captures over
+reading two colour values** when the question is "does it come back to where it started".
+
+Scope confirmed by a 93-instance tally: Spec Sheet 18 on `KaTzNfkSG`, `Get in touch` 3 still on `PQb6JRcY1`,
+Methodology 3 still on `IsPmXClw2` and remote, Manual/IES 18 each still hidden. The Prisma Multiplier PDF link
+survives (`target="_blank"` 1, asset 2). Full Home sweep passes 15/15.
