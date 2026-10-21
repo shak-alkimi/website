@@ -10,16 +10,20 @@ Source for the **Alkimi** (LED tape-light business) marketing website. The site 
 
 **What changed 2026-10-05 is the workflow, not that fact.** Pasting by hand into Framer's code editor is no longer the only route: an authorized **Framer Agent CLI** session can read and write code files directly (`framer.getCodeFiles()`, `codeFile.setFileContent()`), which makes drift *detectable* and reconciliation scriptable. The mirror still has to be kept in step deliberately — the CLI only removes the copy-paste step. See the Framer Agent CLI section.
 
-**Project topology — verified 2026-10-05 from the Framer dashboard:**
+**Project topology — verified 2026-10-05 from the Framer dashboard; re-confirmed 2026-10-21 via `getPublishInfo()` on each project:**
 
 | Project | ID | Plan | Serves |
 |---|---|---|---|
-| **Alkimi (teaser)** | `jIeEHcbQNHV85rO12kAf` | Pro | **www.alkimiworks.com** — the live coming-soon page carrying the working Formspark form |
+| **Alkimi (teaser)** | `jIeEHcbQNHV85rO12kAf` | Pro | **www.alkimiworks.com** — still the live domain as of 2026-10-21. Has a staging URL of its own, `soulful-fairy-519047.framer.app`. Carries the working Formspark form |
 | **Alkimi (main)** | `lGFTo9egwT6d6ra5S4uP` | ~~Pro~~ — subscription moved away 2026-10-05 | to be archived; do not invest in it |
 | **Alkimi (Shak)** | `Cf6zWteoRnYaaVh8Afqa` | **Pro** (moved from `Alkimi (main)` 2026-10-05) | fulfilled-development-106906.framer.app — the staging/work project **this repo mirrors** |
 | Ora (official) | `idoYUmcTUjWl1zFENTWM` | Free | the stock template, kept for comparison |
 
 `Alkimi (teaser)` → `www.alkimiworks.com` is **confirmed, not inferred**: that project's `getPublishInfo()` returns the domain, and its live `FormSpark` instance carries formId `75jmfofPI` — the same endpoint the production form POSTs to.
+
+**Re-confirmed 2026-10-21.** `getPublishInfo()` on `Alkimi (teaser)` still returns `production.url = https://www.alkimiworks.com`, last deployed `2026-10-05T19:04:37Z` — unchanged since this section was first written. It also reports a staging URL of its own, `https://soulful-fairy-519047.framer.app`, which was not previously recorded here. `Alkimi (Shak)` returns `https://fulfilled-development-106906.framer.app` for **both** production and staging, last deployed `2026-10-21T15:55:33Z`. **The cutover has not happened.**
+
+**Do not test the mapping by grepping the served HTML for `75jmfofPI`.** That grep returns **0** on a `www.alkimiworks.com` the teaser is demonstrably still serving, so it reads as a cutover that did not occur. The id is a property-control value on the canvas instance, not a literal in code — `getCodeFiles()` on the teaser returns `FormSpark.tsx` with no `formId` in it at all. Use `getPublishInfo()` for the mapping. The badge grep (`__framer-badge-container`) stays valid, because that markup *is* in the entry document.
 
 **`Alkimi (Shak)` is on Pro as of 2026-10-05** — the subscription was moved across from `Alkimi (main)`, which is now the one on its way out. `Alkimi (main)` is to be archived; **do not invest in it**.
 
@@ -27,7 +31,7 @@ Source for the **Alkimi** (LED tape-light business) marketing website. The site 
 
 **The badge is baked in at PUBLISH time, so a plan upgrade does not clear it retroactively.** Immediately after the Pro transfer, staging still served the badge because its last deploy (and therefore its HTML) predated the change. **It clears on the next publish, not before** — so "I upgraded but the badge is still there" is expected, not a failed upgrade. Do not go looking for a layer to delete, and do not reintroduce a badge-hider component (that is what `FramerButton.tsx` was, and it carried third-party affiliate code).
 
-What remains of the launch sequence: `www.alkimiworks.com` cut over from `Alkimi (teaser)` onto `Alkimi (Shak)`, and the teaser's working Formspark form migrated onto the contact page — at which point the staging form's empty `formId` gets filled and the fixed `FormSpark.tsx` becomes the live one.
+What remains of the launch sequence — **still outstanding as of 2026-10-21**: `www.alkimiworks.com` cut over from `Alkimi (teaser)` onto `Alkimi (Shak)`, and the teaser's working Formspark form migrated onto the contact page — at which point the staging form's empty `formId` gets filled and the fixed `FormSpark.tsx` becomes the live one.
 
 **The old mapping is stale — ignore it.** Earlier notes named the projects "Alkimi" (`HZpxiZndjQNb8SpbXGqf`) and "Alkimi (copy)"; neither name nor ID exists in the dashboard now. Launch remains a deliberate manual cutover of www.alkimiworks.com onto the launch project.
 
