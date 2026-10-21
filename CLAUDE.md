@@ -9415,3 +9415,59 @@ regardless** — read the trailing integer and reuse it, or extract with `grep -
 `Spec Sheet` cell. Bytes cannot be pushed from an `exec` by any route, so this step is his. Until a cell is
 filled the button renders with no href — exactly as it did before this work, so nothing regressed and
 nothing is half-shipped.
+
+### !!! FRAMER EMITS `target="_blank"` ITSELF FOR A FILE-ASSET LINK — my prediction was WRONG (2026-10-21) !!!
+
+The first real Spec Sheet PDF went into `Fixtures / prisma-multiplier` and the published page answers the
+original question outright:
+
+```html
+<a data-framer-name="Button Blue to White"
+   href="https://framerusercontent.com/assets/rlsA4b7Tmu1FU5c40SX2xuPBM8M.pdf"
+   target="_blank" tabindex="0" style="…background-color:rgb(53, 121, 11)…">
+```
+
+**`target="_blank"` appears exactly once on the page — on this link — and nothing of ours put it there.**
+So a `Link` control that resolves to a **file** asset opens in a new tab automatically, and the "open a new
+browser tab with our spec sheet" request is satisfied with no further work: no local-component swap, no code
+override, no `19`-instance replace-all.
+
+**WHY I GOT IT WRONG, AND IT IS A REASONING ERROR WORTH NAMING.** I measured the asset headers —
+
+```
+Content-Type: application/pdf    Content-Length: 243555
+Cache-Control: public, max-age=31536000, immutable    X-Content-Type-Options: nosniff
+```
+
+— found **no `Content-Disposition`**, and concluded the PDF would open in the **current** tab. The header
+evidence was correct and the conclusion did not follow. **`Content-Disposition` governs RENDER vs DOWNLOAD;
+`target` governs WHICH TAB.** They are independent axes and I collapsed them into one. Having established a
+real fact about the server I stopped looking at what the *client* markup does — when the decisive evidence
+(the emitted `<a>`) was one publish away and I had already told Shak it was only observable after a publish.
+**When a question has two independent mechanisms, measuring one of them is not a partial answer — it is no
+answer.**
+
+**The server finding still stands and is still useful:** with no `Content-Disposition` the PDF *renders* in
+the browser's viewer rather than downloading. Combined with the automatic `target`, the visitor gets the
+spec sheet in a new tab and keeps the product page — the best of the outcomes that were on the table.
+
+**`rel="noopener"` is absent** (`noopener` count 0). Not a live risk: Chrome 88+, Firefox 79+ and Safari
+12.1+ all imply `noopener` for `target="_blank"`. Recorded only so a future audit does not re-flag it.
+
+**A `file` CMS field READS BACK AS AN OBJECT, not a string** — `{ id, url, extension }`, e.g.
+`{"id":"rlsA4b7Tmu….pdf","url":"https://framerusercontent.com/assets/rlsA4b7Tmu….pdf","extension":"pdf"}`.
+That matches the 2026-10-12 correction for **image** fields and extends it to file fields: **object out,
+URL string in.** Read `value.url`, and accept either (`typeof v === "string" ? v : v.url`).
+
+**The other ten buttons are unaffected and render cleanly.** `>Spec Sheet<` 11, asset refs 2 (the anchor plus
+the serialised CMS payload), `target="_blank"` 1 — so Framer omits the href entirely for the ten items with
+no file, exactly as recorded for an unresolvable CMS link. `/products` `266,928 -> 267,124` (+196).
+
+**The uploaded file is the blank master** — `Content-Length: 243555`, byte-exact against
+`Alkimi_SpecSheet_Master.pdf`. Correct as a mechanism test; it is the 5-page `PRODUCT NAME` / `Insert Text`
+template, not a finished sheet.
+
+**Home was re-checked in the same pass** because Framer's own agent had an un-reverted hero change pending:
+`278,093 -> 278,073` (-20), with Gellix **58**, `H1 Hero` **2**, `H1 Hero - Style` **2**, the old shared
+`sA1pdkMlu` **0**, `--framer-font-size:72px` **2**, `Measured` **2**, `lighting objects.` **2**. The hero is
+intact on its own presets; nothing regressed.
