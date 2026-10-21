@@ -8357,3 +8357,104 @@ at `4,280,052` and hero video at `4,009,893`. Draft counts clean on all eight co
 Driver are covered by the `Web Ready v2` raster set, which the SVG decision supersedes. **When the vendor sends
 the rest as SVG, this exact pipeline applies** — with the extrusion half of the size policy (end-cap height,
 right-anchored at `57.3%` or `62.9%`) rather than the cross-section half used here.
+
+### THE SIX CROSS-SECTIONS NOW CARRY ZAID'S LINE WEIGHT — and PER-STROKE INK WAS THE WRONG CONTROL (2026-10-20, PUBLISHED AND VERIFIED)
+
+Shak: *"why do the lines look lighter than the original from zaid?"* **He was right, and the cause was my
+choice of target, not the pipeline.** I solved every stroke to per-stroke ink `0.404` — this project's
+recorded reference — which made the six **2.1x to 3.0x lighter than the vendor's own pen**:
+
+```
+                   ZAID pen=5          as first shipped     ratio
+Vena Mini          ps 1.164 cov 6.45%   ps 0.408 cov 1.71%   x2.85
+Vena Corner Mini   ps 1.099 cov 4.80%   ps 0.404 cov 1.78%   x2.72
+Vena Round Mini    ps 1.189 cov 4.98%   ps 0.403 cov 1.68%   x2.95
+Vena               ps 1.039 cov 4.07%   ps 0.403 cov 1.27%   x2.58
+Vena Corner        ps 0.869 cov 3.59%   ps 0.408 cov 1.59%   x2.13
+Prisma Multiplier  ps 1.068 cov 3.85%   ps 0.400 cov 1.36%   x2.67
+```
+
+**!!! PER-STROKE INK CANNOT SEE WHAT THE EYE READS AS LINE WEIGHT, AND THAT IS THE REAL LESSON. !!!**
+
+Measuring all sixteen live drawings at card size showed the six sitting **mid-band** against the ten raster
+ones (`0.149 - 0.674`), i.e. exactly on target — while looking visibly lighter:
+
+```
+Driver 5-1 0.149  Liga W 0.240  Liga T 0.261  Rima 10 0.355  Rima 5 0.362
+SVG Vena 0.377  Prisma Link 2 0.379  SVG Vena Mini 0.389  SVG Vena Corner 0.391
+SVG Vena Corner Mini 0.393  Flow 20 0.401  SVG Prisma Multiplier 0.401
+SVG Vena Round Mini 0.415  Flow Spine 0.445  Prisma Link 1 0.453  Flow Straight 0.674
+```
+
+**The tell was the darkest pixel: the SVG six were `55-91` while the raster ten were `126-179`.** So the
+vector drawings were **thin and nearly black** where the raster ones are **fat and grey**. Equal integrated
+ink, opposite appearance. **A sharp hairline reads lighter than a soft smudge at the same ink**, because the
+eye reads stroke WIDTH and per-stroke ink measures ink MASS.
+
+**This is the exact inverse of the recorded `Liga T` / `Liga W` finding**, where thin-but-dark read as too
+DARK. Both are the same underlying fact — per-stroke ink is blind to the width/density split — and the sign
+of the error flips with how densely the drawing packs its lines. **For "does this read light or heavy",
+measure rendered stroke width and darkest pixel; per-stroke ink answers a different question.**
+
+**WHAT SHIPPED: a uniform `0.700` device-px stroke, which is Zaid's own mean.** Verified on the hosted
+copies:
+
+```
+                   geo (target)      centre     perStroke  stroke   cov     darkest  minAlpha
+Vena Mini          17.88 (17.57)    49.9/49.9     1.018    1.41px   5.20%      8       255
+Vena Corner Mini   19.25 (19.09)    49.9/49.9     1.101    1.41px   4.80%      4       255
+Vena Round Mini    19.59 (19.57)    49.9/49.9     1.077    1.00px   4.52%     14       255
+Vena               21.99 (21.85)    49.9/49.9     1.061    1.00px   4.13%      7       255
+Vena Corner        24.36 (24.26)    49.9/49.9     0.952    1.00px   3.95%      5       255
+Prisma Multiplier  25.18 (25.00)    49.9/49.9     1.165    1.00px   4.32%      3       255
+```
+
+Per-stroke `0.952 - 1.165` lands inside Zaid's own `0.869 - 1.189`, coverage `3.95 - 5.20%` inside his
+`3.59 - 6.45%`. **Darkest pixel went `55-91` -> `3-14`**: the stroke is still about one device pixel wide
+(it cannot be less) but now carries nearly all its ink instead of about a fifth.
+
+**!!! HIS UNIFORM PEN IS NOT UNIFORM ON OUR CARDS — copying `stroke-width 5` literally would ship a 1.37x
+SPREAD. !!!** Our frames differ (`3469 - 4743`) because of the size hierarchy, so his one pen renders
+`0.619 - 0.846` device px across the six. I used his **level held uniform** instead — `0.70px`, giving
+source strokes of `4.14 - 5.66`, either side of his 5. **Any uniform source pen becomes a non-uniform
+rendered stroke whenever the frames differ; convert to device px before calling a pen "uniform".**
+
+**FRAMES WERE HELD BYTE-IDENTICAL so stroke width was the only variable** — which is what made the diff
+meaningful and the verification trivial. **`geo` moved `+0.02` to `+0.20` points** (`Vena Mini` 17.68 ->
+17.88): the thicker stroke extends the ink bbox by half its width each side. The geometry did not move —
+only the ink around it widened. **Expect a measured bbox to grow slightly with any stroke increase and do
+not read it as drift.**
+
+**THE PRE-PUBLISH PAGE WAS SAVED THIS TIME, AND THE BYTE DELTA RECONCILES COMPLETELY.** Last round left a
+`-768` on `/products` unexplained precisely because no baseline was kept. Here `/products` is
+**byte-identical** (`289,741`), and mapping the six new asset ids back to the old ones leaves **33 differing
+runs, every one build metadata and not one content**:
+
+```
+publish timestamp comment                                 2 chars
+searchIndex-* names (old primary becomes new fallback)    2 runs x 12
+data-framer-page-optimized-at timestamp                   4 runs
+chunk hash  ...DgTGD6Ub -> ...BBNavmR8                    8 chars
+script_main.CU7NliU1 -> .CZahK0vf                         7 chars
+a CMS payload UUID, 22722093-... -> 9c398be0-...          3 x 8 runs
+```
+
+The id totals happened to match exactly (`157 -> 157` chars), which is why the page did not move at all.
+**That names the class of churn behind the earlier `-768`** — searchIndex names, chunk hashes, optimizer
+stamps and payload UUIDs all rotate per publish and are not always the same length. It cannot be proven
+retroactively without the baseline, but the mechanism is now demonstrated. **Save the served page before
+every publish; the diff costs one `curl` and closes questions that are otherwise permanent.**
+
+**Confirmed by eye against the raster neighbours before calling it done.** Captured `Flow Straight` and
+`Flow Spine` (raster, still live) beside `Vena` and `Vena Corner` (new) from the published page: the six do
+**not** read as louder, because the extrusions fill their cards and so carry more total ink even at a
+thinner stroke. **A per-stroke figure 1.5x above the heaviest raster drawing did not translate into a
+visible mismatch** — another reason not to decide weight from that metric alone.
+
+**The previous six assets stay hosted**, so this is one rebind from reverting. Verified by a separate
+`exec`, by re-issuing all six writes (`ALREADY BOUND`, same ids returned, which also proves byte identity),
+draft counts clean on all eight collections, `/elements` byte-identical, Home byte-identical at `278,094`
+with the full sweep passing.
+
+**`page.screenshot({clip})` wants `width`/`height`, not `w`/`h`** — recorded before, repeated here, and it
+fails loudly rather than silently.
