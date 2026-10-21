@@ -8544,3 +8544,82 @@ putting on every publish** — it is the only pre-publish check that can catch a
 
 **Both earlier weights stay hosted**, so `0.20px` and Zaid's `0.70px` are each one rebind away with no
 upload and no re-encode. **The ten raster drawings are untouched.**
+
+### THE CURVES WERE DASHING, NOT STEPPING — a sub-pixel stroke cannot draw a shallow diagonal (2026-10-21, PUBLISHED AND VERIFIED)
+
+Shak: *"any way to smoothen out the curved lines?"* Yes, and the cause is not what the raster-era note
+assumed.
+
+**FIRST, THE VENDOR'S CURVES ARE INNOCENT — MEASURE THE TESSELLATION BEFORE BLAMING IT.** These SVGs are
+`<polyline>` elements, i.e. every curve is a polygon approximation, so flattening tolerance is the obvious
+suspect. It is not: across all six drawings the facet chords measure **~0.05 device px** and the worst
+sagitta anywhere is **0.035 device px**. **That check is cheap and worth making the first move on any
+"the curves look rough" report** — for each vertex triple take the turn angle `θ` and the mean chord `c`,
+then `sagitta = (c/2)·tan(θ/4)`, converted to device px with `CARD / frameUnits`. Anything under ~0.2 px
+exonerates the geometry.
+
+**THE REAL CAUSE IS ARITHMETIC AND IT IS WORSE THAN STEPPING.** `Vena`'s top arc is **140 device px wide
+with 5.3px of rise** — a 26:1 slope. A **0.40px** stroke can deposit at most 40% ink into one pixel row;
+where the arc straddles two rows each gets ~20% and **neither row reads as a line**. So the arc does not
+staircase, it **breaks into dashes** with near-white gaps. Confirmed by eye on the live asset at 8x, through
+the real delivery chain.
+
+**THE FIX: PERCEIVED WEIGHT IS `width x darkness`, SO MOVE THE INK FROM THIN-AND-BLACK TO WIDE-AND-GREY.**
+A 1.00px line at grey **153** carries the same ink as a 0.40px black one (`1.00 x (255-153)/255 = 0.40`),
+but it always fills a whole pixel row, so it stays continuous and the sub-pixel drift lands in the
+neighbouring row as a smooth ramp. Shipped at **`stroke-width` 1.00 device px, `#999999`**:
+
+```
+                   geo (target)      centre     perStroke  stroke       cov     darkest  minAlpha
+Vena Mini          17.88 (17.57)    49.9/49.9     0.510    1.00-2.00px  3.08%     156      255
+Vena Corner Mini   19.25 (19.09)    49.9/49.9     0.575    1.41px       2.41%     158      255
+Vena Round Mini    19.93 (19.57)    49.9/49.9     0.585    1.41px       2.38%     156      255
+Vena               22.21 (21.85)    49.9/49.9     0.603    1.41px       2.53%     154      255
+Vena Corner        24.53 (24.26)    50.0/50.0     0.524    1.00px       2.14%     155      255
+Prisma Multiplier  25.18 (25.00)    49.9/49.9     0.593    1.41px       2.32%     157      255
+```
+
+Frames held byte-identical (`3469 / 4187 / 3802 / 4332 / 4673 / 4743`), so **stroke width and colour were
+the only variables**. `geo` grew `+0.2` to `+0.35` points — the documented consequence of a wider stroke
+extending the measured ink bbox by half its width each side; centres did not move.
+
+**!!! THIS CORRECTS THE 2026-10-12 VERDICT ON SHALLOW-ARC FACETING. !!!** That note concluded *"no source
+resolution fixes this — the constraint is at the display end"* and recommended either reverting the ink gain
+or re-rendering with a deeper arc. **The first half is right and the conclusion was too narrow: resolution
+cannot fix it, but STROKE WIDTH can, and it costs nothing.** The arc's shallowness was treated as the
+problem when the real variable was how much of a pixel row the line occupies.
+
+**THE WEIGHT SWEEP THAT CHOSE 0.40px COULD NOT HAVE CAUGHT THIS.** It measured per-stroke ink, coverage and
+darkest pixel at four levels — **none of those three can see CONTINUITY**. A dashed line and a solid line of
+the same total ink score identically on all of them. **Add a continuity check to any line-weight decision:
+render the shallowest curve in the set at true card size, zoom it, and look for gaps.** This is the third
+time in this thread that a tone metric and the eye have disagreed.
+
+**A BONUS THAT WAS THE ORIGINAL COMPLAINT.** Darkest pixel goes `3-14` -> **`154-158`**, which lands inside
+the band the ten raster drawings occupy (`126-179`). The recorded explanation for why the SVG six read
+lighter than their neighbours was *"vector gives a thin near-black line, raster gives a fat grey one"* —
+this reproduces the raster property deliberately rather than by accident, so the six now match the ten on
+darkness as well as on ink.
+
+**THE BYTE DELTA RECONCILES EXACTLY, AND FOR ONCE WITHOUT RESIDUE.** `/products` went `289,740 -> 289,716`,
+and that **-24 is entirely the asset ids**: they total `157 -> 154` characters, `-3` per reference across
+**8 srcset refs** = `-24`. Normalising the publish comment and mapping the ids back leaves both pages at
+**exactly 289,592 bytes** with **26 differing runs, every one build metadata** (searchIndex rotation, the
+optimizer stamp, a chunk hash, `script_main.*`, a CMS payload UUID x3). Zero content change.
+`/elements` is byte-identical, correctly — all six are Fixtures.
+
+**Verified live:** six new assets at 8 srcset refs each, six 0.40px assets at **0**, draft counts clean on
+all eight collections, `minAlpha 255` and white corners on all six so the lightbox requirement holds, and
+the arc confirmed continuous by eye on the published asset. Published as version `23debbff5`.
+
+**New asset ids** (Fixtures, field `iK9EVVy1H`):
+
+```
+Vena Mini          bZmZsHlu6TwRTRfnMiXvMslI.png     Vena          svxe7yND5yzSPtBar5T6wYdaJUg.png
+Vena Corner Mini   p7ivNgGtG52MMIP85IBYYZ8FM.png    Vena Corner   SI2J9iHbcta1Q69A9oTHKoyRA.png
+Vena Round Mini    1T0EfUHjHVzFf4mPLfkGOi30I0.png   Prisma Multi  cuk83VjwNeYU3f5Iggla1M3Wch4.png
+```
+
+**All three earlier weights stay hosted** — `0.20px`, `0.70px` and `0.40px` black — so any is one rebind
+away. **The ten raster drawings are untouched.** When the remaining ten arrive as SVG, build them at
+**1.00px / grey 153** from the start rather than solving a black stroke to an ink target.
