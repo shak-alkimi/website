@@ -9978,3 +9978,90 @@ page byte-stable, Home byte-identical at `275,308`, full sweep 15/15.
 
 **Still outstanding on this page, unchanged:** the privacy link beside the submit button, which remains on the
 pre-launch cleanup list.
+
+### `/news/:slug` BROUGHT ONTO THE STANDARD NAV — the last surface, and it was a bigger gap than "two attributes" (2026-10-22, PUBLISHED `eebdd110c`)
+
+The article template was the only live page still rendering `Navigation Mobile` on phone. Measuring before
+touching anything showed the gap was wider than the open-items note claimed:
+
+```
+DESKTOP   transparent -> Fill White -> back     but fired at 300px, on #trigger
+TABLET    same                                   fired at 300px
+PHONE     solid white bar, never transitioned
+```
+
+Its ids were `hero, trigger, overlay` with **no `*-nav-state`** — so this page was never in the 40px
+standardisation pass at all. Nine live pages had a `Navigation Scroll Trigger`; this was the only one without.
+
+**THE INK QUESTION LOOKED HARD AND WAS SETTLED BY ONE MEASUREMENT.** A CMS template must serve every article,
+and the three live ones have different heroes (two video, one image), all dark imagery — so "what colour is
+the nav over" reads as unanswerable in general. It is not: **`Section Hero` carries `padding: 150px 45px 0 45px`**,
+so the band behind the nav is the template's own white padding, not the article's artwork. Simulated by hiding
+the nav in the DOM and sampling the strip: **mean/min/max luminance `255` on all three articles.** Black ink,
+unambiguous, for any article now or later.
+
+**Final state — identical to `/news`, its own listing page:** `Hide black` at rest (transparent, black ink),
+`Section in view / Viewport top / Replay Yes` on `#article-nav-state`, `To: Fill White`, fires at **39px** on
+all three breakpoints and reverts.
+
+**!!! THE SCROLL SECTION NAME IS NOT EXPOSED THROUGH THE NODE API. !!!** A full key dump of the trigger node
+returns the usual 60-odd layout keys and nothing resembling it, and a string scan for `nav-state` across every
+attribute returns nothing on all three breakpoints. Add it to the blind list beside appear effects, variant
+transitions, CMS bindings, conditional visibility, canvas text, vectors, page SEO fields and `pointer`.
+**The option list in another effect's `Section` dropdown is the cheapest oracle** — it lists every section on
+the page by name, and the option's `value` is the trigger node's own id.
+
+**!!! THE VIEWPORT CONTROL: SET IT EXPLICITLY, NEVER INFER IT. !!!** Its three buttons carry
+**`aria-label="Top" / "Center" / "Bottom"`** — so the *identity* of each button is readable, while the recorded
+"no DOM signal" remains true of the *state* (all three report `bg rgba(0,0,0,0)`, `opacity 1`, `svg fill none`,
+before and after a click). That asymmetry is the useful part: **a click on `Top` is idempotent, so setting it
+costs nothing and removes the need to read it.** The alternative — solving Viewport from the old 300px fire
+point — is arithmetic on a value you cannot check, and getting it wrong is the `/about` filled-at-rest defect.
+The 39px threshold measured after publishing is what confirms `Top` took.
+
+**THE `Section` REFERENCE DID CASCADE THIS TIME, which narrows a rule recorded as four-for-four.** Tablet and
+Phone both already read `#article-nav-state` after only Desktop was set. The reconciliation: a breakpoint that
+holds **its own stored Section** blocks the cascade and must be set explicitly; one that merely inherits picks
+it up. So the standing advice — always read all three — is right, but "it never cascades" was the wrong reason.
+
+**A PLAIN `visible: false` LAYER STILL RENDERS ITS PROPERTY CONTROLS.** The recorded blank-panel case
+(*"a component instance's property controls are not rendered at all while the layer is hidden"*) was a
+**condition**-hidden layer. Phone's hidden desktop-nav showed its full `Effects` section, so the effect could
+be configured *before* the visibility flip — which is what kept every intermediate state publishable-safe:
+trigger pasted (invisible) -> effects wired (targeting a hidden instance, a no-op) -> flip last.
+
+**EDITOR MECHANICS, the parts that cost time:**
+
+- **The Pages-panel chevron sits at x ~22, not `row.x - 16`.** The usual helper offset lands on the page icon
+  and silently does nothing; the chevron also **ignores synthetic pointer events** and needs a real click, like
+  the effect chips. Only then does a CMS collection reveal its template child (`News`, 7 items).
+- **The clipboard survives a full editor page navigation.** Copying the donor on `/news`, deep-linking to
+  `?node=<template id>` and pasting worked first time — so a URL navigation is not a reason to avoid
+  copy/paste, and fighting the Pages panel to stay in-app was unnecessary.
+- **The effect popover is a `[role=dialog]` at x ~1006-1266** while the panel sits at x >= 1215. A scan filtered
+  on `x > 1215` reports the *panel's* selects and makes an open dialog look closed — the exact false negative
+  that nearly had me re-clicking a chip that had already worked. **Query `[role=dialog]` directly.**
+- **`innerWidth: 0` with a live DOM** (3,278 divs, `readyState complete`) is the zero-viewport failure; a fresh
+  tab cleared it. `Page.captureScreenshot` froze three times and recovered each time — read the DOM meanwhile.
+
+**VERIFIED LIVE.** All three articles, all three breakpoints: `Nav black` transparent at rest -> `Fill White`
+at 39px -> transparent on the way back, logo centred at exactly half the viewport (`768 / 450 / 195`).
+`Navigation Mobile` and `Navigation White` both **0** in the markup; `id="article-nav-state"` present. The
+hamburger was clicked for real and opens **5 dividers with all 5 menu links** — a nav whose menu silently
+broke would be worse than the defect fixed.
+
+**Each article dropped exactly ~7,727 bytes**, which is the `Navigation Mobile` component's markup leaving the
+page — the mirror of the **+7,333** each gained when `/products` and `/elements` were given it. Home and
+`/news` byte-identical; the publish preview showed **exactly one change** (`WebPage | /news/:slug`), with no
+collision from the other session.
+
+**The strongest single check was a byte comparison of two screenshots:** the phone nav strip at rest on
+`/news/cauda` and on `/news` are **byte-identical (same md5)**. For "does this surface now match that one",
+an md5 of two captures beats reading two sets of numbers.
+
+**`browser_run_code_unsafe` has no `require`**, so `fs` is unavailable — but `page.screenshot({ path })` takes
+an absolute path and writes it directly, and `page.context().browser().newContext()` works, so the
+fresh-context-per-breakpoint rule is available there.
+
+**Note `#trigger` (`Ilt_8h0l3`) still exists on the page**, now unreferenced. Left in place deliberately:
+removing it is a separate decision and nothing points at it.
