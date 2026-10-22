@@ -10159,3 +10159,149 @@ exactly that error, and treats it as situational flakiness. **It is almost certa
 server evaluates `undefined` as a function when `code` is absent. The tool works, takes
 `async (page) => { ... }`, and reaches `page.context().browser().newContext()` — so the
 fresh-context-per-breakpoint rule **is** available through it.
+
+### THE ORA METADATA IS GONE — favicon, social card, apple touch icon and the article titles (2026-10-22, PUBLISHED `615a2ced1`)
+
+Four faults, found by re-deriving from the live site rather than from notes. **The worst one was not on the
+list I had been carrying:** the **favicon was the `Ora©` wordmark**, white on black, sitting in the browser
+tab, every bookmark and every history entry on all 12 surfaces. The og:image was the Ora template's
+marketing collage — a 3x3 grid of Ora screenshots including a **Nike swoosh**, several `Ora©` nav bars and
+"Designing brands today for tomorrow" — which is the card that rendered whenever anyone pasted an Alkimi
+link into Slack, iMessage, LinkedIn or Teams.
+
+| | was | now |
+|---|---|---|
+| favicon (light + dark slots) | `Ora©` wordmark | the Alkimi tile |
+| og:image + twitter:image | the Ora collage | `ALKIMI(c)` on `#080200` |
+| apple touch icon | **unset** — Framer's own logo as "Your Site" | the Alkimi tile |
+| 3 article `<title>` / `og:title` | `… - Ora©` | `… - Alkimi` |
+| description / og: / twitter: | empty | **still empty — needs copy** |
+
+Verified on all 12 live pages: 2 `rel=icon` links on the new asset, og and twitter images on the new card,
+an apple-touch-icon link that did not previously exist, and **0 references to either Ora asset and 0
+occurrences of `Ora©`/`Ora®`**.
+
+**!!! THERE IS NO SEO SURFACE IN THE AGENT API AT ALL — this is 100% editor work. !!!**
+
+```
+WebPageNode keys:  id, originalId, __class, path, collectionId, draft
+framer keys:       7 enumerable, none SEO
+full docs grep:    0 matches for seo | opengraph | og:image | metaTitle | metaDescription | socialImage
+```
+
+**Where it lives, so nobody has to hunt again.** Right-click a page row in the Pages panel ->
+**`Settings`** (first item) opens `?view=settings:page:<nodeId>`, which has a left rail: **Site settings**
+(General, Skills, Performance, Versions, Usage, Forms, Plans, Code), **Hosting**, and **Page settings** with
+every page. **`Site settings -> General -> Site images`** holds Favicon (**separate Light and Dark slots**,
+`64x64`), Social preview (`1200x630`) and Apple touch icon (`180x180`). It is **not** in the File menu.
+
+**!!! THE REUSABLE TECHNIQUE: INTERCEPT THE FILE-INPUT CLICK. !!!** Clicking an `Upload` button opens a
+native OS file dialog that automation cannot see, dismiss, or recover from — it can wedge the browser.
+Patch the prototype first and the dialog never opens, while the click still tells you which input Framer
+armed:
+
+```js
+window.__origClick = HTMLInputElement.prototype.click;
+HTMLInputElement.prototype.click = function () {
+  if (this.type === 'file') { window.__cap = { fired: true, el: this }; return; }   // swallowed
+  return window.__origClick.apply(this, arguments);
+};
+```
+
+**Framer has exactly ONE `input[type=file]` in the whole document and repurposes it per slot** — before the
+click it has no `accept`; after clicking a slot's `Upload` it carries the image MIME list. So the order is
+forced: **click the slot's Upload button (armed), then feed the input.** Feeding it without clicking first
+would land in no slot or the wrong one.
+
+**Feed it with the `file_upload` tool and a `ref`, never by embedding base64.** The client reads the local
+file itself, so nothing enters context. `find` locates the hidden input fine despite it being `0x0`.
+
+**!!! THE CDN NEVER RETURNS AN ASSET'S ORIGINAL BYTES — so you cannot round-trip to get byte-identity.
+!!!** Three fetch variants of a 33,906-byte master all returned **10,038 bytes**:
+
+```
+plain, ?lossless=1, and Accept: image/png   ->  10,038 B every time
+```
+
+That is why the local file had to be the source: feeding a derivative back would have **permanently stored
+a degraded favicon**, since whatever you upload becomes the master.
+
+**A CONTEXT MENU'S FIRST ITEM IS NOT PRE-HIGHLIGHTED — one `Down` lands on item 1.** This file records the
+opposite for *submenus* ("the first item is already highlighted, so `Down` selects the second"), and that
+nearly caused a wrong pick here. **The two behave differently; check which you are in by zooming before
+pressing `Return`.** Confirmed again that a real `computer left_click` **dismisses a Framer popover without
+activating the item** — the keyboard is the only route.
+
+**One field drove all three article titles, exactly as deduced from the published output.** The News CMS
+template's SEO Title was **`{{Title}} - Ora©`**, now `{{Title}} - Alkimi`. The panel lists the usable
+variables: `Title, Slug, Time Read, Date, Category, Preview Text - Featured, Author, Hero Video URL`. Its
+placeholder is `Alkimi`, i.e. an empty field falls back to the site title.
+
+**`Tab` out of that field moves focus into the URL field** (`/news/:slug`) — typing there would break every
+article URL. Click to neutral space instead, and assert `document.activeElement.tagName === 'BODY'` after.
+
+**DESCRIPTIONS ARE STILL EMPTY AND WIRING THEM TO THE CMS WOULD RENDER NOTHING.** The obvious move is to set
+the template description to `{{Preview Text - Featured}}` — **but that field is empty on all three live
+articles**, so it would look wired and produce nothing. Checked before setting rather than after. The
+site-level default description is marketing copy and is Shak's to write.
+
+**SITE IMAGES ARE INVISIBLE TO THE PUBLISH PREVIEW AND PUBLISH ANYWAY — a new row in the table.** The
+preview reported `changesCount: 1` naming only `WebPage | /news/:slug`; the favicon, social preview and
+apple touch icon did not appear, and all three went live. So project-level settings behave like code files,
+not like the instance `variant` control:
+
+| change | preview sees it | publishes |
+|---|---|---|
+| page-level layer property | yes | yes |
+| component-internal layer property | no | **yes** |
+| page-level instance control (label, href) | yes | yes |
+| code file via `setFileContent` | no | **yes** |
+| **project-level site setting (favicon, social image)** | **no** | **YES** |
+| page-level instance **`variant`** | no | **NO — editor round trip** |
+
+**EVERY BYTE RECONCILED.** Home went `275,288 -> 275,396`. A normalised diff (publish comment, optimizer
+stamp and the changed asset ids folded out) leaves **6 differing runs, of which exactly one is content** —
+the new apple-touch-icon link, `+89` — with the rest being the documented searchIndex rotation and one
+`.mjs` chunk hash (`Br363hZJ -> d_q2qNgI`).
+
+**MY OWN REGRESSION CHECKLIST WENT STALE INSIDE A SINGLE SESSION.** It expected the favicon id twice and got
+three, which reads as a defect; the third is the apple-touch-icon link, which I added *after* writing the
+expectation. The site was right and the check was wrong. **This file already records that a regression sweep
+is itself state — the window for that going stale is minutes, not days.**
+
+### THE FAVICON AND CARD — built pad-only, and the variant choice was settled by a failure test
+
+**Source: the A glyph from the wordmark, never the `_icon_` files.** All four `Alkimi_icon_*` assets in
+Drive are **bleed crops** (`L0.0 R3.8 T0.5 B0.0`), so the crossbar runs off the left and the A's right leg
+off the bottom — at 32px that reads as a rendering error. In `logo_big.png` (byte-identical to
+`Alkimi wordmark - black.png`, same md5) the glyph sits cleanly at **`x 0..1758, y 2..1315`** with a clear
+gap before the `L`, confirmed identical in the white sibling.
+
+So the favicon is a **pure crop + pad at 1900x1900 with no scaling anywhere** — the mark reaches Framer at
+native resolution having never touched a resampler. **Shak asked for the crossbar flush to the left
+boundary**: ink starts at `x = 0` exactly, right margin 7.42%, vertically centred. That also made the mark
+~10% larger in frame than a centred version, and the bar running off the edge matches how the wordmark
+itself is drawn.
+
+**Use the native white wordmark for light-on-dark, never a `lutrgb` flip of the black one** — it is the
+designer's own asset with its own antialiasing. Verify the two files' glyph runs match before cropping
+either; here they were identical.
+
+**!!! THE VARIANT CHOICE WAS DECIDED BY TESTING THE FAILURE MODE, NOT BY TASTE. !!!** Rendered at 16px on
+mismatched chrome, **both transparent variants are effectively invisible** — black-A on dark chrome, white-A
+on light chrome. That is not hypothetical: Framer emits the two icons distinguished **only by a `media`
+attribute**, and iOS Safari, bookmark managers, feed readers and link scrapers often ignore it, so half the
+audience would see nothing. **The solid `#080200` tile renders identically on both chromes and has no
+mismatch case to fail**, holds at 16px because the tile carries when the hairline softens, and collapses the
+light/dark pair into one file. It is also the right answer for the apple touch icon, since iOS composites
+transparency onto white.
+
+**The card is 1200x630 at 50% wordmark width, and the square crop decided that.** Several clients centre-crop
+a 1.91:1 card to a square thumbnail; at 62% that **severs the crossbar and the `©`**, at 50% the whole
+lockup survives (`x 300..899` inside the crop window `285..914`) and still holds the full card. Fill verified
+exactly `8,2,0` on all four corners and all four mid-edges — the `lavfi color` source was force-corrected
+with `lutrgb=r=8:g=2:b=0`, so none of the documented YUV drift got in. **Stayed at 1200x630 rather than 2x
+deliberately**: Slack, LinkedIn and Twitter render unfurls at ~360-520 CSS px, so even doubled for retina a
+1200px card is already oversampled.
+
+Both were verified on the **hosted** copies by `createImageBitmap` in a browser, with no ffmpeg in the path.
