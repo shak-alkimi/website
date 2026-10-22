@@ -9593,3 +9593,46 @@ reading two colour values** when the question is "does it come back to where it 
 Scope confirmed by a 93-instance tally: Spec Sheet 18 on `KaTzNfkSG`, `Get in touch` 3 still on `PQb6JRcY1`,
 Methodology 3 still on `IsPmXClw2` and remote, Manual/IES 18 each still hidden. The Prisma Multiplier PDF link
 survives (`target="_blank"` 1, asset 2). Full Home sweep passes 15/15.
+
+**!!! THE SWAP TURNED ALL 57 BUTTONS FROM A 2px ROUNDED RECTANGLE INTO A 200px PILL, AND I SHIPPED IT. Fixed
+2026-10-21, published `025cab3c9`. !!!**
+
+Shak spotted it ("the buttons had a rectangle appearance with rounded corners"). The two modules are **NOT**
+geometrically identical:
+
+| | `border-radius` |
+|---|---|
+| remote `dGP0PpDpJf2SzWXgXNJo` (where the 57 lived) | **`2px`** |
+| `local-module:canvasComponent/dzNJ99hkN` | **`200px`** |
+
+**The error was checking the wrong pair.** On 2026-10-20 I verified that the four *local* candidate variants were
+geometrically identical **to each other** (`fit-content`, `padding 11px 18px`, `gap 10px`, radius `200px`) and wrote
+"the switch changes fill and border and nothing else". That was a comparison **within** the local component; I never
+compared **local against remote**. **Before a module swap, diff the source module's variant geometry against the
+target's — "the variants are identical" is only meaningful if it names which two things were compared.**
+
+**It also reached further than the Spec Sheet buttons**: the footer **`Get in touch` went 2px → 200px on every
+page**, because it is one of the 57. The post-swap verification checked variant, title, visibility and the CMS Link
+bindings — **not rendered geometry**. Add a geometry check to any swap: `border-radius`, padding and size, read off
+the published markup before and after.
+
+**The radius is emitted INLINE, so a CSS-rule grep misses it entirely.** `grep 'border-radius:[0-9]*px'` returned
+the identical `4 x 10px / 1 x 999px` on both builds; the button's own value is in the anchor's `style=` attribute
+(`border-top-left-radius:200px`). **Read the element, not the stylesheet** — the same trap already recorded for
+variant-scoped radius on the Home cards.
+
+**`borderRadius` IS WRITABLE ON A VARIANT, AND WRITING THE PRIMARY CHANGES EVERY VARIANT THAT HAS NOT OVERRIDDEN
+IT.** A guarded write of `2px` to four variants (`PQb6JRcY1`, `cKOIpfeVU`, `KaTzNfkSG`, `xDpnhBaOq`) left **all 14**
+reading `2px` on two agreeing fresh-session reads — `PQb6JRcY1` is the Primary and the rest inherit. That is the
+purple-label override model seen from the API side, and it is worth knowing before writing any geometry attribute on
+a component's primary variant.
+
+**The blast radius was checked before writing, and it is why this was safe.** A sweep of all 12 live pages showed
+`Button Blue to White` renders **only** as the 3 footer `Get in touch` instances; the 5 other local instances using
+it sit on drafted pages (`/careers`, `/projects-*`) or are hidden. So the inherited change has **no other live
+effect** — but if those pages are ever undrafted their buttons will now be `2px` rather than pills.
+
+**Verified live:** every page back to its pre-swap shape, Home byte-for-byte the same mix (`Blue to White` 2px x3 +
+`White to Black` **200px** x2 — the Methodology buttons stay pills because they are on the *third* module and were
+never in scope). Spec Sheet still green -> black -> green with rest and back captures byte-identical, size unchanged
+at `111x36`.
