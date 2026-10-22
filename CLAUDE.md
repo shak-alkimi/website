@@ -10305,3 +10305,81 @@ deliberately**: Slack, LinkedIn and Twitter render unfurls at ~360-520 CSS px, s
 1200px card is already oversampled.
 
 Both were verified on the **hosted** copies by `createImageBitmap` in a browser, with no ffmpeg in the path.
+
+### THE SITE TITLE AND DESCRIPTION ARE SET — Shak's copy, live on all 12 surfaces (2026-10-22)
+
+**This CLOSES the "every description is empty" item recorded in the section above, which is now stale.**
+Shak set both in `Site settings -> General`:
+
+```
+Title        Alkimi | New York
+Description  Measured in every sense. Architectural and modular lighting objects.
+```
+
+Verified by re-deriving from the live site, not from the editor: **all 12 pages carry the description on
+all three slots** (`description`, `og:description`, `twitter:description`), nine carry the new title in
+`<title>`, `og:title` and `twitter:title`, and **the three articles correctly keep `{{Title}} - Alkimi`**
+from the News template's own SEO Title, which is a literal and not derived from the site title.
+
+**!!! THE DESCRIPTION META TAGS WERE THERE ALL ALONG, AS BARE `content` ATTRIBUTES — which is why the
+earlier "empty" reading was ambiguous and why my byte prediction was 114 out. !!!**
+
+```
+BEFORE   <meta name="description" content>                 33 chars
+AFTER    <meta name="description" content="Measured …">   104 chars
+```
+
+An attribute-reading helper that looks for `content="` finds nothing in `content>` and returns `null`;
+a helper that returns `""` for "no tag found" reports the identical thing. **So `""` from a meta reader
+means EITHER an absent tag OR a valueless one, and the two cannot be told apart without printing the raw
+tag.** Print the tag, not the parsed value, whenever absence is the thing being established.
+
+**THE DELTA RECONCILES TO THE CHARACTER against the saved pre-publish copy** — `275,288 -> 275,642`
+UTF-16 length, **+354**, covering both of today's metadata publishes:
+
+```
+3 description tags   33->104, 40->111, 41->112      +213
+og:title + twitter:title   43->54, 44->55            +22
+<title>                                              +11
+apple-touch-icon <link>  (earlier publish)           +89
+two publishes of build churn                         +19
+                                                    ----
+                                                     354
+```
+
+**A `<link>` IS NOT A `<meta>`, so a meta-tag diff is silently blind to the apple-touch-icon.** The two
+asset-id swaps and the two searchIndex renames contributed **zero** — same-length strings on both sides.
+
+**I COMPARED DISK BYTES AGAINST A UTF-16 LENGTH AND GOT A FALSE RESIDUAL.** Home is `275,662` bytes and
+`275,642` JS characters; the file holds 20 multibyte characters. The figures recorded in this file come
+from `fs.readFileSync(..., "utf8").length`, so **comparing `stat().size` against a recorded figure is off
+by the multibyte count** — here it manufactured a 20-byte discrepancy on top of the real one. Measure both
+sides the same way.
+
+**WHAT REMAINS, AND IT IS SMALLER THAN IT LOOKS: the description is IDENTICAL on all 12 pages.** Correct
+for a site-level default, and weakest on the three articles, where a search result now shows company
+boilerplate rather than anything about the article.
+
+**The only route for per-article descriptions is `Preview Text - Featured`, and it is empty on all three.**
+Confirmed by dumping every News `string`/`formattedText` field across the live items: the only ones with
+content on all three are `Title`, `Date`, `Category` and `Author` — metadata, not prose. **`Content` and
+`Content 2` hold the real copy but are `formattedText`, and the SEO Title panel's variable list omits
+them**, so rich text is not offered as a template variable. So this is three sentences of Shak's copy into
+`Preview Text - Featured`, then one binding on the template.
+
+**AND FILLING THAT FIELD MAY CHANGE `/news` AS WELL — check the listing after the first one.** The field
+id `NJcmXtow9` appears twice on `/news` and **nowhere** on Home or the three article pages, inside the
+Collection List's selected-identifier set. `/news` currently renders **no preview text at all** (13
+distinct text runs, all title/category/footer), so either a bound layer emits nothing while empty or
+nothing is bound — the two cannot be distinguished from the markup. **Note this is the inverse of the
+`Time Read` precedent**, where an empty string fell back to the layer's design-time placeholder and
+rendered a wrong "2 min read" on every card; here nothing renders. **Both behaviours exist in this
+project, so neither can be assumed.**
+
+**One cosmetic inconsistency, raised not fixed:** nine pages now end `Alkimi | New York` while the three
+articles end `- Alkimi`, because the News SEO Title is a literal. It reads fine either way; matching it
+would mean `{{Title}} - Alkimi | New York`, which pushes the longer article titles past the ~60-character
+mark Google truncates at. Left alone deliberately.
+
+Full Home sweep **22/22** on the new build, and the favicon / social card / apple-touch-icon work is
+intact on **all 12** pages (`3 / 2 / 1` occurrences each, old Ora card asset **0**).
