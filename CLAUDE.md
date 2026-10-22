@@ -9636,3 +9636,87 @@ effect** — but if those pages are ever undrafted their buttons will now be `2p
 `White to Black` **200px** x2 — the Methodology buttons stay pills because they are on the *third* module and were
 never in scope). Spec Sheet still green -> black -> green with rest and back captures byte-identical, size unchanged
 at `111x36`.
+
+### THE NAV NEVER WENT BACK TO TRANSPARENT ON 25 OF 27 SURFACES — Framer omits a variant's `backgroundColor` when it is inherited rather than explicit (2026-10-22, PUBLISHED AND VERIFIED LIVE)
+
+Shak: *"when scrolling back to the top the nav bar does not transition back to original state in certain instances"*, with a
+screenshot of a white bar over the dark Home hero.
+
+**IT WAS 25 OF 27 LIVE SURFACES — every desktop, every tablet, and 7 of 9 phones.** The two that worked are `/` phone and
+`/contact` phone. Scrolling back to the top left the bar **solid white** (black on `/contact`) permanently — still stuck at
+20 seconds, so genuinely stranded rather than a slow fade.
+
+**!!! MY PASS CRITERION COMPARED THE VARIANT NAME, SO THE FIRST 27-SURFACE SWEEP REPORTED "ok" ON EVERYTHING. !!!**
+
+The `data-framer-name` reverts correctly on **all 27** — `Fill White` back to `Nav black`, class `framer-v-13gtcbd` back to
+`framer-v-1uu4b65`. Only the **paint** strands. So every sweep I have run on this since 2026-10-18 was measuring the half
+of the state that was never broken.
+
+**The rule: verify a Framer variant revert by the COMPUTED/INLINE STYLE, never by the variant name or class.** A name is a
+label on the state machine; the animation is what carries the style, and the two can disagree in exactly this way. Same
+family as the already-recorded "`data-framer-name` is the instance WRAPPER and never changes" trap, one level deeper.
+
+**THE ROOT CAUSE IS IN THE COMPILED CHUNK, AND NOTHING ON THE CANVAS SHOWS IT.** The nav root compiles to a base `style`
+plus a `variants` map, and **a variant only gets an entry for a property it sets EXPLICITLY**. Pre-fix:
+
+```js
+style:{backdropFilter:`none`,backgroundColor:`rgba(0, 0, 0, 0)`,WebkitBackdropFilter:`none`,...},
+variants:{
+  CKhcbJTh3:{backdropFilter:`none`,WebkitBackdropFilter:`none`},          <- no backgroundColor
+  dAgREWuQT:{backdropFilter:`none`,WebkitBackdropFilter:`none`},          <- no backgroundColor
+  Fi3YBzeYn:{backdropFilter:`blur(40px)`,backgroundColor:`rgb(0, 0, 0)`,...},      <- Fill Black
+  lQ7T5v16X:{backdropFilter:`blur(40px)`,backgroundColor:`rgb(255, 255, 255)`,...} <- Fill White
+  ...}
+```
+
+**Only the two `Fill` variants declare `backgroundColor`.** Motion animating *to* a variant that omits a property has no
+target for it, so it leaves it where it is — at the solid colour the fill just set. `backdrop-filter` reverts correctly
+because **every** variant declares it, which is why the bar visibly loses its blur while keeping its colour and reads as a
+half-finished animation.
+
+**WHY THE TWO WORKING SURFACES WORK, and it is the clue that cracks it:** `/` phone and `/contact` phone are the only two
+resting on **`CQn2PSQz8` (`Nav white`), which is the DEFAULT variant**. A default has no entry in the map at all — its
+values *are* the base `style`, and the base **does** carry `backgroundColor: rgba(0, 0, 0, 0)`. So those two revert
+through the base and the other 25 revert through an entry with the property missing.
+
+**THE CANVAS AND THE API BOTH REPORTED THE EIGHT AS TRANSPARENT.** `setAttributes` read `rgba(0, 0, 0, 0)` on every one —
+the inherited base value — while the compiled chunk emitted nothing. **So "the stored value is correct" is not evidence
+the property will animate**; what matters is whether the variant sets it *explicitly*. The API cannot distinguish
+inherited from explicit, so the compiled chunk is the only oracle.
+
+**THE FIX: write a DISTINCT-BUT-EQUIVALENT literal to force materialisation.** Eight variants (`glROJL_vL` Hide,
+`OTFjEScTr` Nav Load, `TVfWqaIfB` Hide black, `dAgREWuQT` Nav load black, `CKhcbJTh3` Nav black, `RmynPz7kD` Hide white,
+`nTYo4Lp5J` Nav load white, `gDOEOKgPj` Nav white) set to **`rgba(255, 255, 255, 0)`** — visually identical to
+`rgba(0, 0, 0, 0)`, textually different. Post-fix all eight emit `backgroundColor: rgba(255, 255, 255, 0)`.
+
+**`CQn2PSQz8` was deliberately NOT touched** — it is the default, so its value is the base style, it already works, and
+writing it would change the base for every variant that inherits it.
+
+**Whether writing the identical `rgba(0, 0, 0, 0)` would also have materialised it is UNTESTED.** A different literal
+guaranteed it; equality with the base is the condition I was trying to break, so matching it was the one thing not worth
+risking.
+
+**I HAD A CONFIDENT WRONG HYPOTHESIS AND THE CHUNK IS WHAT KILLED IT.** 300ms sampling showed every broken surface passing
+through `Nav Load` / `Nav load black` on the way back, and the instance variant correlated with broken/working **27 of 27**
+— so I concluded the appear chain (`Hide -> Nav Load -> Nav white`) was re-firing and interrupting the revert. The
+correlation was real and the causation was backwards: those two instance variants correlate because they are the only ones
+resting on the default. **Had I acted on it I would have dropped the hairline draw-in AND it would still have been broken
+on every black-ink page, since `CQn2PSQz8` is the white-ink variant.** A 27-of-27 correlation on a 2-vs-25 split is one bit
+of information; it felt like proof.
+
+**The appear chain was never touched and is intact** — `glROJL_vL` is still registered, and the hairline's
+`.framer-v-fo6u7a .framer-18ryws4 { width: 0% }` rule still ships.
+
+**HONEST CAVEAT I CANNOT CLOSE: I do not know whether this regressed or had been broken all along.** My 2026-10-18 and
+2026-10-20 verifications both record the back-state as "transparent" — but both recorded it **by variant name**, which was
+correct on every surface the whole time. There is no measurement in this file of the back-state's actual colour before
+today, so neither reading can be supported.
+
+**Verified:** 27-surface sweep comparing background colour, **0 failures of 27**; Home captured with all videos frozen at
+`currentTime = 1.0` showing transparent -> solid white -> transparent (rest 71,497 B / scrolled 6,233 B / back 71,438 B);
+full Home regression sweep 15/15. Published as `fab035092`, preview guarded to exactly one change naming
+`Navigation / Navigation Desktop`.
+
+**Noted, not acted on: `/news/:slug` phone still renders `Navigation Mobile` / `Navigation White`** — a solid white bar,
+inconsistent with the phone-nav standardisation that moved every other page onto the desktop component. The CMS template
+pages were not in that pass.
