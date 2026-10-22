@@ -9817,3 +9817,69 @@ payload carries it too. **Normalise and diff; do not try to predict a delta from
 
 **Still without replacement artwork: `Rima 5` and `Rima 10`** — the two tape products, absent from
 both SVG batches. Everything else on `/products` and `/elements` is now vector-sourced.
+
+### RENDER CURRENCY AUDIT — the two Prisma Links are five weeks older than anything else, and a `.png` extension is what hid them (2026-10-22)
+
+Shak: *"do you have prisma link 1 and 2 (viper 1 and viper 2) updated renders?"* **No, and the
+answer corrects a gap list I had given him an hour earlier.**
+
+**THE FULL PROVENANCE OF ALL 16 PRODUCT PHOTOS, traced to the Drive source rather than read off
+the CMS:**
+
+| | render source | dated |
+|---|---|---|
+| 9 fixtures (Vena x5, Flow x3, Prisma Multiplier) | `Product Renders\Web Ready` E-13…E-22 | **14-19 Oct** |
+| Rima 5 + Rima 10 | E-16 | 18 Oct |
+| Liga T, Liga W, Driver 5-1 | the `JPG\Revision Round B-*` batch | 8 Oct |
+| **Prisma Link 1 + 2** | **`Product Lines\Darkened 75\Viper`** | **12 SEPTEMBER** |
+
+**So five products need renders, not three.** I had reported `liga-t, liga-w, driver-5-1` and
+missed the two oldest assets on the site. The sweep that settles it is one `find` over the whole
+`Products` tree printing mtimes — the newest image anywhere is E-22 on 19 Oct, and `Web Ready`
+holds exactly ten files, none of them a Viper.
+
+**!!! THE EXTENSION LIED, AND IT LIED BECAUSE OF MY OWN WORK. !!!**
+
+The E-batch landed as `.png` while the stale October Elements photos stayed `.jpg`, so `.jpg`
+became a usable shorthand for "not refreshed" — and on 2026-10-21 I used exactly that shorthand,
+recording *"nine on the new `.png` assets with the two Prisma Links untouched on `.jpg`"*. By the
+end of that same day the end-cap alignment pass had **rebuilt all eleven, the Prisma Links
+included**, emitting PNG. They then read as current in every later check.
+
+**A derived asset's format and date record the last PROCESSING pass, not the provenance of its
+content.** The Prisma Link photos are September pixels in an October container. **To date a render
+you must trace it back to the source file in Drive; the CMS binding cannot tell you.**
+
+**The second reason it hid: these two renders have never been in `Product Renders` at all.** They
+are filed under `Product Lines\Darkened 75\Viper`, beside the drawings, because that folder was
+delivered as a drawing batch that happened to contain two `- Rendered -` files. **A per-folder
+sweep of the renders directory is structurally incapable of finding them** — the same shape as the
+`/products` + `/elements` nav defect, where a consistency check could not see a fault that was
+consistent. **Sweep by product, never by folder.**
+
+**THE RESOLUTION GAP IS THE REAL COST AND IT IS LARGE:**
+
+```
+Viper renders    2000 x 2000       <- Prisma Link 1 + 2
+E-batch renders  8000 x 8000       <- 16x the pixels
+```
+
+After the end-cap crop the two Viper windows are only ~1024 and ~900 source px against a 587
+device-px card, putting them at the bottom of the set's `1.63-2.92x` oversampling range. Adequate
+today, no headroom, and the only two products on the site in that position. **The replacement ask
+specifies 8000x8000 so they match the rest.**
+
+**Note this is a DIFFERENT axis from the drawing-currency note above it.** That one ends *"still
+without replacement artwork: Rima 5 and Rima 10… everything else is now vector-sourced"*, which is
+true of **drawings**. The two statements are complementary and neither is the whole picture:
+
+```
+need an SVG      Rima 5, Rima 10
+need a render    Liga T, Liga W, Driver 5-1, Prisma Link 1, Prisma Link 2
+fully current    the other nine fixtures
+```
+
+**Nothing was changed.** The live Prisma Link photos are correct in geometry — cap on the 83.33%
+line, bottom on their drawings — and were verified as such yesterday. This is a provenance and
+resolution finding, not a defect. Draft reply to the vendor is in the scratchpad, asking for the
+two SVGs and all five renders in one message.
