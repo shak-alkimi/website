@@ -26,6 +26,8 @@ interface Props extends Omit<HTMLMotionProps<"div">, "layout"> {
     nameField: any
     email: any
     message: any
+    withPrivacy: boolean
+    privacy: any
     layout: "horizontal" | "vertical"
     inputs: any
     button: any
@@ -61,6 +63,13 @@ const DEFAULT_VALUES: any = {
     nameField: { value: undefined, placeholder: "Name" },
     email: { value: undefined, placeholder: "Email" },
     message: { value: undefined, placeholder: "Message" },
+    withPrivacy: true,
+    privacy: {
+        textBefore: "By submitting this form you agree to our",
+        linkLabel: "Privacy Policy",
+        link: "/privacy",
+        textAfter: ".",
+    },
     inputs: {
         fill: "#EBEBEB",
         color: "#000",
@@ -90,6 +99,8 @@ const FormSpark: ComponentType<Props> = withCSS<Props>(function FormSpark(
         email,
         withMessage,
         message,
+        withPrivacy,
+        privacy,
         layout,
         inputs,
         button,
@@ -464,6 +475,40 @@ const FormSpark: ComponentType<Props> = withCSS<Props>(function FormSpark(
                                     Something went wrong — please try again.
                                 </p>
                             )}
+                            {withPrivacy &&
+                                privacy &&
+                                (privacy.textBefore || privacy.linkLabel) && (
+                                    <p
+                                        style={{
+                                            color: inputs.placeholderColor,
+                                            fontFamily,
+                                            fontSize,
+                                            lineHeight: "1.4em",
+                                            margin: "8px 0 0",
+                                        }}
+                                    >
+                                        {privacy.textBefore}
+                                        {privacy.textBefore && privacy.linkLabel
+                                            ? " "
+                                            : null}
+                                        {privacy.linkLabel && privacy.link ? (
+                                            <a
+                                                href={privacy.link}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                style={{
+                                                    color: "inherit",
+                                                    textDecoration: "underline",
+                                                }}
+                                            >
+                                                {privacy.linkLabel}
+                                            </a>
+                                        ) : (
+                                            privacy.linkLabel
+                                        )}
+                                        {privacy.textAfter}
+                                    </p>
+                                )}
                         </div>
                     </form>
                 )}
@@ -552,6 +597,40 @@ addPropertyControls(FormSpark, {
             },
         },
         hidden: (props) => !props.withMessage,
+    },
+    withPrivacy: {
+        title: "Privacy",
+        type: ControlType.Boolean,
+        enabledTitle: "Show",
+        disabledTitle: "Hide",
+        defaultValue: true,
+    },
+    privacy: {
+        title: " ",
+        type: ControlType.Object,
+        controls: {
+            textBefore: {
+                title: "Text",
+                type: ControlType.String,
+                defaultValue: "By submitting this form you agree to our",
+            },
+            linkLabel: {
+                title: "Link",
+                type: ControlType.String,
+                defaultValue: "Privacy Policy",
+            },
+            link: {
+                title: "URL",
+                type: ControlType.String,
+                defaultValue: "/privacy",
+            },
+            textAfter: {
+                title: "After",
+                type: ControlType.String,
+                defaultValue: ".",
+            },
+        },
+        hidden: (props) => !props.withPrivacy,
     },
     layout: {
         title: "Layout",

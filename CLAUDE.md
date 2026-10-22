@@ -10065,3 +10065,97 @@ fresh-context-per-breakpoint rule is available there.
 
 **Note `#trigger` (`Ilt_8h0l3`) still exists on the page**, now unreferenced. Left in place deliberately:
 removing it is a separate decision and nothing points at it.
+
+### THE PRIVACY NOTICE IS LIVE BESIDE THE CONTACT FORM — and a CODE-FILE CHANGE IS INVISIBLE TO THE PUBLISH PREVIEW BUT PUBLISHES ANYWAY (2026-10-22, PUBLISHED `a64654642`)
+
+The last item on the pre-launch cleanup list. `/contact` now renders *"By submitting this form you agree to our
+Privacy Policy."* directly under the Submit button, the link underlined and opening in a new tab.
+
+**BUILT INTO `FormSpark.tsx` RATHER THAN PASTED ONTO THE CANVAS, and the reason is the recorded control rule.**
+`setAttributes({ controls })` can **update** an existing override but **cannot create** a new one, and none of the
+three instances had a `withPrivacy`/`privacy` key (their keys are `button,email,font,fontFamily,fontSize,
+fontWeight,formId,gap,inputs,layout,message,nameField,withEmail,withMessage,withName`). **So the value had to
+arrive as a `defaultValue` in the component code, where all three inherit it with no instance write at all.**
+The alternative — a new text node beside the form — is not scriptable either: `parentId` is silently ignored on a
+published page and the node lands on Home.
+
+Five anchored edits: `Props`, `DEFAULT_VALUES`, the destructure, a `<p>` rendered immediately after the existing
+`isError` block inside the submit cell, and the property controls. **The file already rendered a `<p>` in exactly
+that position for the error state**, so this adds no new behaviour class — it reuses a shape that was already
+proven.
+
+**`color: inputs.placeholderColor` is the one styling choice worth keeping.** The component's own defaults are
+light-theme (`rgba(0,0,0,0.5)`) while all three instances are dark (`rgba(255,255,255,0.5)`), so **any literal
+colour would have been wrong for one of them**. Binding to the same control the placeholder text already uses
+(line 253) means the notice matches the placeholders exactly and follows the theme for free. Published computed
+value: `rgba(255, 255, 255, 0.5)` on a black page.
+
+**!!! A CODE-FILE EDIT RETURNS `changesCount: 0` FROM THE PUBLISH PREVIEW AND STILL SHIPS. !!!**
+
+Four consecutive reads on a **fresh** session returned `count 0, changes []` with an identical confirmation hash —
+so this is not the documented first-read staleness. Published anyway, and `/contact` went **`193,661` ->
+`194,215` (+554)**, byte-stable over three fetches, carrying the notice. **The page genuinely rebuilt.**
+
+This is a new row, and it **narrows the 2026-10-19 `/404` rule rather than extending it**:
+
+| change | preview / counter sees it | publishes |
+|---|---|---|
+| page-level layer property (padding, visible, draft) | yes | yes |
+| component-internal layer property | no | **yes** |
+| page-level instance control (a label, an href) | yes | yes |
+| **code file via `setFileContent`** | **no** | **YES** |
+| page-level instance **`variant`** control | no | **NO — needs an editor round trip** |
+
+**So invisibility does not predict publishability, and `variant` remains the sole known exception.** The byte
+count after publishing is the only authority either way.
+
+**IT ALSO MEANS THE PREVIEW CANNOT SERVE AS THE COLLISION DETECTOR FOR A CODE CHANGE**, since there is nothing of
+yours for it to show. The substitute used here: **diff all 8 code files against the repo by LF-normalised byte
+count** — 8/8 matched, proving the other session had not touched the code layer. The publish was then guarded to
+abort if the preview showed **anything at all**, on the reasoning that any visible change could not be mine.
+
+**BOTH SUBMIT PATHS WERE RE-PROVEN, because this edits the component that handles submission.** Request
+interception (`page.route`), so **neither path reached Formspark**:
+
+| | forced 500 | faked 200 |
+|---|---|---|
+| request | `POST api.formspark.io/75jmfofPI`, correct JSON body | identical |
+| form | **stays**, 4 inputs, message preserved | **removed** |
+| `role="alert"` | **1** — *"Something went wrong — please try again."* | **0** |
+
+The `response.ok` guard from the form-wiring work is intact and the notice interferes with neither path.
+
+**THE COST, MEASURED AND ACCEPTED: the form box is a hard 300px, so the notice came out of the `1fr` textarea
+(now 120px) and the notice's ink bottom sits exactly 1px above the form's bottom edge on all three breakpoints.**
+Nothing clips it (`clipAncestor: null`, `form` overflow `visible`), and it is one line everywhere. **But there is
+no headroom.** On phone the notice measures **293px of ink in a 350px box — 57px of spare** — so lengthening the
+wording by roughly six characters wraps it to a second line and pushes the form ~17px past its container. **If the
+copy ever changes, re-measure; the four strings are instance-editable controls (`Text` / `Link` / `URL` /
+`After`), so this is easy to trip.**
+
+**!!! THE PRODUCTION FORM AT `www.alkimiworks.com` DOES NOT GET THIS. !!!** That domain is served by
+`Alkimi (teaser)`, a separate project with its own `FormSpark.tsx`. This change is on `Alkimi (Shak)` only, so the
+notice arrives at cutover — or needs a deliberate second push into the teaser, the way the `response.ok` fix was
+on 2026-10-05. **Worth deciding before launch, since the teaser is the copy currently collecting real enquiries.**
+
+Verified: notice on `/contact` only (0 on all seven other live pages), `/privacy` returns 200, Home byte-identical
+to the pre-publish baseline at `275,308`, all 8 code files still 8/8 against the repo.
+
+**THE GENERATED-ESCAPE TRAP FIRED TWICE MORE, AND THE SECOND TIME WAS A PATCHER PATCHING A PATCHER.** A `\r\n`
+written into a generated script came back as a real CRLF inside a string literal (`SyntaxError: Invalid or
+unexpected token`). The recorded fix is the one that worked: **delete the generator and rewrite it from a quoted
+heredoc with no escape sequences at all** — `String.fromCharCode(13)`, `String.fromCharCode(10)`, and template
+literals carrying real newlines for every anchor. **Do not patch the patcher.** The guard then did its job
+honestly: the first run aborted with `ABORT: anchor props matched 0 times` because the repo is CRLF and the
+anchors were LF — a refusal, not a silent mis-write.
+
+**Embedding a 26KB file in an `exec` script is safe via `JSON.stringify`**, because node does the escaping rather
+than you: generate `const CODE = ` + `JSON.stringify(source)` straight to a file with `fs.writeFileSync`, with no
+heredoc layer over the content.
+
+**CORRECTION — `browser_run_code_unsafe` TAKES `code`, AND `TypeError: __fn__ is not a function` MEANS THE
+PARAMETER WAS MISSING OR MISNAMED.** This file records that tool as having "failed all session" on 2026-10-20 with
+exactly that error, and treats it as situational flakiness. **It is almost certainly the same mistake**: the
+server evaluates `undefined` as a function when `code` is absent. The tool works, takes
+`async (page) => { ... }`, and reaches `page.context().browser().newContext()` — so the
+fresh-context-per-breakpoint rule **is** available through it.
