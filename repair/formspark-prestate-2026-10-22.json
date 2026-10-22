@@ -1,0 +1,30 @@
+{
+  "captured": "2026-10-22",
+  "why": "Before swapping /contact FormSpark instances from the remote pre-audit module to the local fixed code file (TnK637F) and setting formId.",
+  "localCodeFile": { "path": "FormSpark.tsx", "id": "TnK637F", "componentId": "codeFile/TnK637F:default", "hasResponseOkCheck": true, "instancesBefore": 0 },
+  "remoteModule": "module:UflTnc38Mi5sDIwszK8J/Ys4TsT1Z58mXiENcpUj5/FormSpark.js:default",
+  "teaserWorkingForm": { "project": "jIeEHcbQNHV85rO12kAf", "node": "oGsmaqXQf", "componentIdentifier": "local-module:codeFile/TnK637F:default", "formId": "75jmfofPI" },
+  "instances": [
+    { "id": "POi5p3t1V",            "breakpoint": "Desktop" },
+    { "id": "lc_ppdu3JPOi5p3t1V",   "breakpoint": "Tablet"  },
+    { "id": "sRIHrtJLmPOi5p3t1V",   "breakpoint": "Phone"   }
+  ],
+  "controlsBefore_identicalOnAllThree": {
+    "formId": "",
+    "withName": true,
+    "nameField": { "placeholder": "Name", "value": "" },
+    "withEmail": true,
+    "email": { "placeholder": "E-mail", "value": "" },
+    "withMessage": true,
+    "message": { "placeholder": "Message", "value": "" },
+    "layout": "vertical",
+    "inputs": { "fill": "rgb(46, 46, 46)", "color": "rgb(255, 255, 255)", "placeholderColor": "rgba(255, 255, 255, 0.5)", "error": "rgb(238, 68, 68)" },
+    "button": { "label": "Submit", "fontWeight": 600, "fill": "rgb(46, 46, 46)", "color": "rgb(255, 255, 255)" },
+    "font": true,
+    "fontFamily": "General Sans",
+    "fontWeight": 500,
+    "fontSize": 12,
+    "gap": 12
+  },
+  "note": "Teaser control blob is byte-identical to ours except formId, so a swap that resets controls can be restored from this record."
+}

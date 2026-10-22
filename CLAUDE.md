@@ -9883,3 +9883,98 @@ fully current    the other nine fixtures
 line, bottom on their drawings — and were verified as such yesterday. This is a provenance and
 resolution finding, not a defect. Draft reply to the vendor is in the scratchpad, asking for the
 two SVGs and all five renders in one message.
+
+### THE `/contact` FORM WAS DEAD — remote pre-audit module AND an empty form id, both fixed (2026-10-22, PUBLISHED `b009e3772`)
+
+Shak pointed at the teaser's working form and asked for it to be pulled across. **Two separate faults, and fixing
+only the obvious one would have been worse than leaving it alone.**
+
+| | before | after |
+|---|---|---|
+| component | `module:UflTnc38Mi5sDIwszK8J/…/FormSpark.js:default` — **REMOTE, pre-audit** | **`local-module:codeFile/TnK637F:default`** |
+| `formId` | **`""`** — the form POSTed nowhere | **`75jmfofPI`** |
+| failed submission | would have reported **success** | shows an error, keeps the form |
+
+**THE SEQUENCING MATTERED, AND IT IS THE REASON NOT TO JUST PASTE THE ID IN.** The repo's `FormSpark.tsx`
+carries the `response.ok` check added after the June–October 2026 incident; the remote copy does not. Setting
+`formId` alone would have produced a form that sends correctly on the happy path and **still tells a visitor
+their enquiry was sent when it failed** — the exact defect that was live on www.alkimiworks.com for four months.
+**A dead form is more honest than a lying one, so the component swap had to come first.** Proven from the
+published chunk before touching anything: `Something went wrong` **0**, `role="alert"` **0**, `.ok` **0**.
+
+**`componentIdentifier` IS NOT WRITABLE — second independent confirmation.** `setAttributes` returned
+`writeError=none` and a separate-`exec` read-back showed all three still remote. Editor-only.
+
+**!!! A SINGLE LOGICAL INSTANCE GETS NO CONFIRMATION DIALOG — the swap applied the moment the component was
+clicked. !!!** Every previous replace-all in this project put up a count ("19 instances", "all 2 instances") and
+the standing rule is to cancel one whose count you cannot account for. **Here there was nothing to cancel.** So
+the dialog is not a guaranteed checkpoint: **establish the instance count BEFORE opening the menu**, not from the
+dialog. Here it was known to be 1 logical instance (`POi5p3t1V` plus two breakpoint copies) from the pre-state.
+
+**THIS SWAP PRESERVED EVERYTHING — a third data point, and the variance still has no pattern.** All **15**
+control keys survived with byte-identical values on all three breakpoints, diffed against
+[repair/formspark-prestate-2026-10-22.json](repair/formspark-prestate-2026-10-22.json). The footer swap reset
+`variant` on all 6; the Primary Button swap preserved everything; this preserved everything. **Capture the
+pre-state and diff, every time** — and note the swap assigns **new node ids** (`POi5p3t1V -> WOyYtl0HY`), so the
+diff must key on (page, path, component), never on id.
+
+**THE RECORDED WARNING ABOUT GREPPING THE SERVED HTML FOR THE FORM ID IS CONFIRMED, AND NOW EXPLAINED.** After
+publishing, `grep 75jmfofPI contact.html` returns **0** on a page whose form demonstrably works. It is a property
+control, so Framer compiles it into the **page's JS chunk** as a prop in the component's props object —
+`…,formId:\`75jmfofPI\`,gap:12,height:\`100%\`,id:\`WOyYtl0HY\`,…` — never into the markup. **Scan the chunks, not
+the page.** The chunk is found by sweeping every `.mjs` the page references for a distinctive literal.
+
+**The decisive proof is the minified ternary**, which distinguishes the fixed component from the pre-audit one
+in a single expression:
+
+```js
+fetch(`https://api.formspark.io/${n}`,{method:`POST`,…})
+  .then(e=>{ e.ok ? (F(!0), y?.()) : (P(!1), R(!0)) })
+  .catch(()=>{ P(!1), R(!0) })
+```
+
+`e.ok ?` is the check; `y?.()` is the guarded `onSubmit?.()`; the `.catch` covers a network failure. The
+pre-audit version was `.then(() => { setSuccess(true); onSubmit() })` with no check and no catch.
+
+**!!! THE RECORDED TEST RECIPE CREATES A REAL ENQUIRY ON THE SUCCESS PATH — USE REQUEST INTERCEPTION FOR BOTH
+PATHS INSTEAD. !!!** This file's `fetch` monkeypatch forces a 500 for the failure path and then says to use a
+**real 200** for the success path, which sends a genuine enquiry to Formspark every time anyone re-tests.
+Playwright's `page.route` fakes both, so neither path reaches Formspark and the request itself is inspectable:
+
+```js
+await p.route('**api.formspark.io**', async (route) => {
+  hit = { url: route.request().url(), method: route.request().method(), body: route.request().postData() };
+  await route.fulfill({ status, contentType: 'application/json', body: '{}' });
+});
+```
+
+**Capturing the intercepted request is the part that proves the form id is wired** — stronger than any grep,
+because it is the URL the browser actually built:
+
+| | failure path (forced 500) | success path (faked 200) |
+|---|---|---|
+| request | `POST api.formspark.io/75jmfofPI` with the real JSON body | identical |
+| form | **stays**, 1 name input | **removed**, 0 inputs |
+| message field | **preserved** | — |
+| `role="alert"` | **1** — *"Something went wrong — please try again."* | **0** |
+| success tick | — | present |
+
+**THE EDITOR RENDERER FROZE AND THE RIGHT MOVE WAS A SECOND TAB, NOT ABANDONING THE JOB.** Shak's editor tab
+returned `CDP sendCommand "Runtime.evaluate" timed out after 45000ms`. This file's advice is to stop driving the
+editor; **better is to leave the frozen tab alone and open your own** — a fresh tab deep-linked to the same page
+mounted cleanly (`innerWidth 1536`, 3,240 divs) and drove without trouble. Only abandon the job if a *fresh* tab
+is also unusable. `Page.captureScreenshot` still froze once mid-task, and reading the menu from the DOM carried
+it, exactly as recorded.
+
+**A layer-tree walk is the reliable way to reach this layer**, since the search box does not hold its filter on a
+plain page: `Desktop -> Main -> Section CTA -> Content Wrapper -> Stack[1] -> FormSpark`, expanding by the
+disclosure arrow at `row.x - 16` with ~800 ms between steps. **Both `Stack` children share a name**, so the
+second was selected by position, not by text.
+
+**Verified:** separate-`exec` read-back, an idempotent re-issue answering `ALREADY` on all three, a full 15-key
+diff showing `formId` as the only change, publish preview guarded to exactly one `WebPage | /contact` change
+(no collision with the other session), `/contact` `193,623 -> 193,661` with a fresh `Last-Modified`, every other
+page byte-stable, Home byte-identical at `275,308`, full sweep 15/15.
+
+**Still outstanding on this page, unchanged:** the privacy link beside the submit button, which remains on the
+pre-launch cleanup list.
