@@ -9720,3 +9720,100 @@ full Home regression sweep 15/15. Published as `fab035092`, preview guarded to e
 **Noted, not acted on: `/news/:slug` phone still renders `Navigation Mobile` / `Navigation White`** — a solid white bar,
 inconsistent with the phone-nav standardisation that moved every other page onto the desktop component. The CMS template
 pages were not in that pass.
+
+### THE SECOND SVG BATCH — eight drawings replaced, and THREE SIZE METRICS IN A ROW FAILED ON THE PRISMA CHAINS (2026-10-22, PUBLISHED `210bcc4cb`)
+
+`…/Products/Product Lines/SVG` — eight files across four scale-named folders, continuing the
+Extrusion Channels batch. **Every requirement of the vendor brief is met again:** real strokes on
+`<polyline>` elements (`fill="none"`, stroke on the parent `<g>`), `vector-effect="none"` so the
+stroke scales with the drawing, one `viewBox 0 0 3508 2480` throughout, 0 `<path>`, 0 `<image>`,
+0 `clip-path`, nothing clipped. **No revisions requested.**
+
+**Mapping — by filename, confirmed by dimensional fit:**
+
+```
+DC Driver                            -> Driver 5-1       Tape-Tape Connector      -> Liga T
+Project Viper - NW3020S              -> Prisma Link 1    Tape-Wire Connector      -> Liga W
+Project Viper - NW3131TS             -> Prisma Link 2    Linaire DI-LIN-3D-MTCL-2 -> Flow 20
+Linaire DI-LIN-3D-MTCH-39            -> Flow Straight    Linaire …-SPINE-39       -> Flow Spine
+```
+
+**THIS CORRECTS A STALE NOTE IN THIS FILE.** The first batch's shape-matcher run recorded
+`MTCL-2 -> Flow Spine`; it is **Flow 20**, and `SPINE-39` is Flow Spine. The named files make the
+matcher unnecessary — **ask for product names in filenames every time**, it removes the whole
+identification step that previously cost two passes and produced one inverted pair.
+
+**TWO FOLDER NAMES ARE WRONG AND THE .txt IS RIGHT.** Measured against the CMS dimensions: the
+Tape Connectors are **6:1** (folder says "1 to 1", both fit at 6.04x/6.09x) and the three Linaire
+Channels are **1:1** (folder sits under "6 to 1"). DC Driver and the Vipers are labelled correctly.
+**Verify a supplied scale against the CMS dimensions before using it** — here it did not matter
+(we crop to the ink bbox and size from our own numbers) but it would on any workflow that trusted
+the folder.
+
+**!!! NEITHER PROFILE THICKNESS, END-CAP SPAN NOR AUTOCORRELATION PITCH CAN SIZE A REPEATING CHAIN
+WHOSE PROJECTION HAS CHANGED. !!!**
+
+The six non-chain drawings sized first time — `geo` for the four contained ones, profile thickness
+for Flow Spine and Flow Straight, all confirmed by eye. The two Prisma Links took four attempts:
+
+| metric | PL1 frame | rendered |
+|---|---|---|
+| profile thickness (median per-column vertical span) | 653 | **too big** |
+| end-cap span (max span over the rightmost 10%) | 597 | bigger still |
+| autocorrelation pitch | 1141 | **too small** — locked onto a 3:2 harmonic |
+| **chosen by eye from a scale ladder** | **600** | correct |
+
+Each metric is 1-D and each is contaminated differently once the viewing angle changes: profile by
+module overlap, end-cap span by the foreshortening of the end face, pitch by the chain's own
+periodicity. **The new chains are drawn flatter and longer than the ones they replace, so MODULE
+SIZE and MODULE COUNT cannot both be matched** — at F=700 PL1 shows the live drawing's six modules
+at 85% of their size; at F=600 it shows five at full size. **Module size won, because that is the
+product; the count is an artifact of how much run the vendor happened to draw.**
+
+**THE SCALE LADDER IS THE INSTRUMENT, AND IT SHOULD BE REACHED FOR SOONER.** Rendering one row of
+candidate frames beside the live asset **at the true 587 device-px card** answered in one screenshot
+what three metrics and five exec round trips could not. **Judge it at 587** — a first ladder drawn
+at 293px was actively misleading and reversed the apparent direction of the error.
+
+**Stroke: the established vector convention, unchanged** — `1.00` device px at `#999999`, giving
+darkest `154-156` on the hosted assets against `154-158` for the six cross-sections already live.
+Confirmed by eye against four of them before publishing; the whole 14-drawing vector set now reads
+as one family.
+
+**`perStroke` IS WORTHLESS ON NEAR-HORIZONTAL LINE ART AND SHOULD NOT HAVE BEEN REPORTED AS A
+CONTROL.** Flow Straight measures `1.329` against `0.388` for Driver 5-1 at the identical stroke
+setting, because a horizontal scan line runs **along** a shallow diagonal and returns its length.
+This is the documented trap, and the drawings that trip it are exactly the long extrusions.
+**Use darkest-pixel and the eye for a vector drawing's weight; per-stroke ink only compares
+drawings of similar line direction.**
+
+**Delivered and verified.** Hosted: every frame byte-identical in size to the asset it replaced
+(`2000/1805/1723/1745/1890/1783/1360/900`), `minAlpha 255` and four white corners on all eight so
+the lightbox requirement holds, geometry matching the built values exactly. Draft counts clean on
+all eight collections. Publish preview guarded to exactly eight `CollectionItem` changes — it
+returned exactly those and nothing from the other session.
+
+**THE BYTE DELTA RECONCILED TO ZERO, AND THIS TIME THE BASELINE EXISTED.** `/products` `-124`,
+`/elements` `-60`. With the publish comment normalised and the eight asset ids mapped old->new,
+**both pages are exactly the same length** with **8 differing runs each, every one build metadata**:
+two searchIndex names rotating, the optimizer timestamp, two chunk hashes and a CMS payload UUID
+x3. **Zero content change.** Home byte-identical at `275,308`, sweep 14/14.
+
+**A naive id-length sum did NOT account for the delta (`-12` of `-124`) and that is not a
+discrepancy — an asset id appears more often than its srcset references**, since the serialised CMS
+payload carries it too. **Normalise and diff; do not try to predict a delta from a reference count.**
+
+**THREE SELF-INFLICTED FAILURES, ALL ALREADY WRITTEN IN THIS FILE:**
+
+- **`node -e` ate a quote and died**, writing a patch script. The standing rule is absolute and was
+  still broken: **never put JavaScript in `node -e` — quoted heredoc to a file, every time.**
+- **A STALE SERVER FROM AN EARLIER SESSION HELD PORT 8731, so the new one failed `EADDRINUSE` and
+  the OLD one answered.** It served files fine and had no `/save` endpoint, so eight POSTs 404'd and
+  no PNG was written — which reads as the build silently producing nothing. **Check `netstat` for a
+  listener before starting a local server, and treat "the page ran but produced no output" as a
+  server-identity question first.** The server's own log is the tell and was not read until late.
+- A verification filter tested `"/products".includes("fixtures")` and silently reported zero rows
+  for the whole Fixtures half. **A check that returns nothing is a failing check, not a passing one.**
+
+**Still without replacement artwork: `Rima 5` and `Rima 10`** — the two tape products, absent from
+both SVG batches. Everything else on `/products` and `/elements` is now vector-sourced.
