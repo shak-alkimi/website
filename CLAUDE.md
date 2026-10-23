@@ -10383,3 +10383,87 @@ mark Google truncates at. Left alone deliberately.
 
 Full Home sweep **22/22** on the new build, and the favicon / social card / apple-touch-icon work is
 intact on **all 12** pages (`3 / 2 / 1` occurrences each, old Ora card asset **0**).
+
+### THE `/about` INTRO BODY WAS WHITE-ON-WHITE ON TABLET AND PHONE — a rich-text PARAGRAPH style, invisible to the node API (2026-10-23, PUBLISHED `57a7f42fc`)
+
+Shak: *"the introduction text on about page is not showing up on phone."* It was not missing and not clipped —
+it was rendering at **44px/28px in `rgb(255,255,255)` on a white page**. The large empty block in his screenshot
+was the copy, painted white at full height.
+
+**Tablet was broken too**, because tablet and phone share one preset. Measured on the served page:
+
+| breakpoint | preset | size | colour |
+|---|---|---|---|
+| desktop | `11mlu8b` = **`Body Regular`** | 14px | `#000` |
+| tablet | `1ac30n9` = **`H1 - Style`** | **44px** | **`#fff`** |
+| phone | `1ac30n9` = **`H1 - Style`** | **28px** | **`#fff`** |
+
+This is the documented `H1`-family trap (*"the `H1` text style is white, built for a dark hero"*) reaching a page
+nobody had re-checked. The heading survived because it is a **separate mechanism** — see below.
+
+**!!! THE CONTROL IS A RICH-TEXT STYLE MAP, AND NOTHING IN THIS FILE RECORDED IT. !!!** A text layer bound to a
+`formattedText` CMS field exposes, in the Style panel's **Text** section, one row per element type:
+
+```
+Content      Intro Body        <- the CMS binding (blue pill)
+Paragraph    p    H1 - Style   <- the lever
+Heading 1    h1   H1
+Heading 2    h2   Heading 2
+Link         a    Link - White
+Blockquote   B    Blockquote
+```
+
+So a rich-text layer carries **no single text style** — it carries a style *per tag*, and it is **per-breakpoint**.
+That is the thing to go to for any "the body copy is the wrong size/colour" report on a CMS rich-text layer.
+
+**!!! `setAttributes({ inlineTextStyle })` FAILS SILENTLY ON A RICH-TEXT LAYER — this NARROWS the recorded rule.
+!!!** The write returns success and a **separate-`exec` read-back on the same session shows `NULL`**, confirmed
+across a relay restart, three agreeing fresh-session reads, and an idempotent re-issue that reported `was NULL`
+again. The discriminator is the **field type**, not the node:
+
+| field | type | renders as | node-level `inlineTextStyle` |
+|---|---|---|---|
+| `Intro Heading` | `string` | plain text node | **works** — stores, and emits `data-styles-preset` |
+| `Intro Body` / `Intro Body 2` | **`formattedText`** | `.rich-text-wrapper > p` | **silently discarded** |
+
+This file records `inlineTextStyle` as writable (that is how the `Dimensions` style reached 18 layers) and
+separately records paragraph presets as an API blind spot. **Both are true and the field type is what decides
+which you are in.** A node with `inlineTextStyle: null` and no `data-styles-preset` in the markup is the tell
+that its styling lives at paragraph level and the API cannot reach it.
+
+**!!! THE `(M)` / `(S)` SUFFIX IN THE PANEL IS THE STYLE'S BREAKPOINT VARIANT, NOT "MIXED". !!!** `H1 - Style`
+carries `breakpoints: [1200 -> 44px, 810 -> 28px]`, so the pill reads `H1 - Style (M)` on Tablet and
+`H1 - Style (S)` on Phone. `Body Regular` has `breakpoints: []` and shows **no suffix** — which is how the fix
+reads back. It was briefly misread as "Mixed", which would have meant a quite different defect.
+
+**Fixed in the editor: `Paragraph` -> `Body Regular` on both columns, on Tablet and on Phone.** Four edits;
+**the Tablet write did NOT cascade to Phone** (a non-primary write creates a scoped override), confirmed by
+Phone still reading `(S)` afterwards. **Desktop was deliberately not re-checked and did not need to be — the
+value written equals the value Desktop already had, so even an unexpected cascade is a no-op.**
+
+**The style picker takes a REAL CLICK**, unlike the context menus this file says are keyboard-only. It has a
+search box: type until exactly one row remains, then click it. Recipe that worked four times without a miss —
+select the layer in the tree (synthetic pointer events), **scroll the right panel down ~10 ticks** (the Text
+section is below the fold and the panel's scroll resets on every selection change), click the pill at the
+`Paragraph` row, type, click the single result, `Escape`.
+
+**!!! COLLAPSING A PER-BREAKPOINT STYLE DIFFERENCE MAKES THE PAGE SMALLER, AND THAT IS THE SIGNATURE. !!!**
+`/about` went **271,195 -> 266,065 bytes (-5,130)**:
+
+| | intro `ssr-variant` wrappers | each paragraph emitted |
+|---|---|---|
+| before | **5** | **twice** — a desktop copy and a tablet/phone copy |
+| after | **1** | **once** |
+
+Framer SSRs a breakpoint variant only when the breakpoints actually differ; once all three shared `Body Regular`
+the duplicate copies stopped being emitted. **So a byte DROP after a styling change can mean "a per-breakpoint
+override was eliminated", not "content left the page"** — the same class as the Tablet padding rule that
+vanished when the base was brought into line with it.
+
+**Verified three ways:** the published presets (`1ac30n9` gone from the intro, both paragraphs on `11mlu8b`
+14px/`#000`); computed style in a real browser at 1536 / 900 / 390 with a fresh context per width, all six
+paragraph instances `rgb(0, 0, 0)` / `14px` / opacity 1; and by eye on a 390px render. Section counts on
+`/about` are identical before and after, so nothing but the intro styling moved. Full Home sweep clean.
+
+**`1ac30n9` still appears 7 times on the page** — `H1 - Style` is legitimately used elsewhere and its rules stay
+in the stylesheet. Only the intro stopped using it.
