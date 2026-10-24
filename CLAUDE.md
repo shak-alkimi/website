@@ -10928,3 +10928,26 @@ created   width=fit-content  (none)
 **Creating nodes worked because the page is a DRAFT** — `parentId` is honoured there, and all six landed in the right parent with no strays at `Main` (verified: `Container` + `Navigation Scroll Trigger` only). On a published page they would have been silently relocated to Home.
 
 **Still outstanding, all of it Shak's or counsel's:** settle the open items in the Drive document, re-run the text build if the clauses change (it is scripted end to end from the HTML, so a re-run is cheap), add a 9th footer sitemap slot by `Ctrl+D` — **note slot `[2]` is the hidden `Projects` link, parked deliberately so it is one unhide away if Projects returns, and should not be consumed for this** — then clear `draft`. **Order matters: the footer link must not ship before the page does, or it points at a 404.**
+
+**NUMBERING CORRECTED AND THE SPARE FRAME REMOVED (2026-10-24).** Shak spotted that the warranty's sections did not match the other two legal pages. They did not: I had carried the source document's own scheme — `01`–`06` for its page-1 clauses, unnumbered for its page-2 sections — which on a single web page reads as inconsistent.
+
+```
+/terms      1. … 10.      /privacy  1. … 8.      /warranty  01. … 06. then three unnumbered
+```
+
+Now **`1.` … `9.`, every section numbered, no leading zero**. The spare 10th frame is **removed**, not hidden: `/terms` ships ten `Heading`+`Body` frames and the warranty needs nine, so the leftover was still carrying the Terms content it was cloned with and read `10. Contact` in the layer tree. **This supersedes the note above that it was hidden.**
+
+**!!! `setText` WORKS ON A FRESHLY CLONED PAGE AND STOPS WORKING ON IT LATER. !!!** Every `setText` in the first build succeeded. An hour later the same nodes, re-fetched by live traversal, threw **`Node not found`** on every call — reproduced across six fresh sessions, on both cloned nodes and ones created by `createTextNode`, and unaffected by which page the editor had open. The node is **enumerable but not resolvable**:
+
+```
+heading id   present in getNodesWithType("TextNode"): true
+             framer.getNode(id):                      null
+             setText:                                 THREW "Node not found"
+             setAttributes:                           OK
+```
+
+`setText` resolves by id, so it fails wherever `getNode` does — the same coupling already recorded for component internals, here on an ordinary draft page. **No root cause was established.** The working rule: **write all text in the same pass as the clone, and if text must change later, REBUILD the page rather than patch it.** That is cheap when the page was generated from a script — delete, re-clone, re-run the build — and it is what fixed the numbering.
+
+**`node.remove()` WORKS ON A DRAFT `WebPageNode` AND ON PAGE-LEVEL FRAMES.** This file records `remove()` and `removeNodes` failing silently, but that is specifically *inside a `ComponentNode`*. On a draft page both the page itself and a section frame deleted cleanly and verified gone in a separate `exec`. **Do not assume the documented deletion failure applies outside components.**
+
+**`createTextNode` + `setText` in the SAME `exec` is reliable**; it is only later calls that fail. That is why the rebuild works and a patch does not.
