@@ -10723,3 +10723,65 @@ This file already says a regression checklist goes stale in minutes; the same ap
 iterates. **Derive the page list from `sitemap.xml` or a status-code sweep at the top of the run**, rather
 than hard-coding paths that were true when the script was written. The tell here was two different pages
 returning identical byte counts — **equal sizes for unequal pages is a 404, not a coincidence.**
+
+### A DIVIDER WAS DRAGGED OUT OF ITS `Line` INTO THE TOP SPACER — and my first answer said the document was clean (2026-10-24, PUBLISHED AND VERIFIED LIVE)
+
+Shak: *"i think what i did is move the divider below contact to above the fixtures"*. He was exactly right, it was already live, and **I had told him an hour earlier that the layer order was fine.**
+
+**What happened:** a `Global / Line Animation Global` instance was dragged out of a `Line` wrapper and dropped **inside the top spacer**. Net effect on the published site: a divider above Fixtures, and none below Contact.
+
+```
+[0] Individual Link Wrapper (spacer)   kids=1  <- the stray instance
+[4] Line                               kids=0  <- its instance gone
+```
+
+**!!! MY DIAGNOSTIC WAS WRONG BECAUSE IT STOPPED AT THE DEPTH I EXPECTED THE FAULT TO BE. !!!** I dumped `Link Wrapper`'s **13 direct children**, found the spacer/row/`Line` alternation intact, and reported "document is clean". The alternation *was* intact — every `Line` was still in place. The instance inside one of them had moved. **A structural check must descend as far as the structure goes, not as far as the thing you are picturing.** The tell was there in that first dump and unread: the spacer's `kids` count.
+
+**DOM ORDER IS NOT VISUAL ORDER, AND THAT MADE THE TWO READINGS LOOK CONTRADICTORY.** The empty `Line` is document index `[4]` — the slot *after Elements* — yet it renders **last, below Contact**. So Shak's "the divider below contact" and my "[4]" were the same object, and for a while the live measurement (a `Menu 2 Active` painting at 391.5) and the document (`[4]` empty) looked irreconcilable. Walking `lw.children` in DOM order with each child's **rect** resolved it in one query:
+
+```
+DOM 4   Line   top 571.5   EMPTY        <- below Contact
+DOM 10  Line   top 391.5   Menu 2       <- below Elements
+```
+
+**Sort by `top` to get the row order; read `children` to get the document order; never assume they agree.**
+
+**!!! A FRESH EDITOR TAB HAS AN EMPTY UNDO STACK — "taking him there" is what made Ctrl+Z a no-op. !!!** Asked to point him at the right place, I opened a **new** tab on the component. He pressed Ctrl+Z and nothing happened — `pendingPageChanges` still `0`, document byte-identical. This file already records that *a reload* wipes undo history; the sharper form is that **undo is per-tab, so a tab you just opened never had a stack at all.** If an undo is the plan, it has to happen in the tab the edit was made in. Opening a new one quietly destroys that option.
+
+**!!! THE LAYERS PANEL CARRIES NODE IDS IN `data-testid` — this removes all coordinate guesswork from layer-tree driving. !!!**
+
+```js
+document.querySelector('[data-testid*="s49USuPQH"]').getBoundingClientRect()
+```
+
+That is how the right row was found and, crucially, **how the correct `Line` was confirmed before cutting**. It should be the default way to drive this panel from now on, in place of counting rows or matching truncated labels. Three independent confirmations were available and all agreed: document index `[4]`, the `data-testid` id, and — visible in a zoom — being **the only `Line` with no disclosure chevron**, because it had no children. **An empty layer having no chevron is a free visual check whenever the question is "which one lost its contents".**
+
+**`node.select()` returns `ok` and does NOT select in the editor.** It expanded the tree to reveal the node, but no row highlighted and the right panel did not change. Another silent partial, in the family of `setAttributes({ zIndex })`. **Do not build a plan on it** — I offered a fully scripted cut/paste on the strength of that `ok` and had to withdraw it.
+
+**THE REPAIR, and the order matters because the tree reflows:**
+
+1. **Real `computer left_click` on the row** — focus must genuinely be in the tree, not merely a selection.
+2. `Ctrl+X`.
+3. **Re-query the target's position.** Removing the stray shifted every row below it up by one (`402 -> 372`). Reusing the pre-cut coordinate would have selected the wrong layer.
+4. Click the target, then **assert exactly one row carries the selected class** before pasting.
+5. `Ctrl+V` — it propagated to both variants, as pastes here do.
+
+**!!! A CUT/PASTE DOES NOT PRESERVE PER-VARIANT CONTROL OVERRIDES — it nearly shipped a second, silent defect. !!!** The original instance held `variant: z5c3uHTRb` under `Variant 1` and `AtpIo51Yu` under `Desktop Full Menu`. The pasted copy came back **`z5c3uHTRb` in both**, so Desktop carried that variant twice and lost `AtpIo51Yu` entirely. Because the cascade delay lives on each divider's own variant, two desktop lines would have drawn on the same delay and one step of the stagger would have vanished — invisible in any structural check. Caught by listing the six variants per breakpoint and asserting **six distinct**, then restored with `setAttributes({ controls: { variant } })` on the Desktop copy.
+
+**Make "six distinct" the assertion, not "six present".** A count is satisfied by a duplicate; distinctness is not.
+
+**VERIFIED IN PAINTED PIXELS, which is what the coarse screenshot could not do.** A 340px clip of the open menu looks near-identical before and after — the five inter-row lines dominate and the single changed line at each end is easy to misread. Sampling per-row brightness over three narrow bands settles it objectively:
+
+```
+band y 262..287  (where the stray was)      grey 0 on every row        <- clean
+band y 562..587  (below Contact)            grey 28 at y 571-572       <- restored
+band y 322..347  (below Fixtures, control)  grey 28 at y 331-332       <- identical
+```
+
+`ffmpeg -vf "scale=1:26:flags=area" -f rawvideo -pix_fmt gray` collapses each band to one value per row. **Used as a detector against black rather than as a colorimeter, so the recorded ffmpeg colour hazards do not apply** — and the restored line matching the control at `grey 28` also proves no thick/thin difference.
+
+**Final live state, both breakpoints, fresh context each:** five dividers, each exactly **52px** below its row, row pitch **60**, variants ascending `1..5` in row order, nothing above Fixtures. Behaviour re-tested because the component was open: hamburger opens and closes, a dead-zone tap closes, rows still carry `./fixtures ./elements ./methodology ./news ./contact`. Home byte-stable at `275,593`, full sweep 13/13, pending back to `0`.
+
+**A page-list constant in a sweep goes stale too** — the standing Home checks for `./about` and `projects-list` are now wrong by construction after the renames, and read as `0`/`0` only because those paths no longer exist. They were replaced with `./methodology` (5) and `./fixtures` (8). **Derive expectations from the current build, never from the note that first recorded them.**
+
+The screenshot frame also changed mid-session, `1459x812 -> 1512x787` against an unchanged `1536x799` viewport — the documented hazard, and the reason the click factor must be re-derived from the current screenshot on every call rather than carried.
