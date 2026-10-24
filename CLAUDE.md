@@ -10785,3 +10785,63 @@ band y 322..347  (below Fixtures, control)  grey 28 at y 331-332       <- identi
 **A page-list constant in a sweep goes stale too** — the standing Home checks for `./about` and `projects-list` are now wrong by construction after the renames, and read as `0`/`0` only because those paths no longer exist. They were replaced with `./methodology` (5) and `./fixtures` (8). **Derive expectations from the current build, never from the note that first recorded them.**
 
 The screenshot frame also changed mid-session, `1459x812 -> 1512x787` against an unchanged `1536x799` viewport — the documented hazard, and the reason the click factor must be re-derived from the current screenshot on every call rather than carried.
+
+### READING A VARIANT'S ANIMATION TIMING OUT OF THE PUBLISHED CHUNK — the complete chain, rendered element to delay (2026-10-24)
+
+The 2026-10-20 entry establishes that a variant transition compiles to a plain object literal and is therefore statically verifiable. **This extends it to the full mapping**, so "which divider gets which delay" is answerable without a foregrounded tab, a `requestAnimationFrame` sampler, or a human watching — all of which this file previously treated as the only route.
+
+**1. Find the chunk.** Collect every `.mjs` the page references and grep for a distinctive layer name. Home references 15; exactly one carries `Line Mobile Menu`:
+
+```
+https://framerusercontent.com/sites/<siteId>/shared-lib.<hash>.mjs
+```
+
+**2. The transitions are named constants, declared in a run.**
+
+```js
+Nt={damping:60,delay:0,mass:1,stiffness:500,type:`spring`}
+Pt={delay:.2,duration:2,ease:[.65,0,.13,1],type:`tween`}
+Ft={delay:.2,duration:1.2,ease:[.65,0,.13,1],type:`tween`}
+It={delay:.35,…}  Lt={delay:.5,…}  Rt={delay:.65,…}  zt={delay:.8,…}
+```
+
+**3. The variant to transition map is a `kt({ … })` call** — this is the piece that makes the mapping possible and it is easy to miss:
+
+```js
+kt({ dC8xBCwZw:{value:zt}, ksnO5ORUD:{value:Rt}, nrZdJ0Y7J:{value:It},
+     TvMopUKMz:{value:Lt}, U6_DwGhxK:{value:Ft}, x4IyJhgup:{value:Lt}, … })
+```
+
+**4. A variant-id to CSS-class map sits nearby**, which is what ties a *rendered* element back to a variant: `U6_DwGhxK:`framer-v-maul7p`` and so on. Read `[...el.classList]` on the live element, look the `framer-v-*` class up here, then follow the id through the `kt` map to its constant.
+
+**So the chain is: rendered rect -> `framer-v-*` class -> variant id -> transition constant -> delay.** Every link is a literal in the chunk or an attribute on the page; nothing is inferred.
+
+**!!! THE TRAP THAT GAVE THE OPPOSITE ANSWER FIRST: A FIXED BYTE WINDOW AROUND A MATCH SPILLS INTO THE NEXT OBJECT LITERAL. !!!** Scanning for `delay:` and taking ~160 characters of context, then filtering on `duration:1.2`, reported **seven** transitions with a **duplicate** and an **uneven** stagger — because the window around `Nt` (a spring, `delay: 0`) and `Pt` (`duration: 2`) reached forward into the *following* object and found its `duration:1.2`. Both are false positives, and the conclusion drawn from them ("even stagger: NO") was exactly wrong.
+
+**Bound the literal, never the byte window.** Brace-match from `{` to its closing `}` and test only inside that span:
+
+```js
+let depth = 0
+for (let j = k; j < k + 400; j++) {
+  if (s[j] === "{") depth++
+  else if (s[j] === "}") { depth--; if (depth === 0) { end = j; break } }
+}
+```
+
+That returns the real five. **In minified code every literal abuts the next, so a context window will confidently attribute a neighbour's fields** — the same class of error as pairing two sorted lists by index, or reading an ancestor chain out of a byte window of markup.
+
+**Verified state of the menu cascade, 2026-10-24:**
+
+| row | divider | class | variant id | const | delay |
+|---|---|---|---|---|---|
+| Fixtures | Menu 1 Active | `framer-v-maul7p` | `U6_DwGhxK` | `Ft` | 0.20 |
+| Elements | Menu 2 Active | `framer-v-brcvqe` | `nrZdJ0Y7J` | `It` | 0.35 |
+| About | Menu 3 Active | `framer-v-1io7c3d` | `x4IyJhgup` | `Lt` | 0.50 |
+| News | Menu 4 Active | `framer-v-b1fhi0` | `ksnO5ORUD` | `Rt` | 0.65 |
+| Contact | Menu 5 Active | `framer-v-rydc4e` | `dC8xBCwZw` | `zt` | 0.80 |
+
+**Uniform 150 ms ascending top to bottom**, all five `duration: 1.2` on `cubic-bezier(.65, 0, .13, 1)`. First starts 0.20s, last finishes 2.0s nominal — consistent with the ~2.1s sweep measured by hand on 2026-09-30 once the recorded ~130 ms mount overhead is added, which is a second independent route to the same number.
+
+**The one duplicate is correct and must not be "fixed":** `TvMopUKMz` (`framer-v-1olc8zb`), the hidden Projects spare, also points at `Lt` / 0.50. Its row is hidden so it never renders, exactly as recorded when the menu was renumbered.
+
+**This is also the cheapest proof that a per-variant instance override is right.** The delays live per *variant*, so five rendering dividers each resolving to a *different* variant in row order is what demonstrates the assignment is correct — had the `AtpIo51Yu` override restored after the cut/paste failed, two would have shared a constant and it would show here immediately.
