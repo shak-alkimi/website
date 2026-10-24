@@ -10467,3 +10467,114 @@ paragraph instances `rgb(0, 0, 0)` / `14px` / opacity 1; and by eye on a 390px r
 
 **`1ac30n9` still appears 7 times on the page** — `H1 - Style` is legitimately used elsewhere and its rules stay
 in the stylesheet. Only the intro stopped using it.
+
+### THE MOBILE MENU BURIED ITS OWN LOGO AND CLOSE BUTTON ON 5 OF 36 SURFACES — one z-index, two symptoms (2026-10-24, PUBLISHED `3f0571b14`)
+
+Shak reported two things that looked unrelated: *"when clicking in the negative area it should close the menu page"* and
+*"for the contact menu page the logo and hamburger do not show up"*. **The second is a real defect with a single cause,
+and it also explains most of the first** — the close button was there and unclickable, so the menu felt like a trap.
+
+**The menu opens as a Framer overlay: a `rgba(0,0,0,0.8)` backdrop at `z-index: 6` under a TRANSPARENT full-screen
+container at `z-index: 9`.** The nav bar is a separate `position: fixed` sibling with its own z-index. So the nav must be
+**> 9** or the overlay paints over it and swallows its taps. Measured on the published site:
+
+| page | desktop | tablet | phone |
+|---|---|---|---|
+| `/about` `/products` `/elements` `/news` `/terms` `/privacy` `/404` | 10 | 10 | 10 |
+| **`/`** | 10 | 10 | **9** |
+| **`/contact`** | 10 | 10 | **7** |
+| **`/news/:slug`** | **9** | **9** | **9** |
+
+**THE PAINT STACK IS THE WHOLE DIAGNOSIS, AND IT SEPARATES "PRESENT" FROM "VISIBLE" IN ONE QUERY.** With the menu open,
+`document.elementsFromPoint` at the hamburger and at the logo:
+
+```
+/about  (z=10)  burger: Hamburger Menu > ... > DIV[z=10,fixed]        logo: DIV > logo dark > DIV
+/       (z=9)   burger: Link Wrapper > Menu Content > Desktop Full Menu > DIV[z=9,fixed] > Hamburger Menu
+/contact(z=7)   logo:   Link Wrapper > Menu Content > Desktop Full Menu          <- logo never reaches the top
+```
+
+A second tap on the hamburger **closed the menu on `/about` and did nothing on `/` and `/contact`** — the tap was landing
+on `Link Wrapper`. Both of Shak's reports, from one measurement.
+
+**!!! `zIndex` IS NOT AN ATTRIBUTE ON A `ComponentInstanceNode` — IT IS EDITOR-ONLY, AND THE WRITE FAILS SILENTLY. !!!**
+
+A full key dump returns 26 keys (`__class, aspectRatio, bottom, centerX, centerY, componentIdentifier, componentName,
+controls, height, id, insertURL, left, locked, max/min*, name, opacity, originalId, position, right, rotation, top,
+visible, width`) and **no `zIndex`**. `setAttributes({ zIndex: 10 })` returns **`writeError=none`** and stores nothing —
+confirmed by a separate-`exec` read-back showing the key still absent. Add it to the blind list beside appear effects,
+variant transitions, vectors, CMS bindings, conditional visibility, canvas text, scroll-section names and `pointer`.
+
+**`getNodesWithAttributeSet("zIndex")` IS A USEFUL HALF-MEASURE: it filters correctly and returns `undefined` for every
+value.** So the API can tell you *which* nodes carry a z-index — all 42 nav instances do — and never *what* it is. Worth
+knowing as a general shape: an attribute can be visible to the filter and invisible to the reader.
+
+**!!! THE PUBLISHED BUILD WAS BEHIND THE DOCUMENT ON HOME, AND I ONLY FOUND OUT BY OPENING THE EDITOR. !!!** Home's
+phone served `9` while its document already read **`10` with a blue (breakpoint-override) label** — someone had already
+fixed it and it had not shipped. **I had measured the published site and assumed it reflected the document.** That is
+the standing inverse-staleness trap in a new place: the usual failure is a stale session contradicting the live page;
+here the live page was the stale artefact. **Before editing anything, read the document value, not just the served one** —
+otherwise you re-apply a fix that exists and conclude the edit "did nothing".
+
+**The label colour settled every reading** and is the quickest way to know what you are looking at: grey
+`rgb(204,204,204)` = inherited/base, blue `rgb(0,153,255)` = breakpoint override. `/contact` phone was a blue `7` (a real
+override); `/news/:slug` desktop was a grey `9` (the base), so setting the primary cascaded to Tablet and Phone — both
+re-read as grey `10` rather than assumed.
+
+**THE PANEL NUMBER FIELD NEEDED JS FOCUS FIRST; THE `triple_click` ROUTE SILENTLY FAILED.** `triple_click` → `type "10"`
+→ `Return` left the field reading `7`, which is the documented silent failure. What worked, first time, every time:
+
+```js
+inp.focus(); inp.select();
+// assert document.activeElement === inp  AND  selectionStart/End span the value
+```
+
+then `computer type` + `Return` + `Tab`, and **verify with a `zoom`, never a scaled screenshot** — a 0.55-scale capture
+of a two-digit value is exactly the case this file already records misreading.
+
+**The publish preview lagged ~20s behind the editor and then told the truth.** Straight after the `/contact` edit it still
+showed only `WebPage | Home | updated`; a re-read showed `WebPage | /contact | updated` with Home **gone**, because Home
+had been published in the interim. Two agreeing reads across two fresh sessions. **A preview taken seconds after an editor
+edit is not evidence of anything.**
+
+**Unresolved and recorded as such: whether a rejected `setAttributes` key dirties its page.** Immediately after the
+no-op `zIndex` write the preview showed Home pending — but Framer's own agent also had an un-reverted change on Home
+visible in the editor (`Home/Hero Header, 1 Layer`), which is a sufficient explanation. **I did not check pending before
+the write, so the two cannot be separated.** Check first next time.
+
+**THE BYTE DELTAS RECONCILE EXACTLY, AND `/contact` SHRANK:**
+
+```
+/news/cauda  +1      /news/kimi  +1      /news/debut  +1        <- "9" -> "10", one character
+/contact    -49                                                 <- the phone OVERRIDE RULE was eliminated
+/            0                                                  <- not in this publish, correct
+```
+
+`/contact` phone had an override at `7` against a base of `10`; making it equal to the base **removes the rule
+altogether**, the same effect already recorded when a Tablet padding override was brought into line. **A byte drop after
+a styling change can mean an override disappeared, not that content left the page.**
+
+**Verified live: 36 of 36 surfaces at `z=10`**, and a behavioural sweep of all five previously-broken surfaces plus a
+control — menu opens with 5 dividers, `Hamburger Menu` is the top element at the burger, `logo dark` is in the paint
+chain, and a second tap closes it. **7 of 7 pass.**
+
+### TAP-OUTSIDE-TO-CLOSE DOES NOT EXIST, AND z-index CANNOT PROVIDE IT (measured 2026-10-24)
+
+Tested on `/about`, whose nav was never broken, so this measures the menu and not the z-index bug. Taps in the empty
+bands leave the menu open on **both** phone and desktop:
+
+```
+phone   tap (195,120) top band -> still open     tap (195,700) bottom band -> still open
+desktop tap (768,150) top band -> still open     tap (1400,450) far right  -> still open
+```
+
+**The reason is structural: `Desktop Full Menu` is FULL-BLEED (390x844 / 1536x855) inside the transparent `z=9`
+container, so the `rgba(0,0,0,0.8)` backdrop at `z=6` — which is what Framer would dismiss on — can never receive a
+tap.** Raising the nav's z-index does nothing for this; it is a separate mechanism and almost certainly editor work.
+
+**A FALSE POSITIVE TO AVOID: a tap at `(40,450)` DID close the menu, and it is not a backdrop dismiss.** The paint stack
+there is `P > PROFILE > Open Navigation Link` — the row's own link spans the full row width, so that was a navigation.
+**Read the paint stack at every probe point before scoring it**; "the menu closed" and "the menu was dismissed" are
+different events.
+
+`Escape` does close it on all three breakpoints — irrelevant for touch, recorded only so it is not re-derived.
