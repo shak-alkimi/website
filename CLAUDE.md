@@ -10662,3 +10662,64 @@ from an `exec`. Drag `MenuTapOutsideToClose` from **Assets -> Components -> Proj
 **AFTER DROPPING IT, SET `Position: Absolute`.** Framer gives a code-component wrapper a **1px minimum size**,
 so a `Relative` one sits in normal flow — that is exactly the defect that put a 1px hairline across every
 page via `GlobalScrollbarHider`, and `Menu Content` is a stack whose layout it would otherwise perturb.
+
+### TAP-OUTSIDE IS LIVE — and placing a code component is a three-step dance (2026-10-24, PUBLISHED `e6e7c890f`)
+
+`MenuTapOutsideToClose` is instanced in **both** variants of `Navigation / Mobile Full Navigation`
+(`rZpQSpZsN` and `Ys3TDsYHmrZpQSpZsN`), `1px x 1px`, `position: absolute`, `top/left 0`. **Verified live on
+all 9 live pages at phone width: menu opens, a tap in the dead space closes it, the hamburger still toggles,
+and rows still navigate. 9/9.**
+
+**THE PLACEMENT ROUTE, since `addComponentInstance` is unusable here:**
+
+1. **Shak drags the component from Assets onto any canvas.** This is the one step automation cannot do —
+   in the Assets panel a **click opens the code editor** and only a **drag** creates an instance, and drag
+   does not automate. It landed as a **page-level sibling of the breakpoints** (`parent` = the WebPageNode
+   itself), which is the orphan position that **emits no markup at all** — so a drop alone ships nothing.
+2. **Cut it** (`Ctrl+X`) with a **real click** on the layer-tree row first, so focus is genuinely in the tree.
+3. **Select `Menu Content` and paste.** It propagated to **both variants automatically** — one paste covered
+   `Variant 1 · Primary` and `Desktop Full Menu`.
+
+**!!! A URL NAVIGATION AFTER A CUT IS BLOCKED BY A "Leave site?" DIALOG, AND FORCING IT WOULD DESTROY THE
+NODE. !!!** After `Ctrl+X` the node exists **only in the clipboard** — it is already gone from the page.
+Navigating by URL reloads the editor, which Framer blocks with an unsaved-changes dialog; `force: true`
+would discard it and the node with it.
+
+**The way through is to navigate INSIDE the app, which does not reload and keeps the clipboard:** Assets ->
+expand `Components -> Project -> Navigation` -> **double-click** `Mobile Full Navigation`. The URL changes to
+`?node=uL6YOTdAZ` with no reload and the paste works. **Prefer in-app navigation over a URL change whenever
+anything is held in the clipboard or unsaved.**
+
+**The Assets tree's chevron is at `row.x - 33`, not `row.x - 16`.** The `- 16` offset used for the Layers
+panel lands on the folder icon and silently does nothing — the first expand attempt reported
+`expanded Project` while nothing opened, which reads as success. Different panel, different indent.
+
+**SIZE IT DOWN AFTER DROPPING.** It arrives `200x200`. It was already `absolute`, so it did not disturb
+`Menu Content`'s stack — but a 200px transparent box inside the open menu could swallow taps in its corner.
+Set `1px x 1px` at `top/left 0`, matching what `GlobalScrollbarHider` does. The write to the primary variant
+**cascaded to the other inside the same `exec`** (the loop reported `ALREADY 1x1` before reaching it).
+
+**EVERY PAGE'S BYTE COUNT WAS UNCHANGED, AND THAT IS THE CORRECT RESULT.** `home`, `contact`, `news/cauda`,
+`terms` all `delta=0` and byte-stable over three reads. **The menu is injected at runtime and is never in the
+SSR markup**, so a change inside it cannot move the page bytes — it lives in the JS chunk. **A zero delta is
+only a failed-build signature for changes that belong in the markup; check which artifact the change lives in
+first.**
+
+### !!! THE SITE WAS RENAMED UNDER ME: `/about` -> `/methodology` AND `/products` -> `/fixtures` (found 2026-10-24) !!!
+
+Both old paths now **404**, and the 404 page is byte-identical for both (same md5, 166,042 bytes, a complete
+document ending in `</html>`). **Live set is now `/`, `/fixtures`, `/elements`, `/methodology`, `/404`,
+`/terms`, `/privacy`, `/contact`, `/news`, `/news/{debut,kimi,cauda}`** — confirmed against `sitemap.xml`.
+The nav rows point at `./fixtures` and `./methodology`.
+
+**THIS QUIETLY CORRUPTED MY OWN VERIFICATION EARLIER THE SAME DAY.** The z-index sweep reported
+"36/36 surfaces at z=10" over a page list that included `/about` and `/products` — **both of which were
+serving the 404 page**, while `/methodology` and `/fixtures` were never tested at all. The sweep passed
+because **the 404 page carries the same nav component**, so it returns a perfectly plausible `z=10`. Re-run
+against the real page list it is genuinely 36/36, so the conclusion survived — but it survived by luck.
+
+**The lesson: a page-list constant in a verification script is state, and it goes stale like any other.**
+This file already says a regression checklist goes stale in minutes; the same applies to the *set of URLs* it
+iterates. **Derive the page list from `sitemap.xml` or a status-code sweep at the top of the run**, rather
+than hard-coding paths that were true when the script was written. The tell here was two different pages
+returning identical byte counts — **equal sizes for unequal pages is a 404, not a coincidence.**
