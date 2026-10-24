@@ -10845,3 +10845,59 @@ That returns the real five. **In minified code every literal abuts the next, so 
 **The one duplicate is correct and must not be "fixed":** `TvMopUKMz` (`framer-v-1olc8zb`), the hidden Projects spare, also points at `Lt` / 0.50. Its row is hidden so it never renders, exactly as recorded when the menu was renumbered.
 
 **This is also the cheapest proof that a per-variant instance override is right.** The delays live per *variant*, so five rendering dividers each resolving to a *different* variant in row order is what demonstrates the assignment is correct — had the `AtpIo51Yu` override restored after the cut/paste failed, two would have shared a constant and it would show here immediately.
+
+### THE HAMBURGER VANISHED ON RETURN TO THE TOP OF HOME — the same variants-map bug as the nav background, and `rgba(255,255,255,1)` is NOT a distinct value (2026-10-24, PUBLISHED AND VERIFIED LIVE)
+
+Shak: *"sometimes the hamburger is not appearing when scrolling back to top"*. It was **not** "sometimes" — it was **the first scroll cycle after page load, every time**, on **Home desktop only**. 3 of 3 trials failed cycle 1 and passed cycles 2-6, which is exactly what makes it read as intermittent to a person.
+
+**The hamburger lines were being left black on the black hero.** The trajectory after scrolling back is the whole diagnosis:
+
+```
+failing cycle 1   200:0   400:0   800:0   1500:0  3000:0     <- never moves
+passing cycle 2+  200:130 400:203 800:247 1500:255 3000:255  <- normal ramp
+```
+
+**!!! THIS IS THE SECOND INSTANCE OF ONE BUG CLASS IN A SINGLE DAY. A FRAMER VARIANT ONLY GETS AN ENTRY FOR A PROPERTY IT SETS EXPLICITLY, SO REVERTING TO A VARIANT THAT OMITS THE PROPERTY GIVES MOTION NO TARGET. !!!** The morning's case was the nav bar's `backgroundColor`; this is the hamburger lines' `backgroundColor` on the same component. Compiled before the fix:
+
+```
+base style:  backgroundColor rgb(255, 255, 255)
+variants:    CKhcbJTh3, dAgREWuQT, lQ7T5v16X, TVfWqaIfB  ->  rgb(0, 0, 0)
+```
+
+Only the four **black-ink** variants carry an entry. `Fill White` sets black explicitly; every white-ink variant on the way back omits it, so nothing animates the colour home.
+
+**Why the two cases differ in symptom is worth knowing: the background one failed 100%, this one only on the first cycle.** Once Motion has animated a property at least once it retains a previous value and can fall back to it; before that it has nothing. So **the same structural fault can present as deterministic or as "sometimes", depending on whether the property has ever been animated in that session.** Do not use intermittency to rule this cause out.
+
+**THE API CANNOT SEE IT, AND SAYS EVERYTHING IS FINE.** `node.backgroundColor` reports `rgb(255, 255, 255)` on all seven white-ink variants — because that is the **inherited base**. There is no way through the node API to distinguish inherited from explicit. **Only the compiled chunk's `variants:{…}` map answers it**, and that only exists after a publish.
+
+**!!! `rgba(255, 255, 255, 1)` IS STORED DISTINCTLY AND THEN NORMALISED AWAY BY THE EMITTER — a full publish cycle wasted. !!!** The morning's fix worked by writing a *distinct-but-equivalent* literal (`rgba(255,255,255,0)` against a base of `rgba(0,0,0,0)` — both invisible, different channels). The same device fails for opaque white: the API genuinely stores `rgba(255, 255, 255, 1)` and reads it back distinct from `rgb(255, 255, 255)`, **but the build emits nothing**. After that publish the chunk's only change was a component hash rename, `framer-ON6LC` -> `framer-V3OnL`, repeated at every occurrence, with the variants map untouched.
+
+**So the test is not "does the API store it differently" but "does it still differ AFTER colour normalisation".** `rgba(c, 1)` and `rgb(c)` are the same colour and collapse. **Use a genuinely different value:** `rgb(254, 254, 254)`, one level per channel, 0.4%, invisible on a 2px line. Entries went **4 -> 10** and the chunk grew **+588 bytes**.
+
+**THE PRIMARY VARIANT IS THE BASE AND CAN NEVER CARRY AN OVERRIDE — which is why the fix has to land somewhere else on the revert path.** Home rests on `CQn2PSQz8` (`framer-v-1uu4b65`), the primary, so no amount of writing to it produces an entry. What makes the fix possible is that the revert passes through **`Nav Load` (`OTFjEScTr`)**, a non-primary variant that can hold one. Measured path:
+
+```
+rest       Nav white   framer-v-1uu4b65   (primary = the base)
+scrolled   Fill White  framer-v-13gtcbd   black, explicit
+back+300   Nav Load    framer-v-1s6nzt    <- the lever
+back+700   Nav white   framer-v-1uu4b65
+```
+
+**Before fixing anything, find which variants the page actually passes through**; the resting one may be unfixable while an intermediate one is not.
+
+**A PREDICTION I MADE WAS WRONG, IN THE HELPFUL DIRECTION.** I warned the hamburger would come to rest at `254` rather than `255`, since the revert ends on the base. It does not — it completes to **`255`**. Giving Motion any target restarts the animation, and it finishes on the final variant's base value. **So the off-white never persists visibly; it exists only as an intermediate target.**
+
+**Applied to 12 nodes** — `Hamburger Line Top` and `Bottom` on the six non-primary white-ink variants (`OTFjEScTr`, `glROJL_vL`, `gDOEOKgPj`, `RmynPz7kD`, `nTYo4Lp5J`, `Fi3YBzeYn`). Primary and the four black-ink variants untouched.
+
+**Verified, in this order, because the first check is decisive and costs nothing:**
+
+1. **The chunk** — `variants` entries `4 -> 10` on both line layers. Had this still read 4, the approach was wrong and no amount of behavioural testing would have helped.
+2. **Behaviour** — the first-cycle test that failed 3/3 now passes **9/9**, first cycles included, ramping `~130 -> 203 -> 250 -> 255`.
+3. **Cross-page** — Home phone, `/contact`, `/methodology`, `/fixtures`, `/news` all revert correctly with the logo intact. Scope was Home desktop only, confirmed before touching anything: phone was already fine and the other pages never change ink between states, so they could not show it.
+4. **Pixels** — peaks at the two line rows measure `47/46` at fresh rest and `48/48` after a full cycle, against a background of ~16.
+
+**`/contact` now rests at `rgb(254, 254, 254)`** because it uses a non-primary white variant throughout. Invisible, and the only place the off-white is observable at all.
+
+**!!! AN md5 COMPARISON OF TWO CAPTURES IS MEANINGLESS OVER A PLAYING VIDEO. !!!** The rest and post-cycle hamburger captures have different md5s, which elsewhere in this file is used as proof that a state did *not* return. Home's hero is video, so the background differs frame to frame and the hashes can never match. **Use that trick only where the backdrop is static** — here the per-row brightness peaks are the valid measure.
+
+Home sweep 13/13, byte-stable at `275,592`, pending `0`.
