@@ -10578,3 +10578,87 @@ there is `P > PROFILE > Open Navigation Link` — the row's own link spans the f
 different events.
 
 `Escape` does close it on all three breakpoints — irrelevant for touch, recorded only so it is not re-derived.
+
+### TAP-OUTSIDE-TO-CLOSE — Framer's `Dismissible` is ON and INERT, and the lever is a synthetic Escape (2026-10-24)
+
+Shak asked for it after the z-index fix restored the hamburger. **The overlay's own setting is already
+`Dismissible: Yes`** — read from `Overlays -> Tap 2 -> Overlay` on the nav instance:
+
+```
+Show on   Interaction: Tap 2
+Overlay   Preset: Custom · Fill: 000000 · Dismissible: Yes · Z index: 6 · Page scroll: Block
+```
+
+**It does nothing, because the overlay's CONTENT is full-bleed and so there is no "outside".** The whole
+chain measures `390x844` on a 390px phone — the `z=9` container, `Desktop Full Menu` (the `rgba(1,1,3,0.75)`
+scrim), `Menu Content`, and `Link Wrapper` — while the rows are only `360` wide at `y 222..614`. The dismiss
+backdrop sits at `z=6` under all of it and can never be tapped. **Escape DOES close it**, which is the proof
+that `Dismissible` is wired and only unreachable.
+
+**DISABLING `pointer-events` AT EVERY LEVEL STILL DOES NOT DISMISS** — `Desktop Full Menu`, `Menu Content`,
+`Link Wrapper`, and the `z=9` container itself. So this is not a hit-testing problem to be unblocked; the
+behaviour has to be built.
+
+**!!! A SYNTHETIC CLICK DOES NOT DRIVE FRAMER'S TOGGLE, BUT A SYNTHETIC `Escape` KEYDOWN DOES. !!!** This
+file already records that `element.click()` and dispatched `PointerEvent`s cannot open the menu. Measured
+again here with the menu open: `el.click()` and a full `pointerdown/mousedown/pointerup/mouseup/click`
+sequence both leave it open. **But `document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }))`
+closes it**, as do the `window` and `document.body` variants. **So Framer's keyboard dismissal is reachable
+programmatically where its pointer path is not** — that asymmetry is the whole solution.
+
+**[MenuTapOutsideToClose.tsx](MenuTapOutsideToClose.tsx) translates a dead-zone tap into that keypress.** On
+`pointerup` (capture): ignore unless the target is inside `[data-framer-name="Menu Content"]` (which only
+exists while the overlay is open, so it doubles as the open check), ignore `a[href]` so rows still navigate,
+ignore the hamburger so its toggle still works, otherwise dispatch Escape.
+
+**PROVEN ON THE PUBLISHED SITE BEFORE BUILDING ANYTHING, with a control:**
+
+```
+CONTROL (no listener)   tap bottom band -> still open
+WITH listener           tap bottom band -> CLOSED   escDispatched=1  pointerupSeen=2
+WITH listener           tap row         -> url=/fixtures, escDispatched during row tap = 0
+```
+
+All four dead zones close on phone and desktop; the hamburger still toggles. `typecheck()` and `lint()` both
+return `[]`.
+
+**!!! MY OWN COUNTER RESET MADE IT LOOK LIKE THE HANDLER NEVER FIRED. !!!** The first run reported
+`escape dispatches fired: 0` while every tap closed the menu — because the test re-ran its `INJECT` helper
+after navigating, and that helper sets `window.__esc = 0`. The listener had worked all along. **A
+self-resetting counter is worse than no counter: it reads as a confident negative.** Re-run with the counter
+initialised once, and always pair an instrumented run with an UNinstrumented control, which is what actually
+established attribution here.
+
+**FRAMER API FACTS ESTABLISHED IN THIS PASS:**
+
+- **`framer.createCodeFile(name, code)` WORKS** — created `MenuTapOutsideToClose.tsx` (`E8j_kN_`) byte-exact
+  from the repo source.
+- **`codeFile.exports` is a PROPERTY, not a method**, and it carries what you need to place an instance:
+  `{ name, componentId: "codeFile/E8j_kN_:default", insertURL: "https://framer.com/m/...", isDefaultExport, type }`.
+  `getExports()` does not exist. A `for...in` over a `CodeFile` returns **nothing** — enumerate with
+  `Object.getOwnPropertyNames` up the prototype chain instead. Full member list: `content, exports,
+  getVersions, id, lint, name, navigateTo, path, remove, removeProgressFromInstances, rename, setFileContent,
+  showProgressOnInstances, typecheck, versionId`.
+- **`codeFile.typecheck()` and `codeFile.lint()` work and return `[]` when clean.** Cheap, and the only
+  validation available for a Framer component short of publishing — run both before placing anything.
+- **!!! `addComponentInstance` CANNOT PLACE ANYTHING IN THIS PROJECT. !!!** It takes the https `insertURL`
+  (a `local-module:` identifier is rejected with *"lookup contains invalid query"*), but its `parentId`
+  lookup fails with **`Assertion Error: Parent node not found`** for a component-internal id **and for a
+  breakpoint root read from `getChildren()` moments earlier**. This file recorded the limit as "parentId is
+  silently ignored on a published page"; it is worse — the call throws rather than misplacing, so there is
+  no page-level fallback either.
+- **The Insert panel does not index local code files**, and in the Assets panel **a click on a code component
+  opens its code editor** rather than inserting it. Dragging it onto the canvas does not automate, consistent
+  with every other drag in this project.
+- **A create-then-undo leaves the component marked dirty.** Adding an overlay to `Menu Content` by mistake and
+  undoing it restored the structure exactly (verified `Menu Content -> Link Wrapper`, no stray node) while
+  the publish preview still reported `SmartComponent | Navigation / Mobile Full Navigation`. Content-wise a
+  no-op, but it means a dirty flag is not evidence that anything changed.
+
+**SO PLACEMENT IS THE ONE MANUAL STEP** — the same shape as uploading file bytes, which also cannot be done
+from an `exec`. Drag `MenuTapOutsideToClose` from **Assets -> Components -> Project** into
+`Navigation / Mobile Full Navigation -> Variant 1 · Primary -> Menu Content`.
+
+**AFTER DROPPING IT, SET `Position: Absolute`.** Framer gives a code-component wrapper a **1px minimum size**,
+so a `Relative` one sits in normal flow — that is exactly the defect that put a 1px hairline across every
+page via `GlobalScrollbarHider`, and `Menu Content` is a stack whose layout it would otherwise perturb.
