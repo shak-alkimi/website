@@ -10901,3 +10901,30 @@ back+700   Nav white   framer-v-1uu4b65
 **!!! AN md5 COMPARISON OF TWO CAPTURES IS MEANINGLESS OVER A PLAYING VIDEO. !!!** The rest and post-cycle hamburger captures have different md5s, which elsewhere in this file is used as proof that a state did *not* return. Home's hero is video, so the background differs frame to frame and the hashes can never match. **Use that trick only where the backdrop is static** — here the per-row brightness peaks are the valid measure.
 
 Home sweep 13/13, byte-stable at `275,592`, pending `0`.
+
+### `/warranty` BUILT AS AN UNPUBLISHED DRAFT — gated on legal review, deliberately NOT linked (2026-10-24)
+
+Shak asked for a warranty page linked like `/privacy` and `/terms`. The page exists at `/warranty` (`ixGnyYXfF`), `draft: true`, **with no footer link and nothing pointing at it**. `curl` returns **404** and Home carries **0** references. It will not ship until someone clears the draft flag.
+
+**IT IS GATED ON CONTENT, NOT ON MECHANICS.** The source is `Alkimi — Limited Warranty · DRAFT` in Shak's Drive (`Claude/Alkimi/`, both `.pdf` and `.html`). That document is marked **"Draft for review · not for issue"**, states it has not been reviewed by counsel, and carries its own Review Notes page listing unresolved items that must be settled with counsel before issue. **Those notes are commercially sensitive and are deliberately NOT summarised here, not even in outline, because this repo is public.** Read the Drive document; do not summarise it into this file.
+
+**For the same reason there is no `legal/warranty.md`.** `legal/privacy.md` and `legal/terms.md` are records of pages that are already published; a not-for-issue draft is not, and committing it to a public repo would effectively publish it. **Check what a repo is before treating `legal/` as the place a legal document goes.**
+
+**CLONE `/terms`, NOT `/404`.** The legal pages were originally cloned from `/404` and then had the nav variant, the `#trigger` scroll section, the `Scroll -> Variant` effect, the `180/200/150px` spacing and the stock grey-to-white gradient all fixed by hand afterwards. Cloning `/terms` carries every one of those already configured — including its own `Navigation Scroll Trigger`, which the clone brings along. **`WebPageNode.clone({ path })` still returns `draft: false` despite the docs** (confirmed again: it reported `draftAtCreate=false`), so set `draft: true` explicitly and re-read.
+
+**The page structure is `Left Content` (title / kicker / date) + `Right Content` (`Heading Wrapper`, then one `Heading`+`Body` frame per clause).** `/terms` ships 10 such frames; the warranty needs 9, so the spare was hidden rather than deleted.
+
+**!!! `framer.createTextNode()` DEFAULTS TO `width: fit-content` WITH NO `maxWidth`, SO A CREATED PARAGRAPH RUNS FULL-BLEED PAST THE PAGE EDGES. !!!** Three sections needed multiple paragraphs (5, 2 and 2) and there is no rich-text path, so each paragraph is its own text node. Copying `inlineTextStyle` from the sibling `Body` gets the typography right and **does not carry layout** — a full attribute diff showed exactly two differences against a real `Body`:
+
+```
+original  width=1fr          maxWidth=680px
+created   width=fit-content  (none)
+```
+
+**Copy `width` and `maxWidth` from the section's first `Body` onto every node you create.** Six nodes were wrong and all six were fixed; an idempotent re-issue reported `already=6`.
+
+**THE STRUCTURAL READ CANNOT CATCH THIS, AND NOR CAN ANYTHING ELSE IN THE API.** The node dump reported `Heading + 5 Body` and looked perfectly correct while the page was visibly broken. **`getText()` returns `<unreadable>` on these nodes**, so text content cannot be verified through the API at all — and because the page is a draft there is no published HTML either. **The Framer canvas is the only oracle for a draft page's content and layout; screenshot it.** That is what found this, and nothing else would have.
+
+**Creating nodes worked because the page is a DRAFT** — `parentId` is honoured there, and all six landed in the right parent with no strays at `Main` (verified: `Container` + `Navigation Scroll Trigger` only). On a published page they would have been silently relocated to Home.
+
+**Still outstanding, all of it Shak's or counsel's:** settle the open items in the Drive document, re-run the text build if the clauses change (it is scripted end to end from the HTML, so a re-run is cheap), add a 9th footer sitemap slot by `Ctrl+D` — **note slot `[2]` is the hidden `Projects` link, parked deliberately so it is one unhide away if Projects returns, and should not be consumed for this** — then clear `draft`. **Order matters: the footer link must not ship before the page does, or it points at a 404.**
