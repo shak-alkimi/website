@@ -11269,3 +11269,601 @@ reading an ancestor chain out of a byte window. Query the elements and read `tex
 **No collision:** the publish preview showed exactly the three expected changes on two agreeing fresh-session
 reads, with no errors and nothing from the other session, and the publish was guarded to abort on any other
 count or name. Pending is back to `0` on two agreeing reads afterwards.
+
+### THE BALANCE OF THE ARTWORK — both gap lists closed, BUILT AND BOUND BUT HELD UNPUBLISHED (2026-10-25)
+
+Six renders dated 24 Oct plus `Rima.svg`. All eight assets are uploaded, bound and verified on their
+hosted copies; **the publish is held by Shak's ruling** (see the last section below). After this,
+**every one of the 16 drawings is vector-sourced** and no render on either page predates 14 Oct.
+
+| | arrived | covers |
+|---|---|---|
+| `Product Renders/Web Ready/` | `Liga T`, `Liga W`, `Driver 5-1`, `Prisma Link 1`, `Prisma Link 2` + a bonus `Vena Corner` | the five stale renders, plus a re-render that was not on the gap list |
+| `Product Lines/SVG/Rima.svg` | one tape drawing | **both** `Rima 5` and `Rima 10` — the last two raster drawings |
+
+All six renders are `8000x8000 rgb24` with all four 300px edge bands **uniform `247,246,242`**, so no
+background normalisation was needed and any padding is exact.
+
+**!!! `Rima.svg` HAD BEEN IN DRIVE SINCE 22 OCT AND THE EARLIER PASS MISSED IT — because it sits at the
+SVG folder ROOT, not in a scale-named subfolder. !!!** The 2026-10-22 note closes with *"still without
+replacement artwork: `Rima 5` and `Rima 10`"*; the file was already there, three hours before that pass
+ran. The sweep enumerated the four `… - N to N` folders. **Sweep by PRODUCT, never by folder** — the same
+shape as the `/products` + `/elements` nav defect, where a consistency check could not see a fault that
+was consistent. A `find` over the whole `Products` tree sorted by mtime is one command and has no blind
+spot.
+
+**!!! AN ELEMENT CENSUS AND A BARE-ATTRIBUTE GREP NEARLY CONDEMNED A PERFECTLY GOOD SVG. !!!**
+
+`Rima.svg` counts **142 `<path>`, 0 `<polyline>`, 0 `stroke-width="..."`, 0 `vector-effect="..."`** — by
+the vendor brief's own acceptance checks that is "the exporter outlined the strokes into filled shapes",
+the one failure that destroys the whole benefit. It is not. The styling is in `style="..."`:
+
+```
+142 x  <path d="M… L…" style="fill:none;stroke:black;stroke-width:5px;"/>
+  1 x  <rect width="3508" height="2480" style="fill:white;"/>
+```
+
+Real strokes, the **identical `5px` pen** as the accepted batch, on the **same `3508x2480` canvas** with
+the same white background rect — just Affinity's exporter rather than the CAD one, and expressed in a
+`842 x 596` viewBox with a `matrix(0.24,…)` transform onto that canvas. A `<path>` of only `M`/`L`
+commands **is** a polyline.
+
+**The acceptance test must be "does every drawing element carry a stroke and `fill:none`, in attribute OR
+style form" — never an element-name census, and never a grep for a presentation attribute.** The cheap
+form: `grep -o 'stroke[a-z-]*:[^;"]*'` alongside the attribute grep, and compare the counts to the number
+of drawing elements.
+
+**!!! AN INK-THRESHOLD BBOX LIED ABOUT PALE LINE ART FOR THE FOURTH TIME, AND I BRIEFLY WROTE OFF THIS
+FILE AS STALE OVER IT. !!!**
+
+Measuring the live Rima drawings at a default `tol=40` returned `L 38.67 / R 62.86 / run 142px`, flatly
+contradicting the recorded convention, and I reported the record as no longer matching the site. Sweeping
+the threshold shows the truth immediately:
+
+```
+tol    3     5     8    12    20    30    40    60
+L   0.00  0.00  0.00  0.00  0.00 38.33 38.67 40.37     <- plateau ends at 20
+R  65.42 65.42 65.42 65.42 65.42 65.42 62.86 62.86
+w    384   384   384   384   384   159   142   132
+```
+
+**The record was exactly right and the threshold was the liar.** These drawings are faint — darkest pixel
+only `145` (Rima 5) and `122` (Rima 10) at card size — so at `tol=40` most of the tape falls below
+threshold and only the connector registers. **Sweep first, trust only the plateau, and do not call this
+file stale until you have.** Previous instances: the round cap on `Vena Round Mini`, the shadow on the
+`/products` renders, the pale tail on `Flow 20`.
+
+**THE LIVE RIMA CONVENTION, measured and matched exactly:** both flush left (`L 0.00`), both ending at
+`R 65.42`, both with a **384px run at card size**, and the size difference carried entirely by the
+**strip height — `19px` against `24px`** (ratio `0.79`, close to the photos' deliberate `0.75`
+softening). That is the right design for tape sold on a reel: run length is arbitrary, strip width is the
+real dimension.
+
+**ONE SVG DRIVES BOTH PRODUCTS**, like `E-16` does for the photos. The crop solves directly:
+
+```
+F    = STRIP_H * 587 / targetStripPx       frame side in SVG units
+srcX = TIP - 0.6542 * F                    right anchor; must stay INSIDE the tape for a flush-left bleed
+srcY = STRIP_CY - vc * F
+```
+
+Both windows land well inside the canvas and start at `x 2052` / `x 2218` against a tape beginning at
+`x 549`, so the left edge is a genuine cut. The tape's left end is a clean vertical line and its LED
+pattern repeats, so cropping inside the run is seamless.
+
+### SOLVE AGAINST THE MEASUREMENT YOU WILL VERIFY WITH — one Newton step, every time
+
+Source geometry is never the answer: a 1px stroke adds about **2px** to a measured extent and about
+**0.17pt** to a measured right edge, because the antialiased spread lies outside the geometric edge.
+First builds came out `strip 21/26` against targets of `19/24`, and `R 65.59` against `65.42`.
+
+The fixed part is scale-independent — `measured = STRIP_H * 587 / F + k` with **`k = 2.0` on both
+drawings** — so one correction converges exactly. All three Fixtures photos converged in one step too.
+Build, measure the output at the true `587` card, correct, rebuild.
+
+### !!! THE CAP TARGET MUST BE MEASURED OFF THE LIVE PAGE, NOT TAKEN FROM THE RECORDED BUILD FIGURE — THIS COST THREE PERMANENT ORPHAN ASSETS !!!
+
+This file records the end-cap convention as *"build to `83.33`, expect hosted ~83.8"*, and explains the
+gap as the delivery re-encode quantising the soft shadow into steps the `grad` instrument counts. I built
+to `83.33`. The hosted assets then measured **`83.30`** — no offset at all — while the page's other eight
+sit at **`83.82`**. A real 3px miss on three cards.
+
+**The recorded offset does not exist when both sides are fetched with `?lossless=1`**, which is how every
+measurement in this project is taken. Whatever produced it in the original pass, it is not reproducible
+by the method now in use.
+
+**Proved it was real geometry and not an instrument artifact before rebuilding** — re-measuring one file
+at five source resolutions:
+
+```
+NEW vena-corner   2000:83.30  1679:83.30  1200:83.30  900:83.30  587:83.30
+live vena (ctrl)  2000:83.82  1679:83.82  1200:83.82  900:83.82  587:83.82
+```
+
+Completely flat, so the difference is in the pixels and not in the downscale. Rebuilt to `capT 83.82` and
+all three land exactly on the line, with bottoms `+0.51 / +0.52 / +0.52` against their drawings — matching
+the family's `+0.51` to the pixel.
+
+**The rule: derive a target by measuring the live page with the instrument you will verify with. A build
+figure recorded in this file is the input someone else used, not the target.** The three superseded
+uploads (`F2CHK0Rv…`, `T4XKK86P…`, `VK96uOUg…`) are permanent; assets cannot be deleted.
+
+### What the new renders changed, beyond being newer
+
+**Both Prisma Link renders are ENTIRELY NEW COMPOSITIONS, not re-exports.** The live ones are a tight
+close-up of a straight chain **with a trailing cord**; the new ones show the **whole chain curving, with
+the cord removed**. Consequence for the pipeline: with no appendage, `capRight` and `bodyRight` collapse
+to the same value (`60.48`/`59.63` and `68.31`/`67.63` on the sources), so they take the ordinary `83.82`
+cap line directly rather than the body-right treatment the cord used to require.
+
+**The Liga pair's relative size changed in the vendor's framing, toward the truth.** Live
+`liga-t/liga-w = 1.004`; new `= 1.168`; real longest-dimension ratio `0.57/0.52 = 1.096`. Per the standing
+principle — *relative scale is solved in the artwork, and any per-image rescale silently undoes that
+decision* — the vendor's scale was kept and only position corrected. Net on the page: `liga-t +6.3%`,
+`liga-w -8.6%`, `driver +5.8%`.
+
+**`prisma-link2`'s photo bottom was drifted `+8.35pt` from its drawing and was realigned.** The
+`/products` photo-to-drawing bottom convention is tight — `+0.00` to `+0.51` on 7 of 11 — but that one
+sat at `+8.35` because its **drawing** was replaced on 2026-10-22 and the photo never followed. Rebuilding
+the photo means choosing its position, and the page convention is the defensible default; the product
+moves up noticeably as a result.
+
+**`/elements` has NO bottom convention and must not be given one** — rima deltas are `+8.69`/`+11.75`,
+confirming the record that Shak declined that alignment there. The three Elements photos were **centred
+only** (pure translation at unchanged scale, `hc`/`vc` to `50/50`), which is also what the E-batch
+precedent prescribes.
+
+### A DEPENDENCY-FREE NODE SVG RASTERISER — [tools/svg-raster.js](tools/svg-raster.js)
+
+Every browser route was blocked: the Playwright profile was **held by a live Chrome from 24 Oct 18:29**
+(left alone — it may belong to the other session), and on Windows **`convert` resolves to the FAT-to-NTFS
+converter, not ImageMagick** (`Invalid drive specification`), with no `rsvg-convert` or `inkscape`
+present. So the established serve-and-draw-in-a-browser pipeline was unavailable.
+
+The replacement is ~120 lines and has no dependencies beyond `zlib`:
+
+- **parse** — these exports are pure `M`/`L`, so `<path d>` becomes a polyline with one regex.
+- **render** — analytic antialiasing by distance-to-segment: `coverage = clamp(halfWidth + 0.5 - dist, 0, 1)`
+  over each segment's bounding box. **Take the UNION (`max`), never the sum** — summing double-darkens
+  every join and every shared endpoint. Round caps fall out for free, because distance-to-segment includes
+  the endpoint discs.
+- **write** — minimal PNG: signature, IHDR, one `deflateSync` IDAT over filter-0 scanlines, IEND. Grayscale
+  (colour type 0) and RGB (type 2); **emit RGB to match the existing assets' colour type.**
+
+Output verified against the house convention: hosted darkest **`153`** for both drawings, against the live
+vector family's `154-158`. Worth keeping — the next SVG batch needs exactly this, and it is immune to
+whatever holds the browser.
+
+### Delivered state, and the publish is HELD
+
+Verified on a fresh session with the first read discarded, and on every hosted copy:
+
+| | |
+|---|---|
+| photos | `cap 83.82`, flush left `0.00`, corners exactly `247,246,242`, `2000x2000 rgb24`, no alpha |
+| Elements photos | centred `50.00/50.00` |
+| drawings | `L 0.00`, `R 65.42`, strip `19`/`24`, darkest `153`, corners `255,255,255` |
+| hosted vs built | **identical on every number** — no delivery drift at all |
+| draft counts | Home 3/3, Fixtures 11/11, Elements 5/5, Projects 3/10, News 3/7, About 1/1, Clients 8/8, Testimonials 4/4 |
+
+Idempotency confirmed by re-issuing an upload script, which aborted with `expected … but holds …` — the
+guard sits **before** `uploadImage`, so a re-run cannot create a second permanent asset.
+
+New ids: `vena-corner 4j1n1PGSQPp1mcxj8zuf0fQcI9Y` · `prisma-link-1 EMJQsBEpC4POOQaIxN5VXhMPZGo` ·
+`prisma-link2 Dp8sFWXUUda6pDmZw81dyjoLvs` · `liga-t xd3P48EmRnV2cEFCiorZUDROuw` ·
+`liga-w QAXpkFBDtZfIqbrW9IrcZ6yUY` · `driver-5-1 YMExGVMaeldSZcmvmqda1e7ryM8` ·
+`rima-5 jCYannPfca1G8XcwtVvVooly874` · `rima-10 ZdjkGwunT8ztY1wFDmnj5PXGwk`.
+
+**!!! HELD BY SHAK'S RULING 2026-10-25: DO NOT PUBLISH. !!!** The preview reports **9** changes — my eight
+`CollectionItem` writes plus **`WebPage | Home | updated`, which is not mine** (I wrote only Fixtures and
+Elements items, and Home's cards bind to the **Home** collection). Hash `3hauss`, no errors, no warnings.
+Per the standing rule a preview whose change set exceeds your own is a stop; it was raised and Shak chose
+to hold. **The eight assets are bound and will ship with whatever publish comes next, by any session** —
+so anyone publishing this project should know they are carrying this work plus that Home change.
+
+**A regression sweep goes stale inside a day, and mine did.** The Home sweep flagged `Methodology` at `5`
+against an expectation of `2`. The site is right: `2` card buttons **plus 3 footer sitemap links**, since
+the 2026-10-24 nav rename. **Re-derive the expectation from the current build, never from the note that
+first recorded it.**
+
+**Never put JavaScript in `node -e`, and watch apostrophes in heredocs too.** Both bit again in one
+session: a `node -e` died on nested quoting, and a `cat > file <<'EOF'` heredoc carrying ordinary English
+apostrophes failed to parse — **and because bash parses a compound command in full before running any of
+it, the earlier `cat` in the same command never executed either**, leaving a stale file on disk that a
+later step silently consumed. Write generated scripts and prose files with the file tool, or keep heredoc
+bodies free of apostrophes, and check the file's mtime before trusting it.
+
+### The phone `/methodology` hero trimmed so the pigeons arrive sooner (2026-10-25, PUBLISHED `e2f178e70`)
+
+Shak asked for the phone hero to be slightly shorter so the bird shows up sooner. Measured on the source:
+the pigeons land at **~5.9s** and are gone by **~7.1s** of a **9.91s** clip, so the action is the last 1.2
+seconds with nothing at all in the final 2.8s. Trimmed **3.0s off the front**: **9.91s to 6.91s**, pigeons
+now landing at **3.0s**, verified frame by frame in the shipping encode rather than predicted.
+
+| | was | now |
+|---|---|---|
+| video | `eUbfK0N0CtOIoUCJBie3DMaD0.mp4` 9.91s 2.51 MB | **`O8FD143Ey5jBNPuuqVB38sHCyTU.mp4` 6.91s 1.65 MB** |
+| poster | `0blMX6ylFVbeGTNGjb9G1jPfCE.jpg` | **`70n525ZarBmy4NhHInppRMqHM.jpg`** |
+
+Desktop and tablet are a **different video** (`GUGEJGGS5kol4zugLRHofjtOk.mp4`) and were untouched. The phone
+instance is `AwhOnpHayz76TOsBuO`, variant `CY1W0rQc5` (`Header Mobile`); both controls (`twBEjiRp1` video URL,
+`Q9MpMF_yE` poster) were existing overrides, so the write was an UPDATE and landed first time.
+
+**!!! THE `startTime` CONTROL CANNOT MAKE A RECURRING MOMENT ARRIVE SOONER, AND IT IS NOT IN SECONDS. !!!**
+
+The obvious cheap fix is the Video layer's `startTime`, which sits at `0` on every variant of every video in
+this project. Two facts kill it, both read straight out of the compiled component:
+
+- **it is a PERCENTAGE (0-100), not seconds** — `startTime:{title:'Start Time',type:_.Number,min:0,max:100,step:.1,unit:'%'}`.
+  So a recorded `"startTime": 0` means 0%, and anyone setting it thinking seconds is wrong by a factor of the duration.
+- **it seeks only on `onLoadedData` and on a prop change.** Looping is the **native HTML `loop` attribute**
+  (`<video loop={p}>`), which always restarts at **0**. There is no `timeupdate` handler and no `ended`
+  re-seek — `onEnded` is just `e=>F?.(e)`, forwarding the user event. So `startTime` applies to the **first
+  play only** and every loop after it reverts.
+
+**THE WHOLE VIDEO COMPONENT IS ONE 5.4 KB CHUNK — read it rather than reasoning about Framer video behaviour.**
+`Video.CmxvJkbP.mjs`, found by collecting every `.mjs` a page references and grepping for `startTime`. It
+carries the full property-control definitions and the complete seek/play/preload logic in readable minified
+form. **That is the oracle for any question about a Framer video**, and it is far cheaper than a publish-and-measure
+cycle. The seeks are exactly: `setProgress(t)` does `currentTime = (t===1?.999:t) * duration`; the `[J,i,r,A]`
+effect calls it on a startTime change; `onLoadedData` calls it once if `currentTime<.3 && J>0`. Nothing else.
+
+**A LONG-GOP SOURCE CANNOT BE CUT LOSSLESSLY — check the keyframes before planning a stream copy.** This clip
+has **two** keyframes in 9.91s (`0.000` and `8.342`), so `-c copy` can only cut at 0 or 8.34 and a re-encode was
+forced. Swept CRF against the source segment: 23/24/25 gave PSNR **45.7 / 45.2 / 44.6 dB**, all visually
+lossless. **CRF 24 was chosen because its 1961 kbit/s is the closest match to the source's 2076** — same bitrate
+class, so no quality regression, and the file is smaller only because it is shorter. CRF 21 was *larger than the
+source*, which is the signal that the setting is over-spending rather than preserving.
+
+**DROPPING A VIDEO AND ITS POSTER TOGETHER CREATES A FRAME NAMED AFTER THE POSTER, WITH THE VIDEO NESTED INSIDE —
+and that frame hands you the live `ImageAsset` you need.** Shak dropped both files; Framer produced
+`edzWo6SUT` named `Hero-methodology-phone-poster`, carrying the poster as its **`backgroundImage`** with the
+`Video` instance as its only child. A `poster` control needs a **live `ImageAsset`** (a literal or a URL fails
+silently), so the donor was read off that frame and assigned **in the same `exec`**. **Drop the poster alongside
+the video every time** — it removes the separate upload step entirely.
+
+**`srcUrl` ON A DROPPED VIDEO IS FRAMER'S OWN DEFAULT, NOT A STALE COPY OF YOURS.** The recorded rule to take
+`srcFile.url` when `srcType` is `Upload` holds, and the reason is now exact: `srcUrl` read
+`MLWPbW1dUQawJLhhun3dBwpgJak.mp4`, which is the `defaultValue` in the component definition. So it is not
+leftover state — it is simply the untouched default, and it will look plausible.
+
+**FINDING THE DROP: filter on `srcType === "Upload"`, not on geometry or name.** Across **907**
+`componentIdentifier` nodes, **65** carry a `srcType` key and exactly **1** had `Upload` — unambiguous in one
+pass. The recorded geometry route still works (it measured `739 x 1440`, aspect `0.5132` against the source's
+`0.5130`) but needs a guess at how Framer scales the drop. Identity was then settled by **`Content-Length:
+1693456`, byte-exact against the local build** — the fourth time a byte-size match has identified an asset here.
+
+**`node.remove()` WORKED ON A PAGE-LEVEL FRAME OF A LIVE PAGE** — reported ok and a separate `exec` confirmed
+`GONE`. This narrows the recorded deletion failures: those are component internals and the `/privacy` section,
+not page-level frames in general. The drop landed as a **sibling of the breakpoint frames** on Home
+(`augiA20Il`) at `top -574px left -1680px`, which per the record emits no markup at all, so it was never going
+to render — it was shrunk to 1x1 first anyway, then removed. **Home came back byte-identical to the
+pre-publish baseline (274,066) with zero references to either dropped asset**, which is the proof the
+drop-and-remove left nothing behind.
+
+**THE BYTE DELTA RECONCILES TO THE CHARACTER.** `/methodology` went `264,792 -> 264,789`, **-3**: the video id
+is 2 characters longer at 1 occurrence (`+2`) and the poster id 1 character shorter at 5 occurrences (`-5`).
+A complete account of the diff with no build-metadata residue, because the ids were the only thing that moved.
+
+**TWO STALE CONSTANTS IN THIS FILE, BOTH CORRECTED:**
+
+- **The `ssr-variant` breakpoint tokens are BUILD-SPECIFIC.** The recorded `72rtr7`=desktop / `1veez17`=tablet /
+  `wpowcz`=phone do not appear in this build, which uses `xctdjl` / `cnf1rz` / `hjt3b8`. **Do not use the
+  recorded tokens to identify a breakpoint** — resolve the variant from the canvas instance, or re-derive the
+  tokens from the current build.
+- **The `/about` hero video and poster recorded against each variant are long superseded** by Shak's facade
+  footage. Read the instance controls, never this file, for a current asset.
+
+**Partial session staleness fired again and the write guard caught it.** Session 128 returned
+`variant=undefined video=undefined poster=none` for an instance that demonstrably has all three, and the guard
+aborted rather than writing against a misread state. A fresh session returned the real values on two agreeing
+reads. **A guard asserting the expected prior value is the cheapest defence available here** — it turns an
+invisible failure into a refusal.
+
+### THE EIGHT HELD ARTWORK REBINDS ARE LIVE — the hold above is SPENT (2026-10-25, verified against build `18:45:19 UTC`)
+
+The section above ends *"HELD BY SHAK'S RULING 2026-10-25: DO NOT PUBLISH"*. **That hold is discharged.** Shak
+published at **18:45:19 UTC** and the whole set shipped. `framer.agent.publish({action:"preview"})` on a fresh
+session returned **`changesCount: 0`**, no errors, no warnings.
+
+**!!! BUT TWENTY MINUTES LATER A SECOND FRESH SESSION READ **6** PENDING CHANGES, TWO AGREEING READS — NONE OF
+THEM MINE. !!!** `WebPage|/news`, `SmartComponent|News / News Article`, `SmartComponent|Utilities / Primary
+Button` and the three `CollectionItem|news/*`. The other website session started work on the news cards while
+this verification was running. **Neither reading was stale: the project genuinely changed under me.**
+
+**So the publish preview is a LIVE COORDINATION INSTRUMENT, not a static fact about the document, and a `0`
+has a shelf life measured in minutes while a second session is active.** This file already treats a preview
+whose change set exceeds your own as a stop; the sharper form is that **the preview must be re-read immediately
+before publishing, never carried from earlier in the task** — and that a clean `0` is not a licence to publish
+later, only now.
+
+| | live |
+|---|---|
+| `/fixtures` | Vena Corner, Prisma Link 1, Prisma Link 2 renders — 8 srcset refs each |
+| `/elements` | Liga T, Liga W, Driver 5-1 renders + the two Rima drawings — 8 srcset refs each |
+| rows | each asset in the **right row and the right slot**, photo and drawing paired at the same row top, every card `391x391` |
+| draft counts | Home 3/3, Fixtures 11/11, Elements 5/5, Projects 3/10, News 3/7, About 1/1, Clients 8/8, Testimonials 4/4 |
+
+**So every one of the 16 drawings is now vector-sourced and no render on either page predates 14 Oct.**
+
+**!!! THE ASSET-SET CARDINALITY IS THE DECISIVE BINDING CHECK, AND A PER-ID GREP CANNOT REPLACE IT. !!!**
+Counting the eight new ids proves they arrived; it says nothing about whether the eight they replaced left.
+Counting the **distinct** image assets on each page does both at once:
+
+```
+/fixtures  24 distinct = 11 photos + 11 drawings + 2 site assets
+                         (21 at x8, Prisma Link 2's DRAWING at x6)
+/elements  12 distinct =  5 photos +  5 drawings + the same 2
+```
+
+Exactly right on both, so nothing superseded survived. **The x6 outlier is not an anomaly** — Prisma Link 2's
+drawing frame is 900px, which yields only 6 srcset candidates, matching the recorded `+52 from asset id lengths
+(8 srcset refs each, 6 for PL2)`. **An asset whose reference count differs from its neighbours is usually a
+smaller frame, not a fault.**
+
+**!!! DO NOT VERIFY AGAINST A CAP FIGURE RECORDED IN THIS FILE — MEASURE THE CONTROLS ON THE SAME PAGE WITH THE
+SAME INSTRUMENT. !!!** My `grad(20,4,12)` read the three new Fixtures photos at **`83.30`** against this file's
+recorded target of **`83.82`**, which reads as a 3px miss on all three. Measuring **all eleven** photos with that
+one instrument settles it immediately:
+
+```
+Flow 20 83.30   Flow Spine 83.48   Flow Straight 83.99   Vena 83.30
+Vena Corner * 83.30   Vena Mini 83.30   Vena Corner Mini 83.30
+Vena Round Mini 83.13   Prisma Multiplier 83.30
+Prisma Link 1 * 83.30   Prisma Link 2 * 83.3x          (* = the new ones)
+```
+
+The page sits at `83.13 - 83.99` with **nine of eleven at exactly `83.30`**, the new ones among them. The `83.82`
+in the record came from a different measuring pass. **This file already says to derive a target by measuring the
+live page with the instrument you will verify with; the corollary is that a recorded absolute figure is someone
+else's instrument reading and must never be used as a pass/fail threshold.** The cross-comparison against the
+controls is self-normalising and is the only check worth making.
+
+**Full measured state, hosted with `?lossless=1`, decoded in a browser (no ffmpeg anywhere in the path):**
+
+| | result |
+|---|---|
+| Fixtures photos (all 11) | `L=0.00` flush left, corners exactly `247,246,242`, `minAlpha 255` |
+| Elements photos (3 new) | centred `hc 49.66-50.09` / `vc 50.00` |
+| Rima drawings (2 new) | `L=0.00`, `R=65.42`, strip **19px / 24px**, darkest `154/155`, white corners, no alpha |
+
+Darkest `154/155` against the built `153` is the documented +/-5% delivery granularity, and it lands inside the
+vector family's `154-158`. The two Rima **photos** still read `vc 47.61/48.04` — pre-existing and correct, since
+`/elements` has no bottom convention and those were not in this batch.
+
+**!!! NEW KNOWN-BAD RESPONSE SIGNATURE: `22,924` BYTES, BYTE-STABLE ACROSS TWO RAPID READS. !!!** `/warranty`
+served it twice in a row, hours after its last publish, with nothing having touched it; the real page is
+**175,755**. This is the complete-but-empty shell rather than truncation, and **"re-fetch until two reads agree"
+does not catch it** — agreement is evidence only when the value is not already a known failure mode. Add `22,924`
+to `27,780 / 27,781 / 28,683 / 29,314 / 29,843`, and re-fetch with **real time** between attempts rather than in a
+tight loop.
+
+**!!! CORRECTION — `fetch` IS NOT BLOCKED IN CLAUDE IN CHROME'S `javascript_tool`. !!!** This file records
+*"`javascript_tool` IS BLOCKED ON THE PUBLISHED SITE TOO — a script containing `fetch` and `currentSrc` returned
+`BLOCKED: Cookie/query string data`"*, and concludes that browser scripts must be kept to plain DOM reads. **That
+is situational, not a standing property.** Here `fetch` + `createImageBitmap` + `OffscreenCanvas` ran first time
+against `framerusercontent.com/...?lossless=1`, and `img.getAttribute('src')` read back fine. **Try it before
+designing around it** — the whole pixel verification above was done through that tool.
+
+**It was needed because Playwright was unavailable:** `browser_navigate` failed with *"Browser is already in use
+for ...mcp-chrome-ba372c9, use --isolated to run multiple instances"*. The profile is still held by a live Chrome
+and was left alone. **Two gotchas in `javascript_tool`:** an async IIFE must be **`await`ed** or it serialises as
+`{}` (the REPL returns the last expression, and an unawaited promise is not it), and long returns are truncated —
+return a compact table, not a JSON dump.
+
+**THE SAME PUBLISH CARRIED TWO CONTENT CHANGES THAT WERE NOT MINE.** Flagged rather than touched, and worth
+recording because both are visible:
+
+- **The two Home category cards gained eyebrow labels — `Lighting` on the Fixtures card and `Hardware` on the
+  Elements card** (`Project Left / Home Project Right > Product Card > CTA`, 14px). Home only. This is the
+  `WebPage | Home | updated` entry that had been pending in the preview since the artwork work, and it accounts
+  for Home going `274,066 -> 274,176`. **They are canvas text, not CMS** — the Home collection holds only
+  `Title / Sorting Order / Sorting Next Project 1-2 / 5 Images on List View / Thumbnail Image - Wide`, with the
+  three items still titled `Fixtures / Elements / About`.
+- **The footer CTA copy is rewritten site-wide to `Conversation` / `Open a dialogue`** (`Row Top > Right Content >
+  Heading Wrapper`, 30px + 14px), on every page that shows the CTA, `/contact` excepted as designed. That accounts
+  for `/methodology` going `264,789 -> 264,822`.
+
+**The layer names are the stale long strings, so a grep is actively misleading here.**
+`Let's start a conversation` and `Join us for a chat to talk about your business` still return **3 per page** —
+those are `data-framer-name` values, while the rendered text is the new copy. **Read the leaf elements' own
+`textContent`, not the markup**; the recorded rule about names never tracking content applies to a *replacement*
+as much as to an addition.
+
+**Home's full invariant sweep passes with every expectation re-derived from this build** — 11x
+`aspect-ratio:1.17458` with 0 stale `1.180xx`, both Elements breakpoint ratios, 2 hero overlays at `rgb(8, 2, 0)`,
+`#f7f6f2` 2 with `#f6f4f0` 0, brand green 2, `Methodology` 5, 0 stale `View Case Study`, `lossless=1` 0, badge 0,
+58 Gellix, `href="./methodology"` 5 and `./fixtures` 8 with `projects-list` 0, both `H1 Hero` presets 2/2 with the
+old shared `sA1pdkMlu` at 0, orb 3 refs and hero video 2, `ena-supply` 0 and `@ora.com` 0.
+
+**A page list in a verification script is state and had gone stale again.** It was re-derived from `sitemap.xml`
+at the top of the run: the live set is `/`, `/fixtures`, `/elements`, `/methodology`, `/news`, `/news/{cauda,
+debut,kimi}`, `/contact`, `/terms`, `/privacy`, `/warranty`, `/404`.
+
+### The two Rima photos centred — all five `/elements` photos now within half a device pixel (2026-10-25, PUBLISHED 19:20 UTC)
+
+Verifying the eight held rebinds surfaced an inconsistency the publish had just made visible: the three new
+Elements renders sit at `vc 50.00` while **Rima 5 and Rima 10 sat at `48.04` and `47.61`** — they had been
+matched to their predecessors' off-centre framing when they were rebuilt from `E-16`. Shak's call to centre them.
+
+| | centring error, device px at the 587 card |
+|---|---|
+| Liga T, Liga W, Driver 5-1 | `0.0` |
+| Rima 5 / Rima 10 **before** | **`-11.5` / `-14.0`** |
+| Rima 5 / Rima 10 **after** | **`+0.5` / `0.0`** |
+
+New ids: `Rima 5 XhSjvv3VqFoeRRPMteY0xKdJwzQ.png`, `Rima 10 ZaKuXAUNf3xTQBKrbBf2SNV4c.png`.
+
+**!!! A PERCENTAGE CENTRING FIGURE CARRIES A HALF-PIXEL BIAS THAT DEPENDS ON THE SUBJECT'S SPAN PARITY, AND IT
+MADE A CORRECT BUILD LOOK WRONG. !!!**
+
+The usual `vc = ((T + B + 1) / 2) / CARD * 100` reported the finished Rima 5 at **`50.09`** against the three
+controls' **`50.00`**, which reads as a real miss and invites a Newton step that would make it worse. It is
+arithmetic:
+
+```
+CARD = 587 (odd)  ->  true card centre = (587 - 1) / 2 = 293.0  (an integer row)
+Liga T    span 157 rows (ODD)   true centre 293.0   err  0.0
+Rima 5    span 144 rows (EVEN)  true centre 293.5   err +0.5   <- the minimum possible
+```
+
+**An even-span subject cannot be centred on an integer row when the card height is odd.** All three controls
+happen to have odd spans, so they can read exactly `0.0`; Rima 5 cannot, at any offset. `+0.5` is optimal.
+
+**The fix is to stop measuring in percent and report `err = (T + B) / 2 - (CARD - 1) / 2` in device pixels**,
+printing the span and its parity beside it. That is parity-free, directly comparable between subjects, and states
+the error in the unit that matters. **Add it to the standing instrument set** alongside ink-threshold bbox,
+`grad`, per-stroke ink, ink coverage and profile thickness — and note it is the second time in two days that an
+instrument's own quantisation, not the artwork, produced an apparent defect.
+
+**!!! BUILD FROM THE LOCAL MASTER, NEVER FROM THE HOSTED ASSET — THE CDN NEVER RETURNS THE ORIGINAL BYTES. !!!**
+The obvious route was to translate the hosted PNG, and it would have baked a delivery derivative into a new
+permanent master (this file already records three fetch variants of a 33,906-byte master all returning 10,038
+bytes). **The real masters were still on disk in the scratchpad of the session that built them** —
+`.../57b1b6fd-.../scratchpad/rend/out/rima-{5,10}.png`, with `rima_plan.txt` giving the crop windows
+(`rima-10|7975|2160|2248`, `rima-5|10612|823|950` on the 12000px padded canvas). **Check other sessions'
+scratchpads for the original build before regenerating or round-tripping anything.**
+
+**The reproduction check passed before anything was changed**, which is what made the local files safe to use:
+both masters measured `vc 48.04` and `47.61` at 587 — identical to the hosted copies. **If the local file had not
+reproduced the hosted measurement it would not have been the master, and the correction would have been built on
+the wrong base.**
+
+**A FLAT PAD WAS EXACT HERE BECAUSE THE EDGE BANDS WERE PROVEN UNIFORM FIRST.** The documented default is to
+replicate the source's own edge row, after a padding bug once shipped a transparent strip. Measured at native
+resolution, the top and bottom 120-row bands of both masters have **max deviation `0`** from `247,246,242` — truly
+flat — so `color=0xF7F6F2` is indistinguishable from replication and cannot seam. **Check uniformity rather than
+assuming either way**; where it holds, a flat pad is simpler and provably exact.
+
+Pure vertical translation at unchanged frame size, single input, no compositing:
+
+```bash
+ffmpeg -i in.png -vf "format=rgb24,pad=2000:$((2000+dy)):0:${dy}:color=0xF7F6F2,crop=2000:2000:0:0" \
+  -pix_fmt rgb24 -frames:v 1 -y out.png      # dy = 40 (Rima 5), 48 (Rima 10)
+```
+
+Horizontal confirmed untouched (`hc` identical before and after on both), subject span identical, so the content
+is the same pixels moved — no resampling anywhere. Verified on the **hosted** copies after rebinding: `2000x2000`,
+corners exactly `247,246,242`, `minAlpha 255`, hosted matching the built values on every number. Draft counts
+clean on all eight collections, and the drawings and other three photos read back untouched.
+
+**The guard sits BEFORE `uploadImage`, and re-issuing proved it:** `ABORT Rima 5 expected jKBYch16Jz0PdebieDZotbZ4
+but holds XhSjvv3VqFoeRRPMteY0xKdJwzQ`. No orphan asset was created. Assets cannot be deleted, so guard placement
+is not a style preference.
+
+**!!! NOT PUBLISHED — THE OTHER WEBSITE SESSION IS MID-CHANGE AND THE PREVIEW IS A LIVE INSTRUMENT. !!!** Two
+agreeing reads on a fresh session show **7** pending: my two (`CollectionItem|elements/rima-5`, `rima-10`) plus
+five that are not mine (`WebPage|/news`, `SmartComponent|Utilities / Primary Button`, and the three
+`CollectionItem|news/*`). **Their set shrank from 6 to 5 between two checks twenty minutes apart, so they are
+actively working.** A preview whose change set exceeds your own is a stop. The two rebinds are bound and will ship
+with whatever publish comes next, by either session — **so anyone publishing this project should know they are
+carrying this plus that in-flight news work.**
+
+### The Rima centring is LIVE, and a FRESH SESSION SERVED A STALE PREVIEW THAT INFLATED THE COUNT (2026-10-25, build `19:20:43 UTC`)
+
+Shak published. Both re-centred photos are live, byte-stable over three fetches, and the hold recorded in the
+section above is discharged.
+
+| | |
+|---|---|
+| `/elements` | `217,395 -> 217,419` = **+24** |
+| `/fixtures` | **unchanged** — correct, the change was Elements only |
+| Home | `274,176 -> 274,085` = `-91`, **content identical** (see below) |
+
+**The byte delta reconciles to the character.** `Rima 5` went from a 24-character id to a 27-character one and
+`Rima 10` from 25 to 25, at **8 srcset refs each**: `(27-24)*8 + 0 = +24`. Predicted `+24`, observed `+24`, with
+no build-metadata residue, because the ids were the only thing that moved. Both old ids read **0**, the asset set
+is still exactly **12 distinct** (5 photos + 5 drawings + 2 site assets), and all five rows pair photo with
+drawing at the same row top. Measured on the hosted copies at the true 587 card: **`+0.0 / +0.0 / +0.0 / +0.5 /
++0.0` device px**, corners `247,246,242`, `minAlpha 255`.
+
+**!!! A FRESH SESSION, WITH ITS FIRST READ DISCARDED AND TWO AGREEING READS, STILL SERVED A STALE PREVIEW — AND
+IT INFLATED THE COUNT RATHER THAN DEFLATING IT. !!!**
+
+```
+session 148 (fresh, first read discarded)   read 1: changesCount=8   read 2: changesCount=8
+session 150 (fresh, minutes later)          read 1: changesCount=0   read 2: changesCount=0
+```
+
+The `8` listed `WebPage|/news`, two `SmartComponent`s and five `CollectionItem`s — **every one of which had
+already shipped**, confirmed independently: my two Rima assets were live on the page, and the other session's
+news work was live too (`/news` swapped one article thumbnail, `jO4UpxEPCGsAJL6tDdQ3aH2lZ2w.jpg` x12 ->
+`fXKHs5MaejmrzZfbAfCArblJI.jpg` x15, with its text runs unchanged at 26).
+
+**This is the mirror of the case already recorded here**, where a stale session reported `changesCount=0` and a
+fresh one reported `1`. So the preview's staleness is **bidirectional**: it can hide pending work *and* invent it.
+The sharper rule: **two agreeing reads inside one session prove nothing about that session's snapshot. Confirm any
+pending verdict — zero or non-zero — on a SECOND INDEPENDENT FRESH SESSION.**
+
+**I NEARLY RECORDED A STRUCTURAL CLAIM ABOUT THE INSTRUMENT FROM THAT STALE READ.** Having checked `updatedAt` on
+all five items (`19:15:34`, `19:15:39` for mine; `18:58:26` for the three news items — all **before** the
+`19:20:43` publish) and confirmed their content was live, the conclusion sitting right there was *"the preview's
+`CollectionItem` entries do not indicate unpublished work"* — a permanent, wrong note about the one instrument
+this project relies on. **The only thing that stopped it was re-reading on another session.** When an instrument
+appears to be structurally broken, re-read it on a fresh connection before writing the finding down; the
+staleness explanation is far more likely than a design flaw, and it is one call to rule out.
+
+**HOME CHANGED BY `-91` BYTES AND ITS CONTENT IS IDENTICAL.** Diffed properly rather than inferred: **text runs
+30 -> 30** and **distinct assets 11 -> 11**, with no additions, removals or count changes on either, and the full
+invariant sweep matching the previous build value for value — 11x `aspect-ratio:1.17458` with 0 stale `1.180xx`,
+both Elements ratios, 2 hero overlays, `#f7f6f2` 2 / `#f6f4f0` 0, brand green 2, `Methodology` 5, 0 stale
+`View Case Study`, `lossless=1` 0, badge 0, 58 Gellix, `./methodology` 5 and `./fixtures` 8 with `projects-list`
+0, both `H1 Hero` presets 2/2 with `sA1pdkMlu` 0, orb 3 and hero video 2, `ena-supply` 0, `@ora.com` 0. So the
+`-91` is pure build churn. **A text-run and asset-set diff settles "did anything actually change" in one pass
+and is immune to hash rotation, attribute reordering and whitespace** — reach for it before trying to reconcile a
+delta arithmetically.
+
+### THE `/news` FEATURED BLOCK NOW BINDS ITS OWN `Featured Image` FIELD — published and verified live (2026-10-25, build `19:20:43 GMT`)
+
+Shak asked for a gala-cheers frame on the `/news` hero **and** said "news only" when shown the two routes — so
+the article page keeps the champagne toast and its tuned phone focal point. Both branches confirmed on the
+served pages:
+
+| | `/news` | `/news/debut` |
+|---|---|---|
+| `Featured Image` `YkSwwBsZc` | **2** | 0 |
+| `Image Hero` `fzKguB9Z3` | **0** | **2** |
+| gala asset `fXKHs5Maej` | **15 refs, 2 `<img srcset>`** | 0 |
+| champagne `jO4UpxEP` | 0 | **12 refs** |
+
+`/news` 211,591 bytes byte-stable over three reads, `/news/debut` 232,885 over two, neither matching a
+known-bad signature.
+
+**THE FIELD-ID COUNT IS THE WHOLE PROOF, AND IT READS IN BOTH DIRECTIONS AT ONCE.** Framer serialises a
+collection field into a page only when that page is bound to it, so `fzKguB9Z3` falling to **0** on `/news`
+is what demonstrates the old binding is gone — a count of the new asset alone could never show that. The same
+field reading **2** on `/news/debut` is the proof the article page was not collaterally rewired.
+
+**Asset refs alone would NOT have settled it** — the recorded rule is that asset URLs reach a page whether or
+not anything renders them. Two `<img>` tags carrying the gala asset **with `srcset`**, against one payload
+reference, is the rendering check.
+
+**!!! I PREDICTED `object-position: 100% 50%` AND FRAMER EMITS `object-position: right center`. The site was
+right and my expectation string was wrong. !!!** A grep for the percentage form returns **0** on a page whose
+focal point is perfectly intact, which reads exactly like the article hero having been clobbered. **Framer
+emits the KEYWORD form for a focal point**, and this is the fourth instance of the standing trap — after
+`./cauda` vs `./news/cauda`, `../warranty` on nested pages, and `flex-direction` where the base rule said
+`flex-flow`. **Dump the declarations you actually find and read them; never assert absence from one pattern
+guess.**
+
+**Confirming it is scoped to PHONE needs the token map re-derived from the current build** — the tokens are
+build-specific and the ones recorded elsewhere in this file do not appear here. Walk the tags tracking the
+enclosing `ssr-variant` wrapper, then look each token up in its own `@media` rule:
+
+```
+ibxpk8  <=  @media(max-width: 809.98px)                          <- phone
+pwc5ml  <=  @media(min-width: 1200px)                            <- desktop
+neyme6  <=  @media(min-width: 810px) and (max-width: 1199.98px)  <- tablet
+```
+
+A wrapper carries the tokens of the breakpoints it is **hidden on**, so `hidden-pwc5ml hidden-neyme6` is the
+phone-only copy — and that is the wrapper holding `right center`. The other three heroes are plain `center`.
+
+**CORRECTION TO THE BLOCKED PREVIEW READING: `SmartComponent | News / News Article` was NOT mine.** It was
+recorded as "likely mine" when the publish gate came up. It is **still pending after the publish**, alongside
+`Utilities / Primary Button`, so both belong to the other website session working on the news cards. My own
+change was a CMS field plus a binding on the `/news` page instance, and the page-level work is what shipped.
+**A component change that survives a publish is a change somebody else is still making** — the preview is a
+live instrument, and a second reading after the publish is what attributes it.
+
+Nothing of mine is outstanding; pending is 2, both theirs.
