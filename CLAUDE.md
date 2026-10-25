@@ -11102,3 +11102,106 @@ plausible size. A short response is never evidence of a broken page.
 The hidden frame keeps its original name `6. Children's privacy`, deliberately — it sits greyed out directly
 above `6. Changes to this policy`, which reads oddly in the tree but makes it unmistakable what it is if it is
 ever restored, at which point everything below it needs renumbering again anyway.
+
+### Menu label, footer order and the contact email (2026-10-24, PUBLISHED `8e0eff04e`)
+
+Three edits Shak asked for from screenshots — two scriptable, one editor-only:
+
+| | was | now |
+|---|---|---|
+| menu row 03 | `About` -> `./methodology` | **`Methodology`** |
+| footer sitemap tail | `Terms / Privacy / Warranty` | **`Privacy / Terms / Warranty`** |
+| `/contact` RFI column | `orders@alkimiworks.com` | **`cs@alkimiworks.com`** (label **and** `mailto:`) |
+
+**THE FOOTER SAID "About" TOO, AND SHAK ONLY ASKED ABOUT THE MENU.** The live footer sitemap linked
+`./methodology` under the label `About` on all three breakpoints — the identical stale label, one surface
+over. Changed in the same pass rather than raised for a second round trip: it is one control write, the
+page is unambiguously called Methodology everywhere else, and the alternative was shipping a site that
+calls one destination two names. **`>About<` is now 0 across every live page.** One write to revert.
+
+**Both scriptable edits were UPDATES to existing overrides, which is why they were scriptable at all** —
+`setAttributes({ controls })` can update an override and cannot create one. The footer slots already
+carried `UvO00kpP1`/`pN5qcoZCL` and the email instance already carried `m9pJu2SY2`/`KRqq0kK1a`.
+**Reordering was done by SWAPPING CONTROL VALUES, never by moving nodes** — a cut/paste gives new ids and
+does not preserve per-variant overrides.
+
+**!!! THE FOOTER'S THREE VARIANTS DO NOT CASCADE — each holds its own override. !!!** Writing Desktop left
+Tablet and Mobile untouched, and all three had to be written. That is the opposite of canvas *text*, which
+cascaded across both menu variants from a single edit in the same session. **Neither behaviour can be
+assumed; read every variant back.**
+
+**!!! PARTIAL STALENESS AGAIN, AND THE GUARD IS WHAT MADE IT SURVIVABLE. !!!** The first write pass aborted
+on the three **Desktop** footer nodes with `controls=undefined` while the Tablet and Mobile copies of the
+same slots wrote fine — a *subset* of nodes reading empty, which is far more convincing as real data loss
+than the recorded empty-on-everything signature. A fresh session wrote the three and reported **`ALREADY` on
+the other nine**, which is evidence from the live document rather than a possibly-stale read.
+
+**The real hazard there is the HALF-APPLIED STATE, not the abort.** Six of twelve writes landed, so the
+footer would have shipped with Privacy/Terms swapped on tablet and mobile only. **A guarded script that
+aborts per-item leaves a partial state that must be finished, so re-run it until `aborted=0` before treating
+the change as made** — and put the prior-value test per item rather than up front, so the re-run doubles as
+its own verifier.
+
+**`setText` AND `getText` BOTH FAILED ON THE MENU LABEL, EXACTLY AS DOCUMENTED** — `Node not found` and
+`Node is not a text node` on a node whose `__class` is literally `TextNode`. Re-probed rather than assumed;
+it cost one `exec` and confirmed the editor was the only route.
+
+**REACHING A DEEP COMPONENT-INTERNAL LAYER — the combination that works, and it needs all three steps:**
+
+1. **Filter the layer tree** (`content-panel-search-bar-input`, native setter + `input`/`change`). Inside a
+   component the filtered list is flat and stable, **and filtering EXPANDS THE ANCESTOR CHAIN**, which is
+   what renders the row at all.
+2. **Select by `data-testid`**, never by index — all six label layers are named `PROFILE`. The row rendering
+   directly under `a3ymX9rR0` (the `/methodology` row) is the structural confirmation that it is the right one.
+3. **Click the row's LABEL, not the row.** The row spans `x 10..249` and the label sits at **`x 164`** at this
+   depth, so a click at the row's mid-left lands in the indent and silently selects nothing.
+
+**The `Text -> Content` field is now the established route for canvas text, and this is its second use.** It
+is an ordinary `<input>`; writing it never enters the rich-text editor, so no ordered-list autoformat can
+fire and the style, tag, font and size survive untouched (verified: `General Sans / Medium / FFFFFF / 40 /
+line 100` all unchanged). The field also **reads** the content, which the node API cannot do at all — and
+reading `"About"` back off it is what confirmed the right node was selected before anything was typed.
+
+**!!! THE PANEL INPUT EXISTS IN THE DOM WHILE SCROLLED OUT OF VIEW, AND `.focus()` SCROLLS IT IN. !!!** The
+Content field sat at `y 1112` against an 855px viewport and was still queryable; `inp.focus()` brought it to
+`y 463`. **So no manual panel scrolling is needed** — but the three guards still are: assert
+`document.activeElement === inp`, assert `selStart/selEnd` span the whole value, and only then send a real
+`type`. Without them a missed focus sends the keystrokes to the canvas as tool shortcuts.
+
+**A `computer` CALL CAN DROP ITS CONNECTION MID-ACTION, AND THE ACTION MAY OR MAY NOT HAVE LANDED.** The
+first `type` returned *"the connection was lost before its result came back"*. **Reading the input back
+showed it still `"About"` and still focused**, so the keystrokes never arrived and the retry was safe. **Check
+the page state before repeating any write-shaped browser action** — repeating blind would have typed
+`MethodologyMethodology`.
+
+**EVERY BYTE RECONCILED TO THE CHARACTER**, which is the whole account of the diff:
+
+```
+footer:  About->Methodology  +6     Terms->Privacy +2 / Privacy->Terms -2   net 0
+         hrefs /terms<->/privacy    +2 / -2                                 net 0
+         = +6 per rendered footer x 3 breakpoints                           = +18
+home +18   methodology +18   terms +18   news +18   fixtures +18            exact
+contact:  +18 footer  -  (22-18) x 2 occurrences of the email               = +10  exact
+```
+
+**The contact delta also settles a structural question: the contacts block renders ONCE, not per
+breakpoint.** `cs@alkimiworks.com` appears exactly twice on the page — the `mailto:` href and the link text —
+where the footer appears three times. **Do not assume every block is emitted per breakpoint when predicting
+a delta.**
+
+**VERIFIED LIVE, BY WHAT PAINTS.** The menu is injected on open and is never in the SSR markup, so it needs a
+real click: opened on both breakpoints, it reads `Fixtures 01 / Elements 02 / Methodology 03 / News 04 /
+Contact 05` at pitch 60, numbering intact, the hidden Projects row correctly absent. Footer sitemap reads
+`Fixtures / Elements / Methodology / News / Contact / Privacy / Terms / Warranty` on all six pages checked,
+`>About<` 0, `orders@` 0, `cs@` 2, `quotes@` 2 untouched, badge 0. Confirmed by eye on both.
+
+**!!! A "FIRST TEXT RUN INSIDE THE ANCHOR" EXTRACTOR MIS-ATTRIBUTES ON NESTED MARKUP — mine invented a
+"Hardware" category card on Home that does not exist. !!!** It reported Home's footer run as
+`Fixtures / Hardware / Elements / …` and briefly looked like the other session had renamed something. Home's
+cards query cleanly as `Fixtures` and `Elements`. **A heuristic that walks forward from `<a ` to the first
+`>text<` will cross into a sibling's markup when the anchor wraps nested elements** — the same family as
+reading an ancestor chain out of a byte window. Query the elements and read `textContent`.
+
+**No collision:** the publish preview showed exactly the three expected changes on two agreeing fresh-session
+reads, with no errors and nothing from the other session, and the publish was guarded to abort on any other
+count or name. Pending is back to `0` on two agreeing reads afterwards.
