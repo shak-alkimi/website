@@ -11867,3 +11867,96 @@ change was a CMS field plus a binding on the `/news` page instance, and the page
 live instrument, and a second reading after the publish is what attributes it.
 
 Nothing of mine is outstanding; pending is 2, both theirs.
+
+### The /methodology PHONE nav is white ink — and a `locked` ROUND-TRIP DIRTIES A PAGE WITH ZERO OUTPUT CHANGE (2026-10-25, PUBLISHED `11e3a6f5d`)
+
+Phone only. The page instance `AwhOnpHaydwIjkdJ33` moved from **`TVfWqaIfB` (Hide black)** to **`glROJL_vL` (Hide)**;
+Desktop and Tablet stay on `Hide black`. `Hide` is the right white variant of the three because its chain is
+`Hide -> Nav Load -> Nav white -> **Fill White**`, which is the fill this page already scrolls to — `Hide white`
+(`RmynPz7kD`) chains to `Fill Black` and would have fought the instance effect.
+
+**THE BACKDROP WAS MEASURED FIRST, BECAUSE BLACK INK WAS PUT ON THIS PAGE FOR LEGIBILITY IN THE FIRST PLACE.**
+The phone hero poster is `70n525ZarBmy4NhHInppRMqHM.jpg`, **1108x2160** — a phone-specific portrait whose aspect
+(`0.5130`) matches a 390x760 hero exactly, so `cover` crops nothing. Decoded in the browser, no ffmpeg in the path:
+
+```
+region            mean L   max   WHITE ink   BLACK ink
+wordmark            75.6   160     8.64:1      2.43:1
+hamburger lines     80.6   118     7.99:1      2.63:1
+```
+
+So white is strongly correct on both and black was genuinely poor. **Measure the poster, not the video** — the
+element is `preload="none"`, so the poster is what paints first and is the worst case.
+
+**!!! I NEARLY FLAGGED A HAMBURGER LEGIBILITY PROBLEM THAT DOES NOT EXIST, BY GUESSING ITS X POSITION. !!!**
+A first pass sampled `x 330..375` and read **mean 172.6, max 254** — bright, which reads as white-on-white.
+Deriving the position from the emitted CSS instead gives the real answer. The row is
+`Top Nav{padding:0 45px} > framer-118j2hi{flex row} > [44px spacer][logo wrapper flex:1 0 0, content centred][hamburger 44px]`,
+so on a 390 viewport the content box is `45..345` and the hamburger is **`x 301..345`**, with the 145x26 wordmark
+centred at `122..268` — which is also why the logo lands at cx 195. Re-sampled there, the hamburger sits on
+**mean 87, max 152**. The bright band was the frame edge outside the content box. **Derive a position from the
+emitted CSS before measuring at it; a guessed sample window produces a confident, wrong legibility verdict.**
+
+**IDENTICAL VARIANTS ACROSS BREAKPOINTS DEDUPE TO ONE SSR COPY, SO DIVERGING THEM IS A STRUCTURAL CHANGE.**
+Before, all three breakpoints read `TVfWqaIfB` and the markup carried **one** nav (`Hide black` x1, `logo dark` x1,
+`Hamburger Menu` x1). After, it carries **two**, in `ssr-variant` wrappers — and the tokens must be re-derived
+per build, they are not stable:
+
+```
+hidden-cnf1rz <= @media (min-width: 1200px)                               desktop
+hidden-hjt3b8 <= @media (min-width: 810px) and (max-width: 1199.98px)     tablet
+hidden-xctdjl <= @media (max-width: 809.98px)                             phone
+
+Hide black   hidden-on [xctdjl]            -> shows desktop + tablet
+Hide         hidden-on [cnf1rz, hjt3b8]    -> shows PHONE only
+```
+
+`/methodology` `264,822 -> 268,299` = **+3,477**, one nav copy. **A text-run and asset-set diff confirms nothing
+else moved** — 35 distinct runs and 10 distinct assets on both sides, zero additions, removals or count changes.
+Every other live page still emits exactly one nav copy, so the component itself was untouched.
+
+**INK VERIFIED FROM THE SERVED MARKUP, NOT FROM THE VARIANT NAME.** The wordmark is a `data:image/svg+xml`
+background whose `fill` is readable after URL-decoding: `Hide black -> rgb(0, 0, 0)`, `Hide -> rgb(255, 255, 255)`.
+**No CSS rule sets the hamburger line colour** — it is inline, the documented per-element pattern — and reads
+`rgb(0, 0, 0)` on desktop against **`rgb(254, 254, 254)`** on phone. That off-white is the deliberate value from
+the 2026-10-24 animation fix (a non-primary white variant needs a literal distinct from the base or Motion has no
+target to revert to); it is 0.4% off white and invisible. The divider hairline follows,
+`rgba(0,0,0,0.2) -> rgba(255,255,255,0.2)`.
+
+**!!! THE API `variant` WRITE DID NOT DIRTY THE PAGE — the `/404` pathology, reproduced. !!!** Pending was `0`
+before the write (two independent fresh sessions, hash `vn5i9u`) and **`0` after it**, same hash, across four
+fresh sessions and a 20s wait. By the recorded rule that would never publish, no matter how often anyone pressed
+Publish. So the recorded split holds, and `variant` remains the one control the counter cannot see — the
+2026-10-20 case where four `variant` writes DID register stays unexplained.
+
+**!!! THE FIX IS A `locked` ROUND-TRIP, AND IT IS STRICTLY BETTER THAN THE RECORDED EDITOR ROUND-TRIP. !!!**
+`setAttributes({ locked: true })` then `{ locked: false }` on any page-level node took pending **`0 -> 1`**
+immediately, naming `WebPage | /methodology | updated` with a new hash:
+
+```
+phone nav AwhOnpHaydwIjkdJ33   locked false -> true    pending 0 -> 1   hash vn5i9u -> 1ow20tb
+                               locked true  -> false   pending stays 1  hash unchanged
+```
+
+**`locked` is editor-only state that emits nothing**, so both ends of the round-trip are byte-identical in the
+output and there is no publishable-wrong intermediate at all — unlike stepping a variant through a third value,
+which is only safe when the midpoint happens to equal what is already live. It is also one `exec` rather than a
+session of driving the Variant dropdown through a frozen renderer. **Confirm `locked` ends at `false`** (an
+idempotent re-issue answering `ALREADY unlocked` is the check) and confirm the dirty flag survives the restore —
+the tracker is event-based, so the second write keeps it dirty rather than cancelling the first.
+
+**UNRESOLVED AND RECORDED AS SUCH: THE PENDING ENTRY DID NOT CLEAR AFTER THE PUBLISH.** Six fresh sessions over
+several minutes still report `changesCount=1`, `WebPage | /methodology | updated`, **with hash `1ow20tb` — the
+same hash as before the publish**, i.e. a snapshot that has not advanced. The publish demonstrably succeeded
+(version `11e3a6f5d`, and the served page carries the new two-copy nav with white phone ink). **No explanation is
+offered; the published artifact is the authority and it is correct.** The practical consequence is for the next
+person: a phantom `/methodology` entry will show up in any collision check, so **do not read it as somebody else
+having work in flight**, and re-derive from the served page.
+
+**`/warranty` SERVED THE `22,924` SHELL AGAIN**, hours after its last publish and with nothing having touched it.
+Three fetches with **12s between them** returned the real `175,755` with all nine sections. Confirms both halves of
+yesterday note: the signature is real and recurring, and **real time between attempts clears it where a tight loop
+does not**.
+
+Home sweep passes **21/21** with every expectation re-derived from this build, and the trimmed phone hero video
+(`O8FD143Ey5jBNPuuqVB38sHCyTU.mp4`) is untouched.
