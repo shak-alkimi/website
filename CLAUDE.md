@@ -10951,3 +10951,20 @@ heading id   present in getNodesWithType("TextNode"): true
 **`node.remove()` WORKS ON A DRAFT `WebPageNode` AND ON PAGE-LEVEL FRAMES.** This file records `remove()` and `removeNodes` failing silently, but that is specifically *inside a `ComponentNode`*. On a draft page both the page itself and a section frame deleted cleanly and verified gone in a separate `exec`. **Do not assume the documented deletion failure applies outside components.**
 
 **`createTextNode` + `setText` in the SAME `exec` is reliable**; it is only later calls that fail. That is why the rebuild works and a patch does not.
+
+**FOOTER SITEMAP SLOT ADDED FOR `/warranty` — CONFIGURED BUT HIDDEN (2026-10-24).** A ninth slot now sits at index `[8]`, `label=Warranty`, `href=/warranty`, **`visible: false`**. A hidden slot emits no markup, so it cannot ship a 404 while the page is a draft — and because the footer is a shared component whose changes publish whether or not the pending counter sees them, "just do not publish yet" is not a safe state in a project where someone publishes several times a day and a second session is active. **Verified live: 0 warranty references on `/`, `/terms` or `/privacy`, and `/warranty` returns 404.**
+
+```
+[0] Fixtures  [1] Elements  [2] Projects (hidden)  [3] About  [4] News
+[5] Contact   [6] Terms     [7] Privacy            [8] Warranty (hidden)
+```
+
+**Slot `[2]`, the parked `Projects` link, was NOT consumed** — it stays one unhide away, per the standing note.
+
+**Going live is two attributes and they must land in the SAME pass:** unhide slot `[8]`, clear `draft` on `/warranty`. Either alone is publishable-wrong — the link without the page is a site-wide 404, the page without the link is unreachable.
+
+**The slot was created by `Ctrl+D` on the `Privacy` slot, which is the only route** — nodes cannot be created inside a `ComponentNode` by script. A duplicate **inherits the source's control overrides**, so setting its label and href afterwards is an UPDATE rather than a CREATE and therefore writes fine (a create would fail silently).
+
+**!!! A REAL CLICK ON A LAYER ROW MUST LAND ON THE ROW'S LABEL, NOT ITS LEFT EDGE. !!!** These rows span `x = 10..249` but the label text sits at **`x ≈ 206`** because the tree is deeply indented at that depth. A click at `x ≈ 160` — inside the row's own rect — landed in the indent and **silently changed nothing**; the selection simply stayed where it was. `data-testid` gets you the row, but read the label element's own rect and click that. **Assert the selection afterwards** (exactly one row carrying the selected class, and it is the id you wanted) before sending a destructive key.
+
+**Reaching a deep slot in the tree without a chevron:** the filtered list is flat and offers no disclosure control, so filtering alone cannot expand. What works is **filter to the container, click it — selecting a container auto-expands it — then clear the filter**, at which point its children are rendered with their own `data-testid`s.
