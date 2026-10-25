@@ -11960,3 +11960,234 @@ does not**.
 
 Home sweep passes **21/21** with every expectation re-derived from this build, and the trimmed phone hero video
 (`O8FD143Ey5jBNPuuqVB38sHCyTU.mp4`) is untouched.
+
+### HIDING A LAYER LEAVES ITS PARENT RENDERING — and I changed a shared component without enumerating it first (2026-10-25, PUBLISHED `f1a88bc19`)
+
+Shak reported the phone `/news` cards still spaced as though the read-time were there. Two separate things, and the
+second is the one worth carrying.
+
+**THE SCREENSHOT WAS THE STOCK ORA TEMPLATE, NOT OUR SITE — one fetch settles that and it should be the first move
+whenever a report does not match what the page should be doing.** Counting distinguishing strings across both:
+
+| | ours | the screenshot |
+|---|---|---|
+| `Ora` | **0** | 11 |
+| `Buy Template` | **0** | 5 |
+| `__framer-badge-container` | **0** | 3 |
+| `award-winning` | **0** | 6 |
+| `min read` | **0** | 42 |
+
+Our article titles are *A depth of color* / *Kimi is next gen* / *Lumen Gala*; the screenshot showed
+*The making of an award-winning website*, a template article renamed months ago. **`energized-personalization-419445.framer.app`
+is kept open as the comparison tab and is easy to screenshot by mistake.** But do not stop at that answer — the
+underlying complaint was real on our page, in a form the stock site cannot show.
+
+**!!! THE 2026-10-11 READ-TIME REMOVAL HID `Time Read` AND LEFT ITS PARENT `Stack` RENDERING, CARRYING A
+`min-height: 55px`. !!!**
+
+```
+Details  gap:10px
+  Type
+  Article Title
+  Stack  m52lAKqL_   vis=TRUE   -> emits an empty div with min-height:55px
+    Time Read        vis=false  -> emits nothing, correctly
+```
+
+So every card carried **65px** of dead space under its title (`10px` gap + `55px` box), and the title-to-next-image
+gap was `10 + 55 + 40` = **105px** against the `Article Row` phone gap of 40. `Time Read` greps as **0** everywhere,
+so the removal looked complete from every angle except the one that mattered.
+
+**The generalisation: hiding a layer removes that layer, not the box it sat in.** A wrapper whose only child is now
+hidden still emits, still participates in its parent stack, and may carry its own sizing. **After hiding anything,
+read the PARENT in the published markup and check whether it still emits** — the child's absence is not evidence the
+space is gone. The giveaway here was a `Details` with three children whose third had no text and no children.
+
+**!!! THE REAL ERROR: `News / News Article` IS SHARED, AND I PUBLISHED WITHOUT ENUMERATING ITS INSTANCES. !!!**
+Hiding the `Stack` silently changed Home's newsroom and the article pages' Read-more row as well, and I discovered
+that *after* publishing and reported it as a bonus. This file already says, in as many words: *"when the only way to
+do what was asked is to change things that were not asked about, raise it before applying — a note written after the
+fact does not give the user the choice."* **Enumerate before the write, not after.**
+
+**The enumeration is cheap and it found a root a page-level sweep cannot see:**
+
+```
+page  /            instances=3     Home newsroom
+page  /news        instances=21
+comp  News / Next Articles  instances=6     the Read-more row on /news/:slug
+```
+
+**`News / Next Articles` is a COMPONENT containing News Article instances**, so those six are component-internal and
+invisible to `getNodesWithAttributeSet` and to any walk rooted only at pages. **Walk `WebPageNode` AND `ComponentNode`
+roots, with a `seen` set scoped per root** (a shared one across sibling roots corrupts the per-root counts). The walk
+exceeds the two-minute `exec` limit — **background it**.
+
+**THE FIX: a boolean with the safe value as its DEFAULT.** `Show Meta Row` (`tXuTupbrQ`) on `News / News Article`,
+default **Yes**, with the `Stack`'s `Visible` bound to it; `false` written to `/news`'s 21 instances only. Home and
+the article pages are then restored *by inheritance* rather than by anyone remembering them — which is the property
+worth copying: **when scoping a shared-component change, make the default the state every other surface already had,
+so the surfaces you did not think about are protected by construction.**
+
+**!!! `Create variable` SEEDS THE DEFAULT FROM THE LAYER'S CURRENT STORED VALUE, SO IT CAME OUT `No` AND WOULD HAVE
+PUBLISHED A NO-OP. !!!** The `Visible` row's circle-plus -> `Create variable` does create-and-bind in one action, as
+recorded — but because the `Stack` was sitting at `visible: false`, the new boolean defaulted to **No**, which would
+have left every instance hidden and Home still wrong. **Read the Default in the variables dialog and set it
+explicitly before closing.** The dialog opens with the Name field focused and its value selected, so the rename is
+one `type`; the Default Yes/No pair sits two rows below.
+
+**`setAttributes({ controls })` CREATED a brand-new override on 21 page-level instances, first time.** That supports
+narrowing the recorded "can update, cannot create" rule to **component-internal** instances: the tooltip case that
+established it was inside `About / About - Map`, while this and the `Show CTA` precedent are page-level. Verified in
+a separate `exec` and by an idempotent re-run (`set=0 already=21`). Note the other roots read back `true` rather than
+`undefined` once the variable existed, so **a resolved value is reported even where no override is stored.**
+
+**VERIFICATION — the first publish reconciled to the character, the second did not, and only the second needed a
+content diff.**
+
+| | bytes | account |
+|---|---|---|
+| publish 1 (hide the Stack) | `211,180 -> 210,609` | **−571 exact**: 8 divs x 33 + CSS rules 209 + 98 |
+| publish 2 (the boolean) | `/news -993`, Home `-762` | **did not reconcile** |
+
+On the second, Home *gained* 7 wrapper divs yet shrank — so an arithmetic account was impossible and a **text-run and
+asset-set diff** settled it instead: `119 -> 119` runs on Home and `93 -> 93` on `/news`, nothing added or removed,
+with the only asset delta a single extra **Inter `woff2` subset**. Framer's font subsetting shifted and the CSS
+consolidated. **A byte delta that will not reconcile is not evidence of a content change; diff the runs.**
+
+**Final rendered state, counting the wrapper div rather than the class** (the class still ships on every page because
+the component can render it conditionally — `cssRefs=3` everywhere is expected and means nothing):
+
+```
+/news        divs=0   fix kept          / Home       divs=7   restored
+/news/cauda  divs=4   restored          Home sweep   15/15
+```
+
+**A SELECTION PROBE BY COMPUTED BACKGROUND REPORTED NOTHING WHILE THE ROW WAS PLAINLY HIGHLIGHTED.** Reading
+`backgroundColor` on the layer row and two ancestors returned `rgba(0, 0, 0, 0)` for all four candidate rows; the
+screenshot showed the purple highlight on the right one. **Confirm a layer-tree selection by screenshot, not by
+computed style** — and `data-testid*="<nodeId>"` remains the reliable way to *locate* the row.
+
+**The pending counter produced a phantom again** — `changesCount=1  CollectionItem|home/fixtures` on one fresh
+session, then `0` on the next read and `0` three times on another fresh session. Nothing of mine was outstanding.
+**Confirm any pending verdict, zero or non-zero, on a second independent fresh session.**
+
+### THE HOME FIXTURES CARD IS REBUILT FROM THE 8000px RENDER — 772px to 2000px, and the softness item is closed (2026-10-25, PUBLISHED `944510398`)
+
+Shak asked for both Home category cards to be rebuilt from the updated `Product Renders/Web Ready`
+folder, keeping their framing. **The Fixtures card shipped; the Elements card is built and held**
+(see below). `Thumbnail Image - Wide` on Home `Sorting Order 1` is now
+**`mWNOAIOa7BAVqgffFcR7L9r8Q.png`**, `2000x2000`.
+
+**BOTH CARDS' TRUE SOURCES WERE RECOVERED, AND THE REPRODUCTION IS WHAT PROVED EACH ONE.** Neither
+is a product render — both are crops or compositions, which is why neither appears in any render
+folder by name:
+
+| card | source | how it was proved |
+|---|---|---|
+| **Fixtures** | `PNG/Revision Round B-7`, crop `772x772` at `(853, 720)` | rebuilding that crop gives `L=0 R=525 T=182 B=547` against the live card's `L=0 R=524 T=182 B=546` — **one pixel, i.e. JPEG noise** |
+| **Elements** | `PNG/Revision Round B-35` | subject height **538 exactly** on both, width within 2.8%, and the column ink profiles match bar for bar |
+
+**Reproduce the existing artifact before replacing it.** Both reproductions validated the whole
+source-to-crop model before anything was built, which is what let the replacement be computed rather
+than iterated by publish.
+
+**!!! A 3-PARAMETER TEMPLATE SEARCH AT FULL RESOLUTION IS UNRUNNABLE — USE A SUMMED-AREA TABLE. !!!**
+The first attempt sampled an 8000x8000 plane directly for each candidate and **blew a 600-second
+timeout** without finishing stage 2 (each sample averages ~900 source px per template cell, and the
+refine grid is 21x21x21). Rewritten with a **downscaled working plane plus a summed-area table**, so
+each template cell is `O(1)`: the identical search runs in **3.2 seconds**.
+
+```
+working plane 2000px (K = srcW/WP)  ->  SAT  ->  boxAvg in O(1)  ->  80x80 template, rms
+stage 1: constrain to 1 free parameter by matching a shared ink edge, sweep F
+stage 2: local 3-param refine, halving the window:  [240,24] [48,6] [12,2] [4,1]
+```
+
+Converged `rms 8.364 -> 2.474`, inside the `1.4-2.9` band the established registrations score.
+**Keep [tools/sat-template-match.js](tools/sat-template-match.js)** — any future "match an existing
+asset whose replacement is framed differently" job is this script with new arguments.
+
+**Stage 1's constraint is worth stating separately:** picking two ink edges that are genuinely
+shared (here the chain's near end-cap `R` and its lowest point `B`) collapses `(F, cx, cy)` to one
+free parameter, because `cx` and `cy` follow from `F`. That gets within `rms 8` instantly and gives
+the refine a sane starting point. **Choose edges visible in BOTH framings** — the card's `T` is
+**not** shared, because the chain's global top lies outside the crop.
+
+**IDENTIFYING WHICH NEW RENDER MATCHES: COUNT THE LENSES, AND CROP THE END CAP.** Sixteen renders,
+all `8000x8000 rgb24`. The Fixtures card's modules carry **two oval lenses** on the top face, which
+is `Prisma Link 2` (`NW3131TS`); `Prisma Link 1` (`NW3020S`) has one. The recorded lens-count rule
+held again, and a 240px contact sheet of all sixteen plus one end-cap crop settled it in two looks.
+**For a product family that differs only in cross-section, crop the end cap; nothing else
+discriminates.**
+
+**The Elements card's product was settled by its LEFT PLATE, not by the composition.** `B-35` and
+`B-36` both show a connector pair; at matched subject height the plates separate cleanly — `B-35`
+has a single clean rounded housing (**Liga T**), `B-36` a divided housing with two visible circles
+(**Liga W**). **Compare the half that is in the same orientation in both**; the rotated half tells
+you nothing.
+
+**THE RESOLUTION WIN IS VISIBLE IN THE EMITTED `srcset`, which is the cheapest proof available:**
+
+```
+before   512w, 772w                 <- max candidate 772 for a 1341 device-px slot
+after    512w, 1024w, 2000w         <- browser selects 2000w (confirmed via currentSrc)
+```
+
+The card box measures `894 CSS x 1.5 dpr = 1341 device px`, so it went from **0.58x undersampled to
+1.49x oversampled**. That closes the long-recorded *"a 775px source is undersampled about 0.58x and
+will still look soft… fixing sharpness needs a render framed at this close-up directly, at 1500px or
+more — not a crop of the wide shot."* **With an 8000px source a crop IS the high-resolution
+render**, so that note is superseded.
+
+**Keeping the asset SQUARE is load-bearing.** The card's `Image` layer carries `aspectRatio 1.17458`
+and the asset is `object-fit: cover`, so a `1.0` asset has ~15% of its height cropped at render
+time; changing the output aspect would change what is visible. Output `2000x2000` from a `3097px`
+crop, so **no upscaling anywhere**.
+
+**Verified:** the hosted copy matches local on **every number at every threshold** (`tol 8/20/40`),
+zero delivery drift; against the live card `T` within `0.03pt`, `B` within `0.15pt`, `R` within
+`0.4-1.2pt` (the new render's near cap is marginally larger — left at the rms optimum rather than
+chased, per the standing rule against tuning one threshold-dependent edge). Corners exactly
+`247,246,242` on top, bottom and right, with the left band carrying the chain as the live card does.
+Draft counts clean on all eight collections; the write guard sits **before** `uploadImage` and a
+re-issue answered `ABORT expected G9BZgzpc… but holds mWNOAIOa…`.
+
+**THE BYTE DELTA RECONCILES, AND THE ASSET-SET CARDINALITY IS THE DECISIVE CHECK.** Home
+`270,004 -> 270,493`, **+489**, of which **+372 is the srcset blocks alone** (three blocks, each
+gaining a 1024w candidate and a longer id); the rest is the `src` attributes plus the serialised CMS
+payload's own copy. Distinct image assets **9 -> 9** with exactly one swap — proving both that the
+new asset arrived *and* that the old one left, in one comparison. Text runs `119 -> 119` with one
+added and one removed, and **that pair is the serialised CMS payload blob**, differing only by the
+asset entry and the payload UUID. Full Home sweep **23/23**; orb and hero video byte-exact.
+
+**ELEMENTS IS BUILT, VERIFIED AND NOT UPLOADED — because the new render is a different SHOT, not a
+re-export.** `Liga T` shows the mating half **face-on** where `B-35` shows it **edge-on**, so the
+pair measures `2.064` aspect against the live card's `1.574`. Placement can be preserved; content
+cannot. The candidate lands on target exactly — canvas `2000x1800`, **hc `58.300`**, **vc
+`55.556`**, subject height `538` — so the recorded load-bearing centring that makes desktop's
+`120%`/`flex-end` overflow cancel out is untouched and the `125%`/`126%` breakpoint widths need no
+re-solving. **Subject height is the right axis to match** (same product, same physical size); the
+extra width is the rotated half. Checked before building: at height-match the subject spans
+`30.55%..86.05%`, **inside the visible window at every breakpoint** (desktop shows the right
+`83.3%`, tablet `80%`, phone `79.4%`), so the wider subject cannot be clipped.
+
+**THE WAY TO SHOW A CANDIDATE AT TRUE CARD SIZE WITHOUT PUBLISHING: intercept the image request.**
+`page.route("**<assetId>**", r => r.fulfill({ path: localFile }))` renders the candidate through the
+**real card CSS** with zero simulation error, in a fresh context per shot. Far better than
+compositing a mock, and it needs no upload — which matters because **assets cannot be deleted**, so
+a rejected candidate is a permanent orphan. **Reach for this before uploading anything whose look is
+in question.**
+
+**`require` IS NOT AVAILABLE IN `browser_run_code_unsafe`**, so a local file cannot be read into the
+page as a data URI there. The route-fulfil path above takes a **path** and is the way around it.
+
+**A QUOTED HEREDOC IS NOT ENOUGH FOR PROSE — this section broke one.** `cat >> CLAUDE.md <<'EOF'`
+with ordinary English apostrophes in the body still failed with *unexpected EOF while looking for
+matching quote*. The recorded advice to keep heredoc bodies apostrophe-free is impractical for prose;
+**write the section with the file tool and `cat` it on.**
+
+**Standing rules that fired again, all already recorded:** `node -e` avoided entirely in favour of
+quoted heredocs for code; the upload script **generated** with `JSON.stringify` and
+**syntax-checked** (`node --check` on a wrapped copy) before sending; the publish preview read on
+**two independent fresh sessions** (`changesCount=1`, `home/fixtures`, no collision with the other
+website session) and the publish guarded to abort on any other change set; and the pre-publish page
+saved so the delta could be reconciled.
