@@ -12076,8 +12076,9 @@ it**, and note that a later `0` may simply mean they published in between rather
 ### THE HOME FIXTURES CARD IS REBUILT FROM THE 8000px RENDER — 772px to 2000px, and the softness item is closed (2026-10-25, PUBLISHED `944510398`)
 
 Shak asked for both Home category cards to be rebuilt from the updated `Product Renders/Web Ready`
-folder, keeping their framing. **The Fixtures card shipped; the Elements card is built and held**
-(see below). `Thumbnail Image - Wide` on Home `Sorting Order 1` is now
+folder, keeping their framing. **The Fixtures card shipped; the Elements card was held, then
+shipped the same day — see the correction at the foot of this section.** `Thumbnail Image - Wide`
+on Home `Sorting Order 1` is now
 **`mWNOAIOa7BAVqgffFcR7L9r8Q.png`**, `2000x2000`.
 
 **BOTH CARDS' TRUE SOURCES WERE RECOVERED, AND THE REPRODUCTION IS WHAT PROVED EACH ONE.** Neither
@@ -12162,8 +12163,9 @@ new asset arrived *and* that the old one left, in one comparison. Text runs `119
 added and one removed, and **that pair is the serialised CMS payload blob**, differing only by the
 asset entry and the payload UUID. Full Home sweep **23/23**; orb and hero video byte-exact.
 
-**ELEMENTS IS BUILT, VERIFIED AND NOT UPLOADED — because the new render is a different SHOT, not a
-re-export.** `Liga T` shows the mating half **face-on** where `B-35` shows it **edge-on**, so the
+**ELEMENTS WAS BUILT AND HELD — because the new render is a different SHOT, not a re-export. IT
+HAS SINCE SHIPPED; see the correction at the foot of this section.** `Liga T` shows the mating
+half **face-on** where `B-35` shows it **edge-on**, so the
 pair measures `2.064` aspect against the live card's `1.574`. Placement can be preserved; content
 cannot. The candidate lands on target exactly — canvas `2000x1800`, **hc `58.300`**, **vc
 `55.556`**, subject height `538` — so the recorded load-bearing centring that makes desktop's
@@ -12194,3 +12196,44 @@ quoted heredocs for code; the upload script **generated** with `JSON.stringify` 
 **two independent fresh sessions** (`changesCount=1`, `home/fixtures`, no collision with the other
 website session) and the publish guarded to abort on any other change set; and the pre-publish page
 saved so the delta could be reconciled.
+
+### CORRECTION — THE ELEMENTS CARD SHIPPED, AND BOTH "HELD" PASSAGES ABOVE WERE STALE (2026-10-25)
+
+The two passages above saying the Elements card is **built and held** / **not uploaded** were true
+when written and were stale within the hour. `Thumbnail Image - Wide` on Home `Sorting Order 2` is
+**`nYKgh8nnDaqx5GCvqoew14kNNMo.png`**, `2000x1800`, published by Shak as `ce2948533` alongside the
+Fixtures card's `944510398`.
+
+**VERIFIED RATHER THAN CARRIED FROM THE SESSION THAT DID IT**, which is the standing rule for any
+claim about current state. The CMS is the decisive source, because it says which *card* an asset is
+bound to and no page measurement can:
+
+```
+Fixtures  SO=1  draft=false  mWNOAIOa7BAVqgffFcR7L9r8Q.png
+Elements  SO=2  draft=false  nYKgh8nnDaqx5GCvqoew14kNNMo.png
+About     SO=3  draft=false  XN0uVlxC3Qaamdtbb7GSIdVjIY.jpg
+```
+
+Home is byte-stable at **270,513** over two fetches, carrying the new asset at **16 srcset refs** —
+the same count as the Fixtures card beside it — with the superseded `X4rVDH7X…` at **0**. Both cards
+now emit the `512 / 1024 / 2000` candidate set, so the resolution win covers the pair rather than
+one of them.
+
+**THE DECLARED DIMENSIONS DISTINGUISH THE TWO CARDS WITHOUT A CMS ROUND TRIP, and they are not the
+same:** Fixtures serves `?width=2000&height=2000`, Elements `?width=2000&height=1800` — matching the
+build record's canvas exactly. **So a srcset URL's own `width`/`height` identifies which card you
+are looking at**, which is the cheapest check available when the two assets are otherwise
+indistinguishable sixteen-reference PNGs.
+
+**THE LESSON IS THE SHAPE OF THE CLAIM, NOT THE CARD.** A "held", "not uploaded" or "do not publish"
+note asserts something about the **present**, and Shak falsifies it the moment he acts — usually
+within the hour. It is the same failure as the spent `NEEDS A PUBLISH` markers, the regression
+checklist that went stale inside a session, and the hard-coded page list that survived two renames:
+**a record written in the past tense stays true, and one written in the present tense does not.**
+Where a hold genuinely has to be recorded, write what was true at that instant and what would
+discharge it — then come back and close it, because nobody else will.
+
+**The build detail above is unaffected and still correct**: the different-shot finding, the
+subject-height match, the clipping check at every breakpoint, and the route-fulfil technique for
+previewing a candidate at true card size without a permanent upload. Only the publication status was
+wrong.
