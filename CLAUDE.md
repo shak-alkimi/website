@@ -9637,6 +9637,45 @@ effect** — but if those pages are ever undrafted their buttons will now be `2p
 never in scope). Spec Sheet still green -> black -> green with rest and back captures byte-identical, size unchanged
 at `111x36`.
 
+### The phone Spec Sheet button stays bottom-left — asked and declined 2026-10-25
+
+Shak asked to move it to the top right on phone "like desktop". **Declined after measuring, because the
+desktop arrangement cannot be reproduced on a phone.**
+
+**IT IS STRUCTURAL, NOT A STYLE TOGGLE.** `Profile Row` (`/fixtures`) and `Elements Row` (`/elements`) each
+hold three children — `Media`, `Info`, `Downloads`:
+
+| | stackDirection | Media | Info | Downloads |
+|---|---|---|---|---|
+| Desktop | horizontal | `2fr` | `1fr` | `212px` @ top 16 |
+| Tablet | horizontal | `2fr` | `1fr` | `180px` @ top 16 |
+| **Phone** | **vertical** | `1fr` | `1fr` | `1fr` @ **top 481** |
+
+Desktop puts the button level with the title because all three start at `top: 16` in a horizontal row. Phone
+flips the row to vertical, so `Downloads` falls to the bottom. That is the whole mechanism.
+
+**!!! THE BLOCKER IS THE TITLE WIDTH, AND IT IS THE PART THAT IS NOT OBVIOUS. !!!** At 390px the title column
+is 350 and the longest names already fill it — `Vena Corner Mini` **339px of ink**, `Prisma Multiplier` 330,
+`Vena Round Mini` 329. A 111px button beside the title would sit on the text. **So "level with the title" is
+unreachable at any phone width**; desktop only works because the title gets its own 397px column and the
+button a third column beside it. Measure the title's INK, not its box — the box is full-width on every one.
+
+"Top right" on phone therefore means the top-right of the **row**, which is over the technical-drawing card.
+Simulated in the live DOM before offering: it lands on the card's empty corner and covers no artwork, only the
+border. Offered with a side-by-side render against two alternatives and declined — the button stays where it is.
+
+**SIX INDEPENDENT ROW TEMPLATES, NOT ONE SHARED COMPONENT.** All plain `FrameNode`s with
+`componentIdentifier: null` — `/fixtures` Flex `s4lEM1w_G` / Profile `kiCM4bfas` / Optic `U9_Nm6dyA`,
+`/elements` Connector `rZiLJanmS` / Driver `NmkizI7ok` / LED `E8VN4fVoI`. Any change here is **six edits**.
+Per-breakpoint overrides do work (phone already carries its own `stackDirection: vertical`), but **moving
+`Downloads` is NOT per-breakpoint** — a node has one parent, and moving it into `Info` would take `Media`
+from 795 to 963 on desktop and enlarge every product image.
+
+**If it is ever revisited, anchor from the BOTTOM, not the top.** All 16 products are geometrically uniform on
+phone (`Info` 264 tall, title 48 = one line, `Media` 169), and `rowH - titleTop` is a constant **280** because
+`Media`'s height cancels out of it — whereas a `top` anchor drifts about 20px across 360-430px phones, since
+`Media` is aspect-driven at `(rowWidth - 12) / 2`.
+
 ### THE NAV NEVER WENT BACK TO TRANSPARENT ON 25 OF 27 SURFACES — Framer omits a variant's `backgroundColor` when it is inherited rather than explicit (2026-10-22, PUBLISHED AND VERIFIED LIVE)
 
 Shak: *"when scrolling back to the top the nav bar does not transition back to original state in certain instances"*, with a
