@@ -10577,6 +10577,13 @@ there is `P > PROFILE > Open Navigation Link` — the row's own link spans the f
 **Read the paint stack at every probe point before scoring it**; "the menu closed" and "the menu was dismissed" are
 different events.
 
+**A CHEAPER DISCRIMINATOR, from the 39-surface sweep of 2026-10-25: compare the page URL before and
+after the tap.** A genuine dismiss leaves it unchanged; a row navigation does not. The paint stack tells
+you what sits under the probe point; the URL tells you what actually HAPPENED — so the URL is the thing
+to assert, and it costs nothing, which means it can ride along on every surface instead of being saved for
+the taps that look suspicious. All 39 surfaces were scored that way on 2026-10-25 and all 39 came back
+unchanged.
+
 `Escape` does close it on all three breakpoints — irrelevant for touch, recorded only so it is not re-derived.
 
 ### TAP-OUTSIDE-TO-CLOSE — Framer's `Dismissible` is ON and INERT, and the lever is a synthetic Escape (2026-10-24)
