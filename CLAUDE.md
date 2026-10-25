@@ -12066,9 +12066,12 @@ the component can render it conditionally — `cssRefs=3` everywhere is expected
 screenshot showed the purple highlight on the right one. **Confirm a layer-tree selection by screenshot, not by
 computed style** — and `data-testid*="<nodeId>"` remains the reliable way to *locate* the row.
 
-**The pending counter produced a phantom again** — `changesCount=1  CollectionItem|home/fixtures` on one fresh
-session, then `0` on the next read and `0` three times on another fresh session. Nothing of mine was outstanding.
-**Confirm any pending verdict, zero or non-zero, on a second independent fresh session.**
+**A PENDING READ I CALLED A PHANTOM WAS THE OTHER SESSION'S REAL WORK.** `changesCount=1  CollectionItem|home/fixtures`
+came back on one fresh session, then `0` on the next read and `0` three times on another, so I recorded it as an
+artifact. It was not: it was their Home Fixtures card rebuild, which published minutes later as `944510398`. Nothing
+of **mine** was outstanding, which is the only part those reads established. **With a second session active, an
+unexplained pending entry is far more likely to be theirs than an instrument artifact — attribute it before dismissing
+it**, and note that a later `0` may simply mean they published in between rather than that the entry was never real.
 
 ### THE HOME FIXTURES CARD IS REBUILT FROM THE 8000px RENDER — 772px to 2000px, and the softness item is closed (2026-10-25, PUBLISHED `944510398`)
 
