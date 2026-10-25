@@ -10968,3 +10968,28 @@ heading id   present in getNodesWithType("TextNode"): true
 **!!! A REAL CLICK ON A LAYER ROW MUST LAND ON THE ROW'S LABEL, NOT ITS LEFT EDGE. !!!** These rows span `x = 10..249` but the label text sits at **`x ≈ 206`** because the tree is deeply indented at that depth. A click at `x ≈ 160` — inside the row's own rect — landed in the indent and **silently changed nothing**; the selection simply stayed where it was. `data-testid` gets you the row, but read the label element's own rect and click that. **Assert the selection afterwards** (exactly one row carrying the selected class, and it is the id you wanted) before sending a destructive key.
 
 **Reaching a deep slot in the tree without a chevron:** the filtered list is flat and offers no disclosure control, so filtering alone cannot expand. What works is **filter to the container, click it — selecting a container auto-expands it — then clear the filter**, at which point its children are rendered with their own `data-testid`s.
+
+### `/warranty` IS LIVE (2026-10-24) — the open legal items were ACCEPTED, not resolved
+
+Shak chose to publish with the open items outstanding, after being shown them a third time. **That is his decision and it is recorded as acceptance, not as closure.** The page is live at `/warranty`, `Effective October 24, 2026`, linked from the footer sitemap on **all 13 live surfaces** and present in `sitemap.xml`. Footer slot `[8]` is visible; slot `[2]`, the parked `Projects` link, was never consumed.
+
+**!!! THE INTRO CONTRADICTED THE PAGE AND SHIPPED THAT WAY FOR ONE BUILD. !!!** The source document's own lede reads *"The terms on which Alkimi warrants the product it supplies. **This is a draft and is not in force.** It is modelled on the structure a manufacturer uses, restructured for a specification channel…"*. Carried verbatim, that put a live warranty dated *Effective October 24, 2026* on the site while simultaneously declaring itself not in force. The second sentence is a draft disclaimer and the third is commentary about how the document was built; neither belongs on a customer-facing page. Fixed to the operative sentence alone and republished.
+
+**The lesson is about scope of review, not about the sentence.** Going live changed the document's STATUS, and I updated the one field that obviously encodes status — the date line — while leaving every other line that describes the document untouched. **When a document's standing changes, re-read every sentence that talks ABOUT the document, not just the field that names its status.** Nothing in the API could have caught this: `getText()` is unreadable on these nodes, so it was only visible in a rendered screenshot of the published page.
+
+**!!! A NEWLY PUBLISHED PAGE SERVES A COMPLETE-BUT-EMPTY 27,781-BYTE SHELL FOR A WINDOW AFTER EACH PUBLISH. !!!** This is **not** the recorded truncation signature. The document is complete and ends in `</html>`, returns **HTTP 200**, and contains:
+
+```
+title            Alkimi—New York     (the site default, not the page title)
+data-framer-name 0 occurrences
+<main>           absent
+text runs        2
+```
+
+**It is byte-stable across rapid consecutive fetches**, so repeating the fetch does not clear it — three identical reads at `27,781` preceded a correct `179,585`. I nearly reported it as a defect and had a confident wrong theory ready (that the publish carried both `/warranty | added` and `/warranty | removed` and applied the removal last). **Re-fetch with real time between attempts, not in a tight loop**, and treat a page whose title is the site default and whose `data-framer-name` count is zero as not-yet-built rather than broken. Add `27,781` to the known-bad signatures for this project.
+
+**THE RELATIVE-HREF TRAP CAUGHT ME AGAIN, AND IT IS NOW THREE TIMES.** A sweep for `href="./warranty"` reported **0** on all three `/news/:slug` pages. They are nested, so Framer emits **`../warranty`** there — exactly as it emits `../terms` and `../privacy`. The tell was that `terms` read 0 on the same pages, which cannot be a fault of my change. **Checking a second, known-good link is the cheapest way to tell "my change is missing" from "my pattern is wrong".** A pattern-agnostic sweep (`href="\.{1,2}/warranty"`) gives 3 on every surface.
+
+**`setText` CAME BACK.** It had thrown `Node not found` on this page across six fresh sessions earlier in the day; later the same day it worked first time, twice. **So the failure is intermittent rather than a permanent property of a page** — which weakens the "rebuild rather than patch" rule to "try the patch first, it may work, and rebuild if it does not".
+
+**Two publishes were needed:** `978467445` for the page and footer link, `3bc264d49` for the intro fix. Home sweep 13/13 throughout, byte-stable at `277,353`.
