@@ -1,0 +1,847 @@
+{
+ "capturedAt": "2026-10-25",
+ "note": "Pre-state before swapping the 20 REMOTE Utilities/Primary Button instances in Home/Home - Projects Row 2 onto the local component. A swap assigns new node ids, so diff on (root,title,variant,visible,origin), never on id.",
+ "tallies": {
+  "total": 93,
+  "local": 73,
+  "remote": 20
+ },
+ "instances": [
+  {
+   "root": "PAGE /fixtures",
+   "id": "rdAuxOXwV",
+   "origin": "LOCAL",
+   "title": "Spec Sheet",
+   "link": null,
+   "variant": "KaTzNfkSG",
+   "visible": true
+  },
+  {
+   "root": "PAGE /fixtures",
+   "id": "lTYWYwADL",
+   "origin": "LOCAL",
+   "title": "Manual",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /fixtures",
+   "id": "wPTJszSM3",
+   "origin": "LOCAL",
+   "title": "IES",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /fixtures",
+   "id": "Tej4HTg7X",
+   "origin": "LOCAL",
+   "title": "Spec Sheet",
+   "link": null,
+   "variant": "KaTzNfkSG",
+   "visible": true
+  },
+  {
+   "root": "PAGE /fixtures",
+   "id": "fNzyD071D",
+   "origin": "LOCAL",
+   "title": "Manual",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /fixtures",
+   "id": "HE_0cB7YK",
+   "origin": "LOCAL",
+   "title": "IES",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /fixtures",
+   "id": "YFP8IUnqk",
+   "origin": "LOCAL",
+   "title": "Spec Sheet",
+   "link": null,
+   "variant": "KaTzNfkSG",
+   "visible": true
+  },
+  {
+   "root": "PAGE /fixtures",
+   "id": "UfSTFhpz5",
+   "origin": "LOCAL",
+   "title": "Manual",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /fixtures",
+   "id": "Jh86IXLyR",
+   "origin": "LOCAL",
+   "title": "IES",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /fixtures",
+   "id": "jeBJOTditrdAuxOXwV",
+   "origin": "LOCAL",
+   "title": "Spec Sheet",
+   "link": null,
+   "variant": "KaTzNfkSG",
+   "visible": true
+  },
+  {
+   "root": "PAGE /fixtures",
+   "id": "jeBJOTditlTYWYwADL",
+   "origin": "LOCAL",
+   "title": "Manual",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /fixtures",
+   "id": "jeBJOTditwPTJszSM3",
+   "origin": "LOCAL",
+   "title": "IES",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /fixtures",
+   "id": "jeBJOTditTej4HTg7X",
+   "origin": "LOCAL",
+   "title": "Spec Sheet",
+   "link": null,
+   "variant": "KaTzNfkSG",
+   "visible": true
+  },
+  {
+   "root": "PAGE /fixtures",
+   "id": "jeBJOTditfNzyD071D",
+   "origin": "LOCAL",
+   "title": "Manual",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /fixtures",
+   "id": "jeBJOTditHE_0cB7YK",
+   "origin": "LOCAL",
+   "title": "IES",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /fixtures",
+   "id": "jeBJOTditYFP8IUnqk",
+   "origin": "LOCAL",
+   "title": "Spec Sheet",
+   "link": null,
+   "variant": "KaTzNfkSG",
+   "visible": true
+  },
+  {
+   "root": "PAGE /fixtures",
+   "id": "jeBJOTditUfSTFhpz5",
+   "origin": "LOCAL",
+   "title": "Manual",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /fixtures",
+   "id": "jeBJOTditJh86IXLyR",
+   "origin": "LOCAL",
+   "title": "IES",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /fixtures",
+   "id": "I3zkCZprdrdAuxOXwV",
+   "origin": "LOCAL",
+   "title": "Spec Sheet",
+   "link": null,
+   "variant": "KaTzNfkSG",
+   "visible": true
+  },
+  {
+   "root": "PAGE /fixtures",
+   "id": "I3zkCZprdlTYWYwADL",
+   "origin": "LOCAL",
+   "title": "Manual",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /fixtures",
+   "id": "I3zkCZprdwPTJszSM3",
+   "origin": "LOCAL",
+   "title": "IES",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /fixtures",
+   "id": "I3zkCZprdTej4HTg7X",
+   "origin": "LOCAL",
+   "title": "Spec Sheet",
+   "link": null,
+   "variant": "KaTzNfkSG",
+   "visible": true
+  },
+  {
+   "root": "PAGE /fixtures",
+   "id": "I3zkCZprdfNzyD071D",
+   "origin": "LOCAL",
+   "title": "Manual",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /fixtures",
+   "id": "I3zkCZprdHE_0cB7YK",
+   "origin": "LOCAL",
+   "title": "IES",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /fixtures",
+   "id": "I3zkCZprdYFP8IUnqk",
+   "origin": "LOCAL",
+   "title": "Spec Sheet",
+   "link": null,
+   "variant": "KaTzNfkSG",
+   "visible": true
+  },
+  {
+   "root": "PAGE /fixtures",
+   "id": "I3zkCZprdUfSTFhpz5",
+   "origin": "LOCAL",
+   "title": "Manual",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /fixtures",
+   "id": "I3zkCZprdJh86IXLyR",
+   "origin": "LOCAL",
+   "title": "IES",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /elements",
+   "id": "U7vcMw2QG",
+   "origin": "LOCAL",
+   "title": "Spec Sheet",
+   "link": null,
+   "variant": "KaTzNfkSG",
+   "visible": true
+  },
+  {
+   "root": "PAGE /elements",
+   "id": "lRUw1LREw",
+   "origin": "LOCAL",
+   "title": "Manual",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /elements",
+   "id": "tMfZxYkhi",
+   "origin": "LOCAL",
+   "title": "IES",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /elements",
+   "id": "NMp_z_ApW",
+   "origin": "LOCAL",
+   "title": "Spec Sheet",
+   "link": null,
+   "variant": "KaTzNfkSG",
+   "visible": true
+  },
+  {
+   "root": "PAGE /elements",
+   "id": "DFZf91RLA",
+   "origin": "LOCAL",
+   "title": "Manual",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /elements",
+   "id": "yk4NegdLE",
+   "origin": "LOCAL",
+   "title": "IES",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /elements",
+   "id": "BKkrHjd5H",
+   "origin": "LOCAL",
+   "title": "Spec Sheet",
+   "link": null,
+   "variant": "KaTzNfkSG",
+   "visible": true
+  },
+  {
+   "root": "PAGE /elements",
+   "id": "mhHqddXGJ",
+   "origin": "LOCAL",
+   "title": "Manual",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /elements",
+   "id": "QW83hJ9Qe",
+   "origin": "LOCAL",
+   "title": "IES",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /elements",
+   "id": "xWl5j5Y7LU7vcMw2QG",
+   "origin": "LOCAL",
+   "title": "Spec Sheet",
+   "link": null,
+   "variant": "KaTzNfkSG",
+   "visible": true
+  },
+  {
+   "root": "PAGE /elements",
+   "id": "xWl5j5Y7LlRUw1LREw",
+   "origin": "LOCAL",
+   "title": "Manual",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /elements",
+   "id": "xWl5j5Y7LtMfZxYkhi",
+   "origin": "LOCAL",
+   "title": "IES",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /elements",
+   "id": "xWl5j5Y7LNMp_z_ApW",
+   "origin": "LOCAL",
+   "title": "Spec Sheet",
+   "link": null,
+   "variant": "KaTzNfkSG",
+   "visible": true
+  },
+  {
+   "root": "PAGE /elements",
+   "id": "xWl5j5Y7LDFZf91RLA",
+   "origin": "LOCAL",
+   "title": "Manual",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /elements",
+   "id": "xWl5j5Y7Lyk4NegdLE",
+   "origin": "LOCAL",
+   "title": "IES",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /elements",
+   "id": "xWl5j5Y7LBKkrHjd5H",
+   "origin": "LOCAL",
+   "title": "Spec Sheet",
+   "link": null,
+   "variant": "KaTzNfkSG",
+   "visible": true
+  },
+  {
+   "root": "PAGE /elements",
+   "id": "xWl5j5Y7LmhHqddXGJ",
+   "origin": "LOCAL",
+   "title": "Manual",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /elements",
+   "id": "xWl5j5Y7LQW83hJ9Qe",
+   "origin": "LOCAL",
+   "title": "IES",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /elements",
+   "id": "x4KFl0JfnU7vcMw2QG",
+   "origin": "LOCAL",
+   "title": "Spec Sheet",
+   "link": null,
+   "variant": "KaTzNfkSG",
+   "visible": true
+  },
+  {
+   "root": "PAGE /elements",
+   "id": "x4KFl0JfnlRUw1LREw",
+   "origin": "LOCAL",
+   "title": "Manual",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /elements",
+   "id": "x4KFl0JfntMfZxYkhi",
+   "origin": "LOCAL",
+   "title": "IES",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /elements",
+   "id": "x4KFl0JfnNMp_z_ApW",
+   "origin": "LOCAL",
+   "title": "Spec Sheet",
+   "link": null,
+   "variant": "KaTzNfkSG",
+   "visible": true
+  },
+  {
+   "root": "PAGE /elements",
+   "id": "x4KFl0JfnDFZf91RLA",
+   "origin": "LOCAL",
+   "title": "Manual",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /elements",
+   "id": "x4KFl0Jfnyk4NegdLE",
+   "origin": "LOCAL",
+   "title": "IES",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /elements",
+   "id": "x4KFl0JfnBKkrHjd5H",
+   "origin": "LOCAL",
+   "title": "Spec Sheet",
+   "link": null,
+   "variant": "KaTzNfkSG",
+   "visible": true
+  },
+  {
+   "root": "PAGE /elements",
+   "id": "x4KFl0JfnmhHqddXGJ",
+   "origin": "LOCAL",
+   "title": "Manual",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /elements",
+   "id": "x4KFl0JfnQW83hJ9Qe",
+   "origin": "LOCAL",
+   "title": "IES",
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "PAGE /404",
+   "id": "PI4P6PKft",
+   "origin": "LOCAL",
+   "title": "Return Home",
+   "link": "/",
+   "variant": "caTvph2AU",
+   "visible": false
+  },
+  {
+   "root": "PAGE /404",
+   "id": "yWysTZn2MPI4P6PKft",
+   "origin": "LOCAL",
+   "title": "Return Home",
+   "link": "/",
+   "variant": "caTvph2AU",
+   "visible": false
+  },
+  {
+   "root": "PAGE /404",
+   "id": "frkqLd9KPPI4P6PKft",
+   "origin": "LOCAL",
+   "title": "Return Home",
+   "link": "/",
+   "variant": "caTvph2AU",
+   "visible": false
+  },
+  {
+   "root": "PAGE /careers",
+   "id": "Zzn0Zx2Og",
+   "origin": "LOCAL",
+   "title": "Send your portfolio",
+   "link": "mailto:hello@ora.com",
+   "variant": "caTvph2AU",
+   "visible": true
+  },
+  {
+   "root": "PAGE /careers",
+   "id": "iMF73lCDmZzn0Zx2Og",
+   "origin": "LOCAL",
+   "title": "Send your portfolio",
+   "link": "mailto:hello@ora.com",
+   "variant": "Nbo1Rf3Ck",
+   "visible": true
+  },
+  {
+   "root": "PAGE /careers",
+   "id": "gK84fxm0mZzn0Zx2Og",
+   "origin": "LOCAL",
+   "title": "Send your portfolio",
+   "link": "mailto:hello@ora.com",
+   "variant": "Nbo1Rf3Ck",
+   "visible": true
+  },
+  {
+   "root": "COMP Footer / Footer",
+   "id": "TMRxV2aWG",
+   "origin": "LOCAL",
+   "title": "Get in touch",
+   "link": "/contact",
+   "variant": "PQb6JRcY1",
+   "visible": true
+  },
+  {
+   "root": "COMP Footer / Footer",
+   "id": "Wkpy7bZw9TMRxV2aWG",
+   "origin": "LOCAL",
+   "title": "Get in touch",
+   "link": "/contact",
+   "variant": "PQb6JRcY1",
+   "visible": true
+  },
+  {
+   "root": "COMP Footer / Footer",
+   "id": "In5qJquLmTMRxV2aWG",
+   "origin": "LOCAL",
+   "title": "Get in touch",
+   "link": "/contact",
+   "variant": "PQb6JRcY1",
+   "visible": true
+  },
+  {
+   "root": "COMP Utilities / Primary Button",
+   "id": "dzNJ99hkN",
+   "origin": "LOCAL",
+   "title": null,
+   "link": null,
+   "variant": null
+  },
+  {
+   "root": "COMP Global / Section CTA",
+   "id": "va_sRlyJ8",
+   "origin": "LOCAL",
+   "title": null,
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": true
+  },
+  {
+   "root": "COMP Global / Section CTA",
+   "id": "vpK9OOtl5va_sRlyJ8",
+   "origin": "LOCAL",
+   "title": null,
+   "link": null,
+   "variant": "PQb6JRcY1",
+   "visible": true
+  },
+  {
+   "root": "COMP Global / Section CTA",
+   "id": "GGP0N56psva_sRlyJ8",
+   "origin": "LOCAL",
+   "title": null,
+   "link": null,
+   "variant": "C1hBM5Wy4",
+   "visible": true
+  },
+  {
+   "root": "COMP Careers / Job Open - Card",
+   "id": "HvV5NTw1b",
+   "origin": "LOCAL",
+   "title": "Apply now",
+   "link": null,
+   "variant": "EXr3pHc1V",
+   "visible": true
+  },
+  {
+   "root": "COMP Careers / Job Open - Card",
+   "id": "hFQO8OyBcHvV5NTw1b",
+   "origin": "LOCAL",
+   "title": "Apply now",
+   "link": null,
+   "variant": "C1hBM5Wy4",
+   "visible": true
+  },
+  {
+   "root": "COMP Projects / Project Grid - Card",
+   "id": "KXRBaamX4",
+   "origin": "LOCAL",
+   "title": "View Case Study",
+   "link": "/projects/:slug",
+   "variant": "PQb6JRcY1",
+   "visible": true
+  },
+  {
+   "root": "COMP Projects / Project Grid - Card",
+   "id": "pXWjPNBwaKXRBaamX4",
+   "origin": "LOCAL",
+   "title": "View Case Study",
+   "link": "/projects/:slug",
+   "variant": "PQb6JRcY1",
+   "visible": true
+  },
+  {
+   "root": "COMP Projects / Project Grid - Card",
+   "id": "ILCimyEKiKXRBaamX4",
+   "origin": "LOCAL",
+   "title": "View Case Study",
+   "link": "/projects/:slug",
+   "variant": "PQb6JRcY1",
+   "visible": false
+  },
+  {
+   "root": "COMP Projects / Project Grid - Card",
+   "id": "tHRYdon_uKXRBaamX4",
+   "origin": "LOCAL",
+   "title": "View Case Study",
+   "link": "/projects/:slug",
+   "variant": "C1hBM5Wy4",
+   "visible": true
+  },
+  {
+   "root": "COMP Home / Home - Projects Row 2",
+   "id": "beNpOjgIR",
+   "origin": "REMOTE",
+   "title": "View Case Study",
+   "link": "/projects/:slug",
+   "variant": "PQb6JRcY1",
+   "visible": true
+  },
+  {
+   "root": "COMP Home / Home - Projects Row 2",
+   "id": "D4iL7KvDV",
+   "origin": "REMOTE",
+   "title": "View Case Study",
+   "link": "/projects/:slug",
+   "variant": "PQb6JRcY1",
+   "visible": true
+  },
+  {
+   "root": "COMP Home / Home - Projects Row 2",
+   "id": "qO2uUJ360beNpOjgIR",
+   "origin": "REMOTE",
+   "title": "View Case Study",
+   "link": "/projects/:slug",
+   "variant": "PQb6JRcY1",
+   "visible": true
+  },
+  {
+   "root": "COMP Home / Home - Projects Row 2",
+   "id": "qO2uUJ360D4iL7KvDV",
+   "origin": "REMOTE",
+   "title": "View Case Study",
+   "link": "/projects/:slug",
+   "variant": "PQb6JRcY1",
+   "visible": true
+  },
+  {
+   "root": "COMP Home / Home - Projects Row 2",
+   "id": "SMOXC2htvbeNpOjgIR",
+   "origin": "REMOTE",
+   "title": "View Case Study",
+   "link": "/projects/:slug",
+   "variant": "PQb6JRcY1",
+   "visible": true
+  },
+  {
+   "root": "COMP Home / Home - Projects Row 2",
+   "id": "SMOXC2htvD4iL7KvDV",
+   "origin": "REMOTE",
+   "title": "View Case Study",
+   "link": "/projects/:slug",
+   "variant": "PQb6JRcY1",
+   "visible": true
+  },
+  {
+   "root": "COMP Home / Home - Projects Row 2",
+   "id": "E_Njxmr9xbeNpOjgIR",
+   "origin": "REMOTE",
+   "title": "View Case Study",
+   "link": "/projects/:slug",
+   "variant": "PQb6JRcY1",
+   "visible": true
+  },
+  {
+   "root": "COMP Home / Home - Projects Row 2",
+   "id": "E_Njxmr9xD4iL7KvDV",
+   "origin": "REMOTE",
+   "title": "View Case Study",
+   "link": "/projects/:slug",
+   "variant": "PQb6JRcY1",
+   "visible": true
+  },
+  {
+   "root": "COMP Home / Home - Projects Row 2",
+   "id": "Q__AVxo4PbeNpOjgIR",
+   "origin": "REMOTE",
+   "title": "Methodology",
+   "link": "/methodology",
+   "variant": "IsPmXClw2",
+   "visible": true
+  },
+  {
+   "root": "COMP Home / Home - Projects Row 2",
+   "id": "Q__AVxo4PD4iL7KvDV",
+   "origin": "REMOTE",
+   "title": "View Case Study",
+   "link": "/projects/:slug",
+   "variant": "PQb6JRcY1",
+   "visible": true
+  },
+  {
+   "root": "COMP Home / Home - Projects Row 2",
+   "id": "SeYQsjj4JbeNpOjgIR",
+   "origin": "REMOTE",
+   "title": "View Case Study",
+   "link": "/projects/:slug",
+   "variant": "C1hBM5Wy4",
+   "visible": true
+  },
+  {
+   "root": "COMP Home / Home - Projects Row 2",
+   "id": "SeYQsjj4JD4iL7KvDV",
+   "origin": "REMOTE",
+   "title": "View Case Study",
+   "link": "/projects/:slug",
+   "variant": "C1hBM5Wy4",
+   "visible": true
+  },
+  {
+   "root": "COMP Home / Home - Projects Row 2",
+   "id": "VLvUMUfjBbeNpOjgIR",
+   "origin": "REMOTE",
+   "title": "View Case Study",
+   "link": "/projects/:slug",
+   "variant": "C1hBM5Wy4",
+   "visible": true
+  },
+  {
+   "root": "COMP Home / Home - Projects Row 2",
+   "id": "VLvUMUfjBD4iL7KvDV",
+   "origin": "REMOTE",
+   "title": "View Case Study",
+   "link": "/projects/:slug",
+   "variant": "C1hBM5Wy4",
+   "visible": true
+  },
+  {
+   "root": "COMP Home / Home - Projects Row 2",
+   "id": "tDcw55E8QbeNpOjgIR",
+   "origin": "REMOTE",
+   "title": "Methodology",
+   "link": "/methodology",
+   "variant": "IsPmXClw2",
+   "visible": true
+  },
+  {
+   "root": "COMP Home / Home - Projects Row 2",
+   "id": "tDcw55E8QD4iL7KvDV",
+   "origin": "REMOTE",
+   "title": "View Case Study",
+   "link": "/projects/:slug",
+   "variant": "PQb6JRcY1",
+   "visible": true
+  },
+  {
+   "root": "COMP Home / Home - Projects Row 2",
+   "id": "oUaZ5kXthbeNpOjgIR",
+   "origin": "REMOTE",
+   "title": "View Case Study",
+   "link": "/projects/:slug",
+   "variant": "C1hBM5Wy4",
+   "visible": true
+  },
+  {
+   "root": "COMP Home / Home - Projects Row 2",
+   "id": "oUaZ5kXthD4iL7KvDV",
+   "origin": "REMOTE",
+   "title": "View Case Study",
+   "link": "/projects/:slug",
+   "variant": "C1hBM5Wy4",
+   "visible": true
+  },
+  {
+   "root": "COMP Home / Home - Projects Row 2",
+   "id": "uR6T4xhGKbeNpOjgIR",
+   "origin": "REMOTE",
+   "title": "Methodology",
+   "link": "/methodology",
+   "variant": "IsPmXClw2",
+   "visible": true
+  },
+  {
+   "root": "COMP Home / Home - Projects Row 2",
+   "id": "uR6T4xhGKD4iL7KvDV",
+   "origin": "REMOTE",
+   "title": "View Case Study",
+   "link": "/projects/:slug",
+   "variant": "PQb6JRcY1",
+   "visible": true
+  }
+ ]
+}
