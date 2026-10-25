@@ -9256,9 +9256,25 @@ template author — `module:dGP0PpDpJf2SzWXgXNJo/.../dzNJ99hkN.js:default`, not
 October, on the same two structurally-older pages.
 
 **Pre-state recorded before touching anything: [repair/download-buttons-prestate.json](repair/download-buttons-prestate.json)** — all 54 rows with
-controls, variant, visibility and geometry (`titles {"Spec Sheet":18,"Manual":18,"IES":18}`,
-`variants {"PQb6JRcY1":54}`, `origin {"REMOTE":54}`). The footer swap reset `variant` on every instance it
-touched, so a swap here needs this to restore from.
+controls, variant, visibility and **instance** geometry (`width`, `height`, `position`, `opacity`); tallies
+`titles {"Spec Sheet":18,"Manual":18,"IES":18}`, `variants {"PQb6JRcY1":54}`, `origin {"REMOTE":54}`. The
+footer swap reset `variant` on every instance it touched, so a swap here needs this to restore from.
+
+**!!! AN INSTANCE PRE-STATE CANNOT CATCH A COMPONENT-LEVEL CHANGE, AND THAT IS EXACTLY HOW THE 2026-10-21
+RADIUS REGRESSION SHIPPED. !!!** These rows store what the INSTANCE sets — and every one reads
+`width: fit-content, height: fit-content`, which says nothing about rendered size. **`borderRadius`, `padding`,
+`gap` and the type metrics live in the COMPONENT**, so they appear in no instance pre-state and a before/after
+diff of these files is structurally blind to them. The remote module was `2px` and the local one `200px`; the
+diff came back clean and the pills shipped.
+
+**So capture BOTH, and keep them separate in your head:** the instance pre-state (above) proves nothing outside
+the intended set moved, and a **rendered** capture — `border-radius`, `padding`, `gap`, box and font, read off
+the published page — proves the component itself did not change under you. Re-checked 2026-10-25: all **54**
+instances still `fit-content / fit-content / absolute / op1`, and `Get in touch` measures **115x36** with
+`padding 11px 18px` on both our site and stock Ora, so **size never changed; only the radius did.**
+
+**Note `primary-button-prestate-2026-10-21.json` carries NO geometry at all** — only
+`root, id, name, ident, origin, visible, controls`. The filename suggests a fuller record than it is.
 
 **SHIPPED:** `Spec Sheet` **file** fields on both collections (`Fixtures gNOAfNupG`, `Elements CHPbySFRS`,
 `allowedFileTypes ["pdf"]`), and **36 Manual/IES instances hidden** until they have content. Verified live —
