@@ -10993,3 +10993,112 @@ text runs        2
 **`setText` CAME BACK.** It had thrown `Node not found` on this page across six fresh sessions earlier in the day; later the same day it worked first time, twice. **So the failure is intermittent rather than a permanent property of a page** — which weakens the "rebuild rather than patch" rule to "try the patch first, it may work, and rebuild if it does not".
 
 **Two publishes were needed:** `978467445` for the page and footer link, `3bc264d49` for the intro fix. Home sweep 13/13 throughout, byte-stable at `277,353`.
+
+### Children's privacy removed from `/privacy`, and FRAMER'S ORDERED-LIST AUTOFORMAT ate the renumber twice (2026-10-24, PUBLISHED)
+
+Shak asked for the Children's privacy section to go. It is hidden on all three breakpoints and the remaining
+two sections are renumbered, so the live page reads **1 through 7 with no gap**:
+
+```
+1. Information we collect   2. How we use information   3. Sharing information   4. Data retention
+5. Security                 6. Changes to this policy   7. Contact
+```
+
+**`node.remove()` FAILED SILENTLY ON A LIVE PAGE — it reported "REMOVED" and two fresh sessions showed the
+section still present.** This file records `remove()` working "on a draft `WebPageNode` and on page-level
+frames" and failing only inside a `ComponentNode`. **Widen it: on a PUBLISHED page a page-level frame also
+survives a successful-looking `remove()`.** `setAttributes({ visible: false })` worked first time — the usual
+asymmetry, mutation over deletion. Hidden is the better outcome anyway: the section is one attribute from
+coming back.
+
+**!!! THE DRAFT/LIVE HYPOTHESIS FOR `setText` IS WRONG, AND THE PROBE THAT KILLED IT IS WORTH REUSING. !!!**
+`setText` threw `Node not found` on every `/privacy` text node across **five** fresh sessions — deterministic,
+and it hit the body nodes as well as the headings. The obvious theory was draft-vs-live, since `/warranty` was
+a draft when its `setText` calls worked. A create-probe on `/careers` settles it:
+
+```
+careers draft=true | created=o1gEXLjod | parentIs=augiA20Il | setText=OK | removed
+```
+
+Two findings in one line. **`parentId` was IGNORED on a page whose `draft` is `true`** — the node landed on
+`augiA20Il`, the Home page — so the recorded "parentId is honoured on DRAFT pages only" does not hold for a
+page that was drafted *after* being published. And **`setText` and `remove()` both worked on that node while
+it sat on Home, a live page.** So neither call is gated on draft status.
+
+The real rule is the one already recorded from the warranty build: **`setText` works in the same pass as the
+clone or creation and stops working on those nodes later.** `/privacy` was built on 2026-10-05, so it was
+never going to work. **Re-read that note before spending sessions on a `Node not found`.**
+
+**!!! TYPING `6. ` AT THE START OF A PARAGRAPH CONVERTS IT INTO AN ORDERED LIST — the number becomes a MARKER,
+not text. !!!**
+
+With the API closed, the edit was done on the canvas. It rendered `6.  Changes to this policy` with a visibly
+wider gap than its siblings. That is not a double space: Framer's rich-text editor auto-formatted the
+paragraph into a numbered list, and the gap is the list indent.
+
+**The tell is the `Text -> Content` field, and comparing it against a sibling is what proved it:**
+
+```
+section 6 (edited)    Content = "Changes to this policy"    <- number is a list marker
+section 5 (pristine)  Content = "5. Security"               <- number is literal text
+```
+
+Entering edit mode on `5. Security` corroborates it — the double-click selects `Security` and on a list item
+the number sits **outside the editable text**, where on a literal heading it is just more text.
+
+**!!! THE `Content` FIELD IS THE FIX, AND IT IS ALSO THE ONLY WAY TO READ A TEXT NODE'S CONTENT. !!!** It is
+an ordinary `input` in the Style panel's Text section. Setting it never touches the rich-text editor, so **no
+autoformat can fire**, and the style, tag and list state are untouched. The reliable sequence is the one
+already recorded for panel fields — `inp.focus(); inp.select()`, assert `document.activeElement === inp` and
+that the selection spans the value, then a real `type` plus `Return`:
+
+```
+focused:true  val:"7. Changes to this policy"  selStart:0  selEnd:25   ->  type  ->  "6. Changes to this policy"
+```
+
+This is a new capability for this project. The node API cannot read text at all (`getText()` throws `Node is
+not a text node` on a node whose `__class` is literally `TextNode`), and every previous text edit here has
+gone through the canvas. **Prefer the Content field for both reading and writing canvas text; reach for the
+canvas only when the edit is inside a run rather than the whole string.**
+
+**CLEARING A RICH-TEXT NODE WITH BACKSPACE STRIPS ITS PARAGRAPH STYLE AND ITS TAG.** The second attempt did
+`ctrl+a`, BackSpace, then typed — which fixed the spacing and left the heading at `16px Inter`, tag `p`,
+`Styles: Select...`. **An empty paragraph has nothing to carry the preset.** Re-applying `Heading 2` restored
+the look and brought the list marker back with it, which is what finally exposed the autoformat. **Never empty
+a styled text node as a step; replace its content in one action, or use the Content field.**
+
+**`ctrl+a` IS A FREE, REVERSIBLE EDIT-MODE PROBE.** Typing blind into the canvas is the documented way to fire
+tool shortcuts and open comment mode. With capture frozen there was no way to see the caret — but `ctrl+a` on
+the **canvas** opens the "Delete selection for all project collaborators" dialog, which is readable in the
+DOM, while in **edit mode** it silently selects the text. Press it, query for the dialog, then either cancel
+or proceed knowing the selection is live. **Use this before any blind `type` into the canvas.**
+
+**A FRESH TAB FIXED THE FROZEN RENDERER WHERE A RELOAD DID NOT.** `Page.captureScreenshot` timed out
+repeatedly while JS stayed live (`innerWidth 1536`, 3,310 divs, `readyState complete`), and a **full reload
+did not clear it**. A brand-new tab captured immediately. **Reload is not a substitute for a new tab.** The
+freeze then recurred on the new tab specifically on entering text edit mode, so expect to verify through the
+DOM mid-edit and to get capture back on leaving it.
+
+**LAYER NAMES SHIP IN `data-framer-name` AND NEVER TRACK CONTENT**, so after the renumber the page served
+`<h2>6. Changes to this policy</h2>` inside `data-framer-name="7. Changes to this policy"` — and a naive count
+therefore read as a half-finished edit, with the old string still at `1`. **Count the rendered tag, not the
+string.** `5. Security` appearing exactly twice, once as a name and once as an `<h2>`, is the control that
+makes the pattern obvious. All six frames were renamed to match; `setAttributes({ name })` works on a live
+page.
+
+**Both renames are the SAME LENGTH, so the republish came back BYTE-IDENTICAL at `173,014`.** That is the
+correct result, not a failed build — the recorded "byte-identical means never rebuilt" signature only applies
+where the change should have moved the byte count. Verified instead by the `data-framer-name` values flipping.
+
+**!!! THE ~27,780-BYTE EMPTY SHELL IS NOT A POST-PUBLISH ARTEFACT — IT CAN APPEAR ON ANY PAGE AT ANY TIME.
+!!!** This file records that shell as propagation, seen minutes after publishing `/warranty`. Here `/warranty`
+served **27,780 bytes** on a single fetch hours after its last publish, with nothing having touched it; four
+re-fetches returned the real **179,380** with all nine sections intact. **Add it to the known-bad signature
+list unconditionally**, alongside `29,314 / 28,683 / 29,843`, and keep re-fetching until two reads agree on a
+plausible size. A short response is never evidence of a broken page.
+
+**Verified live:** rendered `h2` sequence 1-7 with no gaps, `Children` **0** anywhere, badge **0**, footer
+`/warranty` and `/terms` links **3** each (one per breakpoint), and `/`, `/terms` and `/contact` unchanged.
+The hidden frame keeps its original name `6. Children's privacy`, deliberately — it sits greyed out directly
+above `6. Changes to this policy`, which reads oddly in the tree but makes it unmistakable what it is if it is
+ever restored, at which point everything below it needs renumbering again anyway.
