@@ -11117,7 +11117,9 @@ Three edits Shak asked for from screenshots — two scriptable, one editor-only:
 `./methodology` under the label `About` on all three breakpoints — the identical stale label, one surface
 over. Changed in the same pass rather than raised for a second round trip: it is one control write, the
 page is unambiguously called Methodology everywhere else, and the alternative was shipping a site that
-calls one destination two names. **`>About<` is now 0 across every live page.** One write to revert.
+calls one destination two names. **`>About<` is now 0 across every live page.**
+**SETTLED 2026-10-25 — Shak confirmed the footer keeps `Methodology`. Do not revert it, and do
+not re-raise the scope excess; the call is made.**
 
 **Both scriptable edits were UPDATES to existing overrides, which is why they were scriptable at all** —
 `setAttributes({ controls })` can update an override and cannot create one. The footer slots already
