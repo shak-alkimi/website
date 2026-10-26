@@ -14124,3 +14124,44 @@ await chromium.launch({ executablePath:
 ```
 
 `chromium.launch()` makes its own temp profile, so there is no conflict with the held one. Two details: the cached `playwright-core` wanted browser build **1247** while the machine has **1223**, so `executablePath` is required; and the **headed** `chrome.exe` dies with `spawn UNKNOWN` under the sandbox while the **headless shell** runs fine — test the binary with `--version` first, since that distinguishes a sandbox refusal from a missing download in one call. This gives real viewport emulation, `deviceScaleFactor`, screenshots to an absolute path and a fresh context per size, which neither Claude in Chrome (no viewport emulation) nor the held MCP profile can offer.
+
+### The portrait hero-to-Fixtures gap matched to landscape — 90px to 15px, by eliminating two phone overrides (2026-10-26, WRITTEN AND VERIFIED, **NOT PUBLISHED**)
+
+Shak: *"adjust the spacing between the phone portrait hero card and fixtures card to match spacing that phone landscape has."*
+
+**LANDSCAPE IS THE TABLET BREAKPOINT (844 > 810), so "match landscape" is the same instruction as "match tablet and desktop" — which turns an invented number into a conformance change.** Establishing that first is what made the rest obvious; measured on the published build:
+
+| | hero inset band | `Section Projects` pad-top | row pad-top | **video bottom -> card top** |
+|---|---|---|---|---|
+| portrait 390x844 / 393x852 | 15 | **60** | **15** | **90** |
+| landscape 844x390 | 15 | 0 | 0 | **15** |
+| tablet 900x1000 | 15 | 0 | 0 | 15 |
+| desktop 1536x950 | 15 | 0 | 0 | 15 |
+
+**!!! DECOMPOSE A GAP INTO ITS CONTRIBUTORS BEFORE PICKING A LEVER — THE OBVIOUS SINGLE FIX MISSES BY EXACTLY THE SECOND TERM. !!!** `Section Projects` carries the 60px and is the layer anyone would reach for; zeroing it alone gives `15 + 0 + 15 = 30`, not 15. The remaining 15 is the **row component's own top padding**, one level down and invisible from the section. And no value of the section's padding can reach 15 on its own, because the row's 15 would have to be cancelled by a negative. **Two layers contribute, so two have to change.**
+
+| node | was | now |
+|---|---|---|
+| `Section Projects` Phone `W8eJA5eCmrSDIAOpVB` | `60px 0px 0px 0px` | **`0px 0px 0px 0px`** |
+| `Home - Projects Row` variant `Home Projects - Mobile` `Uv47Ka9s5` | `15px 15px 15px 15px` | **`0px 15px 15px 15px`** |
+
+**Both are override eliminations rather than new values, which is why this is low-risk.** Phone `Section Projects` now equals Desktop and Tablet (`0px`), and **`Home Projects - Mobile` was the only one of the component's NINE variants carrying a top padding** — every sibling was already `0px 15px 15px 15px`. Reading all nine before writing is what showed the Mobile one as the outlier; the change makes the set uniform.
+
+**!!! THE 2026-10-06 WARNING NOT TO COLLAPSE THESE TWO LAYERS IS NOW MOOT, AND READING IT WITHOUT THE CONTEXT WOULD STOP THIS CHANGE. !!!** That entry says *"Two layers do two different jobs — do not collapse them. `Section Projects` is dark and supplies the peek colour; the row component carries its own white background and 15px padding and supplies the card frame. Earlier attempts made the section do both, which is why darkening it destroyed the card buffer."* **That warning is about COLOUR and its premise is gone** — `Section Projects` on phone went `#080200 -> white` when the dark buffer was removed on 2026-10-26, so the row's white padding band now sits against a white section and is invisible. Only its *spacing* survived, which is what is being removed. The two layers still exist; nothing is collapsed.
+
+**PROVEN ON THE LIVE BUILD BY INJECTION BEFORE HANDING IT OVER, interleaved, two trials each:**
+
+```
+as-is    videoBottom 829   cardTop 919   gap 90   rowPadTop 15px   projPadTop 60px   cards 3
+patched  videoBottom 829   cardTop 844   gap 15   rowPadTop  0px   projPadTop  0px   cards 3
+as-is    ... gap 90 ...                                            (reproduced)
+patched  ... gap 15 ...                                            (reproduced)
+```
+
+**Card left edge stays 15 and the inter-card gap stays 16 in both arms**, so only the row's vertical origin moves — the side framing and the spacing between the stacked cards are untouched. Reporting those two alongside the gap is what makes the arm comparison a measurement rather than a single number.
+
+**Scope checked rather than assumed:** `Home Projects - Mobile` is a non-primary variant, so the write is scoped and does not cascade; Desktop and Tablet `Section Projects` re-read `0px` unchanged; the other eight row variants re-read unchanged; `Home - Projects Row 2` (the wide card) is a different component and was not touched, so the gap between the two-up row and the wide card below it is unaffected (the row's **bottom** padding stays 15px).
+
+Verified by a separate-`exec` read-back on a fresh session and by an idempotent re-issue answering `ALREADY` on both. Publish preview reads exactly **2** changes — `WebPage | Home` and `SmartComponent | Home / Home - Projects Row` — on two independent fresh sessions (hash `5ekep9`), no errors, no warnings, no collision with the other website session.
+
+**After publishing, expect `cardTop 919 -> 844` and `gap 90 -> 15` at 390x844 and 393x852, with landscape/tablet/desktop still 15, and a byte DROP** — both changes delete a rule rather than change a value, which is the override-elimination signature this file has now recorded five times.
