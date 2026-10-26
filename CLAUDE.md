@@ -12422,10 +12422,10 @@ New asset `H7nzVOh4FDUYBH9pO0bhYXACWlc.png`; the previous `xd3P48EmRnV2cEFCiorZU
 hosted, so reverting is one rebind. `/elements` `+8` bytes — exactly 1 character x 8 srcset refs,
 with distinct image assets still 12, so one swap and nothing else. Draft counts clean on all eight.
 
-### WHY THE LEFT CARD NEVER BROKE — the right card's Image changed POSITIONING MODE between variants (2026-10-25, PUBLISHED `c529cfdb2`)
+### THE IMAGE'S STORED POSITIONING MODE IS INERT — a whole diagnosis built on values Framer never emits (2026-10-25, retracted same day)
 
-Shak asked the right question: *"review the left card and see why that works without issue."* The
-answer is exact, and it is the third instance of one root cause.
+Shak asked the right question — *"review the left card and see why that works without issue"* — and the
+node attributes gave a clean-looking answer:
 
 | variant | LEFT card Image | RIGHT card Image |
 |---|---|---|
@@ -12433,44 +12433,57 @@ answer is exact, and it is the third instance of one root cause.
 | Left Open | `cX=50%` | `cX=25%` |
 | Right Open | `cX=75%` | **`L=-116px`** |
 
-**The left image uses `centerX` in every variant — one mode, only the percentage changes, so there is
-always a coherent value to animate. The right image switched between `left` and `centerX`.** A
-positioning *mode* change has no coherent intermediate, so during the transition the image was both
-mispositioned and too narrow — which showed as the picture sliding AND as Framer's diagonal
-placeholder appearing at the card's right edge. Same fault as the Overlay, one layer over, and the
-same as the 2026-10-11 rule that **positioning attributes are a mode, not independent fields.**
+The left image uses `centerX` throughout; the right switched between `left` and `centerX`. That is the
+signature of the positioning-mode fault already fixed on the Overlay, so I normalised all three to
+`centerX` (40/25/50, derived from measured geometry) and published `c529cfdb2`.
 
-**CORRECTING MY OWN EARLIER REASONING IN THIS FILE: the Image is `position: absolute` in every
-variant, so it is NOT a flex child and the wrapper's `justify-content` does not position it at all.**
-I had built a whole explanation on `flex-start` versus `flex-end` anchoring. That is wrong for the
-Image — `stackDistribution` is `start`/`end` on the wrappers and governs nothing here. **Read a
-node's `position` before reasoning about how its parent's layout places it.**
-
-**The fix: `centerX` in all three variants, values derived from measured geometry rather than guessed.**
-For a right-aligned image of width `k x cardW`, `centerX = 1 - k/2`:
+**!!! IT IS A COMPLETE NO-OP, AND THE DIAGNOSIS WAS WRONG. !!!** Checked after publishing, against the
+saved pre-publish build:
 
 ```
-REST        k=120%  ->  40%        measured (1006.8-728.0)/697.0 = 40%
-RIGHT OPEN  k=100%  ->  50%        measured (1006.8-588.6)/836.4 = 50%
-LEFT OPEN   k=150%  ->  25%        measured (1006.8-867.4)/557.6 = 25%  <- already stored as 25%
+image CSS rules       pre 5 and 7   post 5 and 7   ZERO differ
+"-116" in the HTML    0 before, 0 after
+"-116" in all 14 JS chunks   0
+Home, publish stamp normalised out   269,887 bytes BEFORE   269,887 bytes AFTER
 ```
 
-**Left Open's stored value already matched its measured value exactly, which is what validated the
-derivation before anything was written.** Without that one agreeing data point this would have been a
-guess at Framer's `centerX` semantics on a live component — and the left card's `75%` does *not*
-reconcile with the same formula, so the semantics are not fully understood and a lone formula would
-not have been trustworthy.
+**The stored `left` and `centerX` values were never emitted — not as CSS, not as JS motion targets — so
+they cannot have caused anything.** The published rule is:
 
-**Verified by requiring the settled rendering to be UNCHANGED.** Before and after, in all three
-states plus the return to rest: `img x=588.6  w=836.4  dRight=0.0`. Identical. That is the right
-check for a change that is supposed to be invisible when settled — it isolates the transition
-without needing to observe it.
+```
+.framer-HASH .framer-u1j3y9{aspect-ratio:1.17458;z-index:1;flex:none;width:120%;height:auto;position:relative;overflow:hidden}
+.framer-HASH.framer-v-1rizoid .framer-u1j3y9{aspect-ratio:1.17458;width:150%}
+.framer-HASH.framer-v-3q8m7a  .framer-u1j3y9{aspect-ratio:1.17458;width:100%}
+```
 
-**NOT YET CONFIRMED AGAINST THE SYMPTOM.** As with the Overlay, the defect has never reproduced in
-headless, so this is a structural fix verified structurally. It needs another screen recording on
-Shak's machine to confirm. Pre-state for reverting: Initial State and Right Open both `L=-116px`,
-`cX=null`.
+**`position: relative`, `flex: none`, and no `left`/`right`/`margin` in any variant.** The Image is an
+ordinary flex child positioned by its wrapper's `justify-content`, and every variant changes only
+`width`. The stored position mode is inert.
 
-**Writing the primary variant cascaded**: setting Initial State to `40%` propagated to Right Open,
-which then read `cX=40%` and had to be set to `50%` explicitly. The write log shows it
-(`was L=null cX=40%`), which is why a per-item prior-value log is worth printing on every write.
+**THIS FILE ALREADY RECORDS THE EXACT TRAP AND I WALKED INTO IT:** *"Treat a stored `position` as intent,
+not as what ships; the published rule is the authority."* I read the node and never read the page. The
+giveaway was available for free — `grep -- "-116px"` on the served HTML returns 0.
+
+**AND MY "CORRECTION" WAS WRONG TOO, WHICH MADE IT WORSE.** The retracted section claimed the Image is
+`position: absolute` and therefore not a flex child, so the wrapper's `justify-content` does not place
+it — and used that to overturn the earlier flex-anchoring explanation in this file. **The published CSS
+says `relative`, so the original flex reasoning was right and my overturning of it was not.** The
+2026-10-01 note that the wrappers must be anchored to the card's OUTER edge (left `flex-start`, right
+`flex-end`) stands unaltered.
+
+**THE SECOND DEFECT'S CAUSE IS THEREFORE STILL UNKNOWN.** The hatch at the card edge and the sliding
+picture are real — Shak recorded both — and nothing in this pass explains them. **What the evidence does
+now rule out:** any stored positioning value on the Image, since none of them reach the browser.
+
+**The most promising remaining line, untested:** the image's size is a PERCENTAGE OF THE CARD
+(`120% / 100% / 150%`), and the design identity `120% x 745.5 = 100% x 894.6 = 150% x 596.4 = 894.6px`
+holds only at the two ENDPOINTS. Mid-flight the card width and the width percentage are two separately
+animated quantities, so their product is only constant if they move in exact lockstep. **If they do not,
+the image genuinely changes size during the transition — which is both the slide and, at the wrong
+moment, a failure to cover.** The 2026-10-05 measurement that found the image stationary sampled only
+the first ~70 ms and is recorded as indicative rather than exhaustive, so it does not settle this.
+Testing it needs per-frame width measurement of the image AND its card together, from a screen
+recording rather than a probe.
+
+**The change was left in place rather than reverted, because reverting is equally a no-op** and both
+cards now at least agree on one scheme in the document. It buys nothing and costs nothing.
