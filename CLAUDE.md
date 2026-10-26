@@ -13519,3 +13519,53 @@ scroll, with the hero `Container` going `390@0 -> 360@15`. The revealed 15px mar
 `#080200`, so it reads as a dark frame — unlike desktop, where the same inset reveals the grey-to-white
 gradient and reads light. That asymmetry is deliberate and correct: a light margin on phone would reintroduce
 the bright edge the dark-buffer work exists to prevent.
+
+**PUBLISHED, AND THE FIRST PUBLISH WAS WRONG — copying desktop's SETTINGS gave the opposite behaviour on
+phone. Fixed in `ecfb24725` (2026-10-26).**
+
+The section above ends "NOT YET PUBLISHED". It shipped as `5a934f621` configured exactly like desktop —
+`Section in view` / `Center` / `#projects` — and the phone hero came out **permanently inset**:
+
+```
+PHONE   framer-v-cyg2i4 (Mobile Active) at scrollY 0, 300, 700 AND back to 0
+        Container 360@15 throughout - never full bleed, never animates
+```
+
+**THE CAUSE IS THE 90vh PHONE HERO, which is itself a deliberate decision recorded elsewhere in this file.**
+Desktop's hero is `100vh`, so `Section Projects` sits exactly at the fold and is *not* in view at rest.
+Phone's is `90vh` — the "peek" that signals scrollability — so **`#projects` is already in view at scroll 0**
+and `Section in view` is true before the visitor does anything.
+
+```
+DESKTOP  hero 950 of 950 viewport  -> Section Projects top at viewport 950  NOT in view at rest
+PHONE    hero 760 of 844 viewport  -> Section Projects top at viewport 760  ALREADY in view at rest
+```
+
+**THE FIX: a different anchor, not a different viewport setting.** Repointed the phone effect at
+**`#home-nav-state`** — the existing 1x1 `Navigation Scroll Trigger` at `top: 140px` with `Offset Y 100` —
+with `Viewport: Top`, which by the recorded arithmetic fires at `140 - 100 = 40px`. Verified live:
+
+```
+PHONE    y 0 and 20  framer-v-m1jx24   390@0      <- full bleed at rest
+         y 40 .. 700 framer-v-cyg2i4   360@15     <- inset, fires at 40
+         back to 0   framer-v-m1jx24   390@0      <- reverts
+TABLET   900@0 -> 870@15 -> 900@0      unchanged
+DESKTOP  1536@0 -> 1506@15 -> 1536@0   unchanged
+```
+
+Home sweep 21/21; `/fixtures` byte-identical; `/news/cauda` +11 bytes with video, image count and title
+unchanged (that page was the other session's change, carried with Shak's authorisation).
+
+**!!! THE LESSON: MATCH THE BEHAVIOUR, NOT THE SETTINGS, WHENEVER THE BREAKPOINTS DIFFER STRUCTURALLY. !!!**
+I read desktop's five fields and copied them across, which felt like the careful thing to do and was exactly
+wrong — the same `Section in view / Center / #projects` means "fires shortly after scrolling" on a `100vh`
+hero and "fires before the page is touched" on a `90vh` one. **A scroll trigger is a statement about
+geometry, so it has to be re-derived against each breakpoint's own geometry.** The cheap check that would
+have caught it before publishing: compute whether the anchor is inside the viewport at `scrollY 0` for that
+breakpoint's hero height.
+
+**And a verification gap worth naming.** The pre-publish verification read the five fields back from a fresh
+popover and they were all correct — the settings were never in doubt. What was never checked was what they
+would *do*. **For anything scroll-triggered, a field read-back is not a verification; only a fire-point
+measurement is**, and that needs a publish on this project, so it belongs in the post-publish sweep rather
+than being skipped.
