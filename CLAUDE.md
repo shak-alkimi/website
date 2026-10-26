@@ -13921,3 +13921,50 @@ The padding strings are the same length, so the entire delta is the duplicated s
 Home regression sweep passes 15/15. `Section Hero` phone still `rgb(255,255,255)` and desktop/tablet still transparent, so the seam fix is intact.
 
 **Still open and deliberately not fixed: the landscape-phone / short-window hero never shows full-bleed** — see the entry above. It is a trigger-geometry question on the desktop/tablet variant, independent of this change.
+
+### !!! THE DESKTOP/TABLET HERO NEVER WENT FULL-BLEED BELOW ~800px OF VIEWPORT HEIGHT — not just landscape phones (2026-10-26, WRITTEN AND VERIFIED, **NOT PUBLISHED**) !!!
+
+Shak asked about a landscape phone. Characterising it showed the problem is **far wider than landscape**, and that was worth measuring before proposing anything:
+
+```
+1536 x 950   full bleed, fires at  75      1536 x 760   INSET AT REST
+ 900 x 1000  full bleed, fires at  99      1536 x 600   INSET AT REST
+1536 x 1100  full bleed, fires at 150      1200 x 500   INSET AT REST
+1536 x  900  full bleed, fires at  51       900 x 600   INSET AT REST
+1536 x  850  full bleed, fires at  24       844 x 390   INSET AT REST
+```
+
+**`fire = vh/2 - 400`, which goes negative below `vh = 800`.** A 1536x760 laptop window — an entirely ordinary size — opened with the hero already inset. Landscape phone was one instance of a general fault.
+
+**THE MODEL WAS DERIVED FROM BEHAVIOUR AND THEN CONFIRMED TWICE.** Predicted against three untested heights: `850 -> 24` (predicted 25), `900 -> 51` (50), `1100 -> 150` (150). And the two inputs are readable straight from the DOM, which is much quicker than opening the editor:
+
+```js
+getComputedStyle(document.getElementById('projects')).scrollMarginTop   // "400px"  <- the scroll section's Offset Y
+document.getElementById('projects').getBoundingClientRect().top + scrollY // 950 = 100vh
+```
+
+**`scroll-margin-top` IS FRAMER'S ENCODING OF A SCROLL SECTION'S `Offset Y`.** That is the cheapest way to read an offset without the editor, and it is what made the arithmetic checkable: anchor `#projects` at `100vh`, offset `400`, `Viewport: Center` gives `fire = (vh - 400) - vh/2 = vh/2 - 400`. **Both terms scale with viewport height, so no value of the offset can fix it** — the anchor itself has to become viewport-independent.
+
+**THE FIX: repoint the effect at `#home-nav-state`, the existing 1x1 trigger layer, with `Viewport: Top`.** `top: 140px`, `scroll-margin-top: 100px` -> **fires at a constant 40 at every viewport height**, which is exactly what the phone hero and every nav on the site already use. No new layer; the trigger already existed on all three breakpoints (`q5UHKIOfF` + prefixed copies).
+
+```
+                    before                          after
+Desktop   #projects / Center -> Image Active   #home-nav-state / Top -> Image Active
+Tablet    (inherited)                          (inherited)
+Phone     #home-nav-state / Top -> Mobile Active        unchanged
+```
+
+**THE CASCADE CARRIED BOTH `Section` AND `Viewport` TO TABLET, WHICH IS THE OPPOSITE OF THE FOUR-FOR-FOUR PATTERN RECORDED ELSEWHERE** — and the later refinement explains it: a breakpoint holding **its own stored Section** blocks the cascade, one that merely inherits picks it up. Tablet inherits, so it followed. **Phone holds its own effect** (its `Scroll` label renders blue, the breakpoint-override colour) and therefore kept `To: Mobile Active` rather than being clobbered with `Image Active` — which would have broken the phone hero outright. **Read all three regardless; the point is that the cascade's behaviour is predictable from whether an override exists, not from the property.**
+
+**KNOWN AND ACCEPTED CONSEQUENCE: desktop now insets at 40px of scroll instead of 75.** There is no way to keep 75 on a tall window without keeping the viewport dependence that is the bug. 40 matches the phone exactly, so all three breakpoints now behave identically at every window size.
+
+**EDITOR TECHNIQUE — the effect is an API blind spot and the probe is worth running first.** A full key dump of the hero instance returns 26 keys with **zero** matching `/scroll|effect|trigger|section|viewport|interact|appear|transition|animat/`, so there is no route but the editor. Re-probing cost one `exec` and has paid off before.
+
+- **The indentation of the layer tree IS the breakpoint.** Dumping every left-panel leaf as `y + x` and rendering depth from `x` makes it unambiguous which branch a `Home / Hero Header` row belongs to — all three breakpoints have a row with that exact name, and expanding one collapses the others. **Never select a repeated row by index; print the tree and read the nesting.**
+- Synthetic `pointerdown/mousedown/pointerup/mouseup/click` select tree rows and work disclosure arrows at `row.x - 16`; **the effect chip and the Viewport segmented buttons need a real `computer left_click`.** The recorded split holds exactly.
+- **The Viewport buttons carry `aria-label` (`Top`/`Center`/`Bottom`) and the active one carries the class `s56pukx`** — so the state IS readable, contradicting the note that it has no DOM signal. Same marker identifies `Replay: Yes`.
+- The `Section` dropdown is a native `<select>` whose option values are **node ids** (`rSDIAOpVB=#projects`, `q5UHKIOfF=#home-nav-state`), so it can be set exactly with the native setter plus `input`/`change` — no guessing at option order.
+- **Changing only `Section` and `Viewport` does NOT reset `To`** (verified on all three). The documented reset is caused by changing the trigger *type*.
+- Verified by **closing the popover and reopening it** on each breakpoint, which is the reliable read for a select.
+
+**NOT PUBLISHED — publishing is blocked in this session as a production deploy.** Preview reads exactly 1 change, `WebPage | Home | updated`, no errors, on two independent fresh sessions. **After publishing, re-run the viewport-height sweep: every height from 390 to 1100 should report `fires at 40` and `Image`/`Mobile` at rest.**
