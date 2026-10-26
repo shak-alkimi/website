@@ -12320,3 +12320,18 @@ edge-detector had returned nothing useful twice because it kept locking onto the
 and the `Elements` label. **Build the contact sheet first and look; write the detector afterwards, to
 measure what you have already seen.** Using `gray` raw output is safe here because this detects
 *discontinuities*, not absolute colour, so the recorded ffmpeg colour hazards do not apply.
+
+**CONFIRMED FIXED BY SHAK ON HIS OWN MACHINE (2026-10-25).** He could not provoke it after the
+publish. That is meaningful rather than mere absence: the artifact appeared in **112 of the 837
+frames** of his original recording — roughly 13%, i.e. trivially easy to hit — so failing to
+reproduce it is real evidence. He did briefly report it as still occurring and then withdrew that
+within a minute, so treat a single "still broken" report on an intermittent defect as provisional
+until it is seen twice.
+
+**THE CAVEAT THAT MATTERS FOR THE NEXT ONE: MY OWN VERIFICATION COULD NOT HAVE DISTINGUISHED A
+WORKING FIX FROM A BROKEN ONE.** The defect never reproduced in headless at any viewport, dpr or
+timing, so measuring "overlay tracks the card in every frame" after the change proved only that the
+new geometry is coherent — not that the symptom stopped. The genuinely decisive evidence is
+structural: **five CSS rules became one with zero variant overrides**, so there is no longer any
+transition for Motion to get wrong. **When a fix cannot be verified against the symptom, say so and
+lean on a structural proof — and get the user to confirm on the machine that shows it.**
