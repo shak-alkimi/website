@@ -12487,3 +12487,133 @@ recording rather than a probe.
 
 **The change was left in place rather than reverted, because reverting is equally a no-op** and both
 cards now at least agree on one scheme in the document. It buys nothing and costs nothing.
+
+### THE WIDTH-IDENTITY THEORY IS DISPROVEN — the image never changes size, and the recordings prove the overlay fix worked (2026-10-25)
+
+The retraction above left one theory standing: the image's size is a **percentage of the card**
+(`120% / 100% / 150%`), so the identity `p x W = 894.6` holds at the two endpoints and might not hold
+mid-flight, which would be both the slide and, at the wrong moment, a failure to cover. **Measured
+against Shak's recordings, it is false.** The image is stationary and constant-width at every instant.
+
+**THE RECORDINGS, and there are FOUR, not one** (`~/Downloads` and `~/OneDrive/Videos/Captures`), all
+`2272x1440`, Chrome window capture of the live site:
+
+```
+20:02:49  r1   792 frames   <- BEFORE the overlay fix
+          20:30  937dc94 / publish d801b7af3  "Fix the Home card gradient collapsing"
+20:50:03  r3   AFTER        20:50:46  r4   AFTER        20:51:27  r2   AFTER
+```
+
+**Scale: 1322.2 rec px = 894.6 CSS px, so 1.4780 rec px per CSS px**, derived from the cards
+themselves (settled widths `881.4` and `1322.2`, ratio `1.4990` against the design's exact `1.5`;
+`745.5 x 1.478 = 1101.9` matches the measured rest width to a tenth of a pixel). Every figure below is
+recording pixels unless marked CSS.
+
+**THE MEASUREMENT: the image is anchored to its card's OUTER edge, so track a feature of the
+PHOTOGRAPH relative to that edge.** The right card is `flex-end`, pinned to its right edge, which
+never moves — so the Elements connector pair must sit at a fixed absolute x in every frame if the
+image never resizes. Two scanlines, both `crop=2272:2` collapsed with `scale=2272:1:flags=area`: one
+at the card bottom, where the gradient is dark and bare card is `246`, for the card edges and the
+overlay's coverage; one at `y=960` through the connectors for the image.
+
+**RESULT — in the 86 frames of r1 that carry the defect, the overlay is up to 405 px short and the
+image does not move at all:**
+
+| in the same 86 frames | measured |
+|---|---|
+| card width sweeping | `945 .. 1287` (spread 342) |
+| **uncovered strip at the right card's right edge** | **`63 .. 405`** |
+| image: connectors' left edge from the card's right edge | **`839 .. 841` (spread 2)** |
+| image: connectors' right edge | **`267 .. 269` (spread 2)** |
+| image: rendered width of the connector pair | **`572 .. 573` (spread 1)** |
+
+**Two layers in one card, measured in the same frames by the same instrument — one broken, one
+pristine. That is the cleanest control this project has produced.**
+
+**The predicted effect is 5 to 70 times larger than the noise floor, so it is excluded outright.**
+Even under *perfect* lockstep the identity does not hold mid-flight, because the product of two
+linearly-animated quantities is a quadratic that bulges at the midpoint:
+
+```
+shrinking card  (1.2 + 0.3s)(745.5 - 149.1s)  peaks at s=0.5 -> 905.8  = +11.2 CSS px
+growing card    (1.2 - 0.2s)(745.5 + 149.1s)  peaks at s=0.5 -> 902.1  = + 7.5 CSS px
+```
+
+`+11.2 CSS px = 16.5 rec px` of image width would move the connectors by `0.636 x 16.5 = 10.5 px` and
+change the pair's width by `0.433 x 16.5 = 7.2 px`. **Observed: 2 and 1.** The "snap" variant — the
+percentage not animated at all — predicts up to `149 CSS px = 220 px` of deficit. Not there either.
+
+**SO THE DESIGN IDENTITY IS EXACT AT EVERY INSTANT, NOT ONLY AT THE ENDPOINTS**, which retires the
+suspicion rather than merely failing to confirm it. The explanation consistent with the data is that
+Motion **resolves a percentage width against the parent once and animates the resolved pixel value**:
+`120%` of the rest card and `100%` of the open card are both `894.6`, so the animated quantity is a
+constant and the image is incapable of changing size during the transition. This also upgrades the
+2026-10-05 note, which sampled only the first ~70 ms and was explicitly recorded as *"indicative
+rather than exhaustive"* — it is now exhaustive: **411 mid-flight frames before the fix and 716
+after, image stationary throughout.**
+
+**AND THE HATCH IS THE OVERLAY, PROVEN THREE WAYS.** First, by **anchor direction alone, which needs
+no measurement at all**: the gap is at the right card's **right** edge — `106 of 106` defective
+frames, `11,721 px` there against `79 px` at that card's left — and the image on that card is pinned
+to that very edge, so it is the one layer in the card that cannot leave a gap there. Only a
+left-anchored layer can, which is exactly what the pre-fix overlay was
+(`.framer-v-3q8m7a .framer-lykl7s{bottom:0; left:0; width:150%}`). Second, by the law the gap obeys:
+
+```
+W2=1236 gap=353   W2=1165 gap=282   W2=1089 gap=207   W2=1032 gap=150   W2=960 gap=78
+```
+
+`gap = W2 - 883` to within a pixel, i.e. **the overlay sat near the SHUT card's width (883 px = 597
+CSS px) while the card grew away from it** — it lagged, it did not track. Third, by eye: at `f246` the
+gradient and the label stop dead at a hard vertical edge two-thirds across and the right third is bare
+card.
+
+**THE FIX IS CONFIRMED BY THE RECORDINGS, WHICH CLAUDE.MD SAID COULD NOT BE DONE.** That section
+closes *"my own verification could not have distinguished a working fix from a broken one"* and leans
+on a structural proof plus Shak's eye. With the pre-fix recording as the control it can be
+distinguished, and decisively:
+
+| | row frames | mid-flight | frames with a >40 px uncovered strip |
+|---|---|---|---|
+| **r1 pre-fix** | 745 | 411 | **106**, worst `405 px` (274 CSS px) |
+| r3 post-fix | 234 | 152 | **0** |
+| r4 post-fix | 624 | 364 | **0** |
+| r2 post-fix | 269 | 200 | **0** |
+
+**1,127 post-fix row frames, 716 of them mid-flight, zero.** Note all three post-fix captures predate
+`c529cfdb2`, which is a proven no-op — so they describe the current live build exactly.
+
+**!!! `-vsync` / `-fps_mode` MISMATCH BETWEEN TWO ffmpeg PASSES MAKES THEIR FRAME NUMBERS
+INCOMPARABLE, AND IT PRODUCED A FLAT CONTRADICTION THAT TOOK THREE PASSES TO SPOT. !!!**
+
+These captures are **VFR**. A plain pass defaults to CFR output and **duplicates frames to reach 60
+fps — 837 of them**; a pass with `select` plus `-vsync 0` passes through the real **792**. Frame `541`
+therefore meant two different moments, and the two passes disagreed about whether a strip existed at
+the same `(frame, x, y)`. **Put `-fps_mode passthrough` on every output and verify the frame count
+matches `nb_frames` before comparing anything across passes.** CLAUDE.md's recorded *"837 frames"* and
+*"112 of the 837"* come from the duplicated path; the real count is 792.
+
+**!!! A FIXED-y SCANLINE IS NOT A MEASUREMENT OF A SCROLLING PAGE — it manufactured a defect that does
+not exist, and I was one step from reporting that the fix had merely MOVED the fault to the other
+card. !!!** The post-fix captures are mostly of the hero, scrolled to the top, with only the tops of
+the cards in shot. At a fixed `y` the scanline then crosses bare card tops and white page and reports
+enormous "uncovered strips" — `6.4%` of r3 and `4.3%` of r4, overwhelmingly at the *left* card's right
+edge, which is precisely where the image theory predicted them. **The numbers were a coherent,
+plausible, completely false confirmation of the hypothesis I was testing.** Rendering twelve of those
+frames killed it in one look.
+
+**The gate that works is self-validating: require the PRODUCT to be visible at its expected offset.**
+If the connector pair is found `820..860 px` from the right card's right edge, the row is at its
+reference scroll position, because it can appear there under no other condition — and it is the same
+feature the measurement needs, so a frame that can be measured is a frame that is valid. A threshold
+gate on background brightness does **not** work here: bare card is `246` and page is `255`, so a
+hero-scroll frame passes any "is this light backdrop" test. Each recording also needs **its own**
+scanline (`r1 y=1338`, `r2/r3 y=1300`, `r4 y=1380`), found by sweeping `y` and keeping the one that
+yields the most valid frames.
+
+**Scripts kept** in this session's scratchpad under `rec/`: `cover.js` (card edges and coverage from
+page-white runs), `feat4.js` (feature track in fixed anchor-relative windows), `final2.js` (the
+per-recording comparison), `sweep.js` (find a recording's card-bottom scanline).
+
+**So nothing is outstanding on this row.** The hatch and the sliding picture were one defect, it was
+the overlay, and it is fixed. `c529cfdb2` remains a harmless no-op.
