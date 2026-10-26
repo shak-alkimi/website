@@ -13099,3 +13099,43 @@ right and the question it answered was not the one being asked.
 **Net: the workaround is strictly a win** — defect gone, nothing given up — and it is now KEPT. It remains a
 workaround for the Framer runtime regression, so if Framer fixes the projection bug upstream this can be
 reverted with no consequence either way.
+
+**CORRECTION — THE PADDING AND THE DEFECT NEVER OVERLAP IN TIME, so "the hover's layout animation collides with the padding's" is WRONG and is withdrawn (2026-10-26).**
+
+Two entries above describe this as a collision: *"that 15px is the layout animation that fires as the row
+scrolls in, and it is what the hover's own layout animation collides with"*, and *"the padding is the WINDOW
+the collision happens in"*. Shak asked the obvious question — *"so it was creating the issue, but doing
+nothing visually?"* — and checking it properly shows the collision framing cannot be right.
+
+**Measured on the old build, sampling the live `paddingTop` and the defect gap in the SAME rAF loop:**
+
+```
+frames with the 15px padding live (pad>0.5):  3    window t =   0 ..   26 ms   variant 1juo821
+frames with the defect gap       (gap>2):    25    window t = 627 .. 1060 ms   variant 1rizoid
+frames with BOTH at once:                     0
+```
+
+**The padding released 600 ms before the gap appeared, and never re-fires** (3 frames out of 218). So the
+two are not contemporaneous and cannot be fighting each other.
+
+**WHAT IS ESTABLISHED, AND WHAT IS NOT.** Established by experiment and not in doubt: removing the padding
+difference removes the defect (interleaved A/B, 21-26 gap frames -> 0, matched `scale-animating` counts), and
+the padding animation is invisible (below the fold, 0.6 s after load). **Not established: the mechanism.**
+
+**The hypothesis that fits the timing** is that the padding difference is what makes the
+`Before Scroll State -> Initial State` switch a *layout* change at all, which enrols the row in Motion's
+layout-projection machinery — and that enrolment, or the projection baseline it leaves behind, persists and
+is what the new Framer runtime then mis-resolves during the hover 600 ms later. Equalise the padding and the
+switch carries no layout change, so the row never enters that path. **This is a hypothesis; it cannot be
+settled from outside Motion's internals and should not be written up as fact** — including in any bug report,
+where the reproducible behaviour is the valuable part and the guessed cause is not.
+
+**THE REASONING LESSON, and it is the second one this change has produced: an A/B proves WHICH KNOB, never
+WHY.** The A/B was clean and decisive and I converted it straight into a causal story about two animations
+colliding, because the two things were adjacent in the code and both were "layout animations". One run
+sampling both quantities on the same clock killed it. **When a fix is proven by removal, state the removal as
+fact and the mechanism as conjecture until something independent supports it** — timing, instrumentation, or
+the vendor's own source.
+
+Worth noting this also makes the change *safer* rather than less safe: whatever the mechanism, the 15px was
+doing nothing visible and its removal is not trading one behaviour for another.
