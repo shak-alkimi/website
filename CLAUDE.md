@@ -12421,3 +12421,56 @@ assets cannot be deleted.
 New asset `H7nzVOh4FDUYBH9pO0bhYXACWlc.png`; the previous `xd3P48EmRnV2cEFCiorZUDROuw.png` stays
 hosted, so reverting is one rebind. `/elements` `+8` bytes — exactly 1 character x 8 srcset refs,
 with distinct image assets still 12, so one swap and nothing else. Draft counts clean on all eight.
+
+### WHY THE LEFT CARD NEVER BROKE — the right card's Image changed POSITIONING MODE between variants (2026-10-25, PUBLISHED `c529cfdb2`)
+
+Shak asked the right question: *"review the left card and see why that works without issue."* The
+answer is exact, and it is the third instance of one root cause.
+
+| variant | LEFT card Image | RIGHT card Image |
+|---|---|---|
+| Initial State | `cX=75%` | **`L=-116px`** |
+| Left Open | `cX=50%` | `cX=25%` |
+| Right Open | `cX=75%` | **`L=-116px`** |
+
+**The left image uses `centerX` in every variant — one mode, only the percentage changes, so there is
+always a coherent value to animate. The right image switched between `left` and `centerX`.** A
+positioning *mode* change has no coherent intermediate, so during the transition the image was both
+mispositioned and too narrow — which showed as the picture sliding AND as Framer's diagonal
+placeholder appearing at the card's right edge. Same fault as the Overlay, one layer over, and the
+same as the 2026-10-11 rule that **positioning attributes are a mode, not independent fields.**
+
+**CORRECTING MY OWN EARLIER REASONING IN THIS FILE: the Image is `position: absolute` in every
+variant, so it is NOT a flex child and the wrapper's `justify-content` does not position it at all.**
+I had built a whole explanation on `flex-start` versus `flex-end` anchoring. That is wrong for the
+Image — `stackDistribution` is `start`/`end` on the wrappers and governs nothing here. **Read a
+node's `position` before reasoning about how its parent's layout places it.**
+
+**The fix: `centerX` in all three variants, values derived from measured geometry rather than guessed.**
+For a right-aligned image of width `k x cardW`, `centerX = 1 - k/2`:
+
+```
+REST        k=120%  ->  40%        measured (1006.8-728.0)/697.0 = 40%
+RIGHT OPEN  k=100%  ->  50%        measured (1006.8-588.6)/836.4 = 50%
+LEFT OPEN   k=150%  ->  25%        measured (1006.8-867.4)/557.6 = 25%  <- already stored as 25%
+```
+
+**Left Open's stored value already matched its measured value exactly, which is what validated the
+derivation before anything was written.** Without that one agreeing data point this would have been a
+guess at Framer's `centerX` semantics on a live component — and the left card's `75%` does *not*
+reconcile with the same formula, so the semantics are not fully understood and a lone formula would
+not have been trustworthy.
+
+**Verified by requiring the settled rendering to be UNCHANGED.** Before and after, in all three
+states plus the return to rest: `img x=588.6  w=836.4  dRight=0.0`. Identical. That is the right
+check for a change that is supposed to be invisible when settled — it isolates the transition
+without needing to observe it.
+
+**NOT YET CONFIRMED AGAINST THE SYMPTOM.** As with the Overlay, the defect has never reproduced in
+headless, so this is a structural fix verified structurally. It needs another screen recording on
+Shak's machine to confirm. Pre-state for reverting: Initial State and Right Open both `L=-116px`,
+`cX=null`.
+
+**Writing the primary variant cascaded**: setting Initial State to `40%` propagated to Right Open,
+which then read `cX=40%` and had to be set to `50%` explicitly. The write log shows it
+(`was L=null cX=40%`), which is why a per-item prior-value log is worth printing on every write.
