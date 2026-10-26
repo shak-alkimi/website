@@ -12366,3 +12366,58 @@ certainly been there since launch.
 
 `Home - Projects Row` serves the `/projects/:slug` "Lighting options" rows too, so those carried the
 same latent defect and are fixed by the same change.
+
+### Liga T rescaled to match Liga W — the two renders were at DIFFERENT SCALES (2026-10-25, PUBLISHED `3ecb7bb2e`)
+
+Shak: *"the liga t rendering should be the same size as the liga w rendering."* He was right, and the
+dimensions say so: **`Liga T 0.57l × 0.45w × 0.25h"` against `Liga W 0.52l × 0.45w × 0.25h"`** —
+identical width and height, Liga T only **9.6%** longer. It was rendering **23%** bigger.
+
+**PER-ITEM SCALING IS STILL NOT AVAILABLE IN LAYOUT, so this had to be fixed in the artwork.** Both
+products sit in the **Connector List**, which has one `Product Photo` layer serving every row — the
+long-standing constraint. Nothing on the canvas can scale one row.
+
+**THE CORRECTION FACTOR WAS CONFIRMED BY TWO INDEPENDENT DIMENSIONS AGREEING, which is what made it
+safe to apply without asking.** Measured on the 8000px masters:
+
+```
+width  ratio T:W = 1.125     true: both 0.45w        -> should be 1.000
+height ratio T:W = 1.232     true: 0.57 / 0.52       -> should be 1.096
+```
+
+Scaling Liga T by `1/1.125 = 0.889` sends the width ratio to 1.000 **and** lands the height ratio on
+**1.095 against a true 1.096**. Two unrelated axes landing on their real-world values from one scale
+factor is strong evidence the renders were simply at different scales, not differently composed.
+Verified on the hosted asset afterwards: **1.094 / 1.094 / 1.093** across three thresholds.
+
+**HEIGHT IS THE RELIABLE AXIS ON THESE RENDERS; WIDTH IS NOT.** Height reads `1.229-1.232` across
+every threshold on both the masters and the 2000px outputs — perfectly consistent. Width swings
+(`1.05 / 1.079 / 1.05` on outputs, `1.125` on masters) because **the ground shadow spreads sideways**
+and a brightness threshold picks it up inconsistently. This is the documented product-versus-shadow
+problem seen on the horizontal axis. **Derive a scale from height on a shadowed product render.**
+
+**AND A THRESHOLD BBOX IS NOT COMPARABLE BETWEEN DIFFERENTLY-SCALED IMAGES.** Deriving the absolute
+output scale from the master measurements gave an answer that disagreed with the outputs by 7%,
+because downscaling averages soft edges toward the background and shrinks the measured box at a given
+tolerance. **Compare master to master, or output to output — never one to the other.** The build was
+therefore solved by measuring the OUTPUT against the live Liga W, which is the "solve against the
+measurement you will verify with" rule in a new place.
+
+**Built in one pass from the 8000px master, no stacking:**
+
+```bash
+ffmpeg -i "Liga T.png" -vf "format=rgb24,scale=1778:1778:flags=lanczos,pad=2000:2000:100:54:color=0xF7F6F2" \
+  -pix_fmt rgb24 -frames:v 1 -y ligat_new.png
+```
+
+`pad` with a colour on a single input is the safe form — no second input, so none of the recorded
+ffmpeg colour hazards apply. Corners verified exactly `247,246,242`. The offset (`100,54`) puts the
+subject's centre on the frame centre, since it is not centred in the master.
+
+**PREVIEWED IN THE REAL CARD BEFORE UPLOADING**, via `page.route` fulfilling the live asset URL with
+the local file — no upload, no permanent orphan if rejected. That is worth doing every time, because
+assets cannot be deleted.
+
+New asset `H7nzVOh4FDUYBH9pO0bhYXACWlc.png`; the previous `xd3P48EmRnV2cEFCiorZUDROuw.png` stays
+hosted, so reverting is one rebind. `/elements` `+8` bytes — exactly 1 character x 8 srcset refs,
+with distinct image assets still 12, so one swap and nothing else. Draft counts clean on all eight.
