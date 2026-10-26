@@ -14046,3 +14046,37 @@ portrait (control) 101.7    101.7        657.9 / 657.9              140     1,1
 This is the same fact as "the primary variant can never carry an override", seen from the published side. **Verify a primary variant's value from the RUNTIME computed style, never from a variant-scoped selector** — the runtime read `50px 50px 106px` on both desktop and landscape, which is what confirms it shipped.
 
 Note the byte delta is the two padding strings growing (`50px -> 50px 50px 106px` and `35px -> 35px 35px 91px`, +21) net of the dropped fixed `height`, which is the ordinary value-length accounting rather than the rule-count signature.
+
+### !!! THE WHITE SLIVER IS CLOSED BY GEOMETRY, NOT COLOUR — the phone hero is `100vh` like every other breakpoint (2026-10-26, WRITTEN AND VERIFIED, **NOT PUBLISHED**) !!!
+
+Shak, with a portrait screenshot showing the strip and a landscape one without it: *"can we have the portrait version also not show the white at the bottom at initial state like desktop, tablet, and phone landscape?"*
+
+**This retires the whole dark-buffer saga.** The sliver was accepted as a known cost when the dark buffer was removed earlier the same day; it is now closed by making the hero **fill the fold** rather than by putting a dark band under it. The band is not coming back.
+
+```
+Section Hero      Phone   90vh -> 100vh        (Desktop and Tablet were already 100vh)
+Mobile stack      padding 0px 30px  45px 30px -> 0px 30px 129px 30px
+Mobile Active     padding 0px 15px  30px 15px -> 0px 15px 114px 15px
+```
+
+**`100vh` CLOSES IT BY CONSTRUCTION ON iOS, WHICH `90vh` NEVER COULD.** `vh` resolves against the **large** viewport (toolbars retracted), while the visible area at load is the **small** viewport — so a `100vh` section is always at least as tall as what the visitor can see, and no gap is reachable in any toolbar state. `90vh` was a bet that the toolbar is bigger than the missing 10%, and on Shak's handset it is not. **That is why `90 -> 100 -> 101vh` "shrank but never closed it" in the earlier attempts: the fix was never the number, it was that anything under 100 is a bet.**
+
+**THE COST IS HEADLINE CLEARANCE, AND IT HAS TO BE PAID BACK IN THE SAME CHANGE.** Growing the hero by 10% of the viewport drops the headline's distance to the visible bottom from ~186 to ~102, which on iOS (toolbar ~100px) would leave it about 3px above the chrome. Adding the same ~84px to the padding restores it. Measured by injection before writing anything:
+
+```
+            white BEFORE  AFTER      ink -> viewport bottom BEFORE  AFTER
+390x844        84.4         0               186.1                  185.7
+393x852        85.2         0               186.9                  185.7
+430x932        93.2         0               194.9                  185.7
+360x800        80.0         0               181.7                  185.7
+```
+
+**A BONUS WORTH NOTING: the headline's clearance becomes CONSTANT at 185.7 instead of drifting 182-195 with device size.** At `90vh` the hero's height — and therefore everything anchored to its bottom — scaled with the viewport, so the headline sat at a different distance on every phone. Anchored to a full `100vh` with a fixed padding, it is the same on all of them. **Making a section fill the viewport does not merely close a gap; it removes a device-dependent term from everything measured off its bottom edge.**
+
+`Mobile Active` gets **`114 = 129 - 15`**, preserving the +15 compensation that keeps the text static across the inset — verified, `inkBotDoc` identical at scroll 0 and 200 on all four device sizes, one line each.
+
+**All three breakpoints now read `Section Hero: 100vh` for the first time**, and the phone's white `Section Hero` background (the seam fix) is untouched.
+
+**THE 10% PEEK IS GONE, AND THAT WAS A DELIBERATE DESIGN ELEMENT.** This file records `90vh` as *"the original, deliberate 10% peek that signals scrollability"*. Shak chose consistency with the other breakpoints over the peek, explicitly and with both screenshots in front of him. **Do not restore `90vh` as a "fix" — it is the thing that was removed.** If the peek is ever wanted back, it needs a mechanism that does not depend on the viewport unit, since the sliver returns with it.
+
+**NOT PUBLISHED — blocked in this session as a production deploy.** Three writes, each guarded on its prior value, verified by a separate-`exec` read-back and an idempotent re-issue answering `ALREADY` on all three. Preview reads exactly 2 changes — `WebPage | Home` (the breakpoint height) and `SmartComponent | Home / Hero Header` (the two paddings) — on two independent fresh sessions. **After publishing, re-measure at 390x844, 393x852, 430x932 and 360x800: expect `whiteAtRest 0` and `ink -> viewport bottom 185.7` on every one.**
