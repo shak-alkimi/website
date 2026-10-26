@@ -13895,3 +13895,29 @@ at scroll 0:  variant = "Image Active", padding "0px 15px 15px", Container x 15.
 So a rotated phone gets the tablet hero, and because the viewport is only 390 tall the desktop/tablet inset trigger's condition is already satisfied before any scrolling — the hero never shows full-bleed in landscape. **This is the viewport-height-dependent trigger trap recorded for `/about`, reached from the other direction: there a short anchor offset went negative on a tall window, here a tall anchor is already in view on a short one.** It will affect a short desktop window as well as a landscape phone. Raised, not fixed — the phone fix above is scoped to the `Mobile` variant and does not touch it.
 
 **NOT PUBLISHED — publishing is blocked in this session as a production deploy.** Written and verified (separate-`exec` read-back, idempotent re-issue answering `ALREADY`, `Image`/`Image Active`/`Mobile Active` all re-read unchanged).
+
+**PUBLISHED AND VERIFIED LIVE 2026-10-26** (build `17:01:14 GMT`, `258,415 -> 258,435`, byte-stable over three fetches). The headline is static across the inset on phone, and desktop/tablet are untouched:
+
+```
+phone     Mobile       pad 0 30px 45px   text x=30  docY 574.6
+          Mobile Active pad 0 15px 30px  text x=30  docY 574.6   <- identical
+tablet    Image 50px -> Image Active 35px   text x=50  docY 750  both
+desktop   Image 50px -> Image Active 35px   text x=50  docY 700  both
+```
+
+Confirmed visually as well: two crops spanning the same document range, full-bleed above and inset below, with the headline on the same row in each — only the card edges move around it. One line, ink `30 -> 304.5`, no wrapping.
+
+**THE +20 BYTES ARE THE OVERRIDE-ELIMINATION SIGNATURE RUN BACKWARDS, and it is worth recognising in both directions.** The two phone variants previously shared `0 15px 30px`, so Framer merged them into one rule with a selector list; making them differ **splits that into two rules**, each carrying its own declaration block:
+
+```
+.framer-ZikMM .framer-1lqh25u                  padding:50px          <- base (desktop)
+.framer-ZikMM.framer-v-c58v7q .framer-1lqh25u  padding:35px          <- Image Active
+.framer-ZikMM.framer-v-m1jx24 .framer-1lqh25u  padding:0 30px 45px   <- Mobile
+.framer-ZikMM.framer-v-cyg2i4 .framer-1lqh25u  padding:0 15px 30px   <- Mobile Active
+```
+
+The padding strings are the same length, so the entire delta is the duplicated selector and braces. **So: making two variants AGREE removes a rule and shrinks the page; making them DIFFER splits one and grows it.** Three entries in this file record the shrink; this is the first of the growth, and both are accounted for by rule count rather than by value length.
+
+Home regression sweep passes 15/15. `Section Hero` phone still `rgb(255,255,255)` and desktop/tablet still transparent, so the seam fix is intact.
+
+**Still open and deliberately not fixed: the landscape-phone / short-window hero never shows full-bleed** — see the entry above. It is a trigger-geometry question on the desktop/tablet variant, independent of this change.
