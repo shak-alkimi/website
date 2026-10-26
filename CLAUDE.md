@@ -14230,3 +14230,26 @@ ONLY IN POST  .framer-v-cyg2i4 .framer-1lqh25u { padding:0 15px 99px }
 **No regressions.** The `100vh` white-strip fix is intact — `gapBelowHero 0` at 390x844, 393x852, 430x932 and 360x800, with the bottom 40 device rows reading max grey `0` and the full-frame control spanning `0..111`, so the zeros are a measurement rather than a broken pipeline. Home sweep **22/22**. Pending `0` on two independent fresh sessions, same hash.
 
 **Three changes went out in one publish and the preview named all three** (`WebPage | Home`, `SmartComponent | Home / Hero Header`, `SmartComponent | Home / Home - Projects Row`) with no collision from the other session — the `Section Projects` phone padding, the two hero headline paddings, and the row variant padding.
+
+### PRE-REVIEW SWEEP, AND THE SPEC SHEET BUTTONS ARE LEFT AS THEY ARE — asked and declined 2026-10-26. Do not re-raise.
+
+Shak, before passing the site to others for feedback: *"is there anything open in our records before i pass along to others."* Swept all 13 live pages rather than reading the record, because most of its `NOT PUBLISHED` / `STILL OUTSTANDING` markers are spent — **pending was `0`, so everything written was live.**
+
+**THE STOCK ORA CLEANUP BUNDLE IS CLOSED, and nobody had declared it so.** A scan of **rendered** text (scripts and styles stripped, so the serialised CMS payload cannot produce a hit) for 40 markers — `Ora`, `ena.supply`, `Aesop`, `Mush`, `Polestar`, `Tommy Jacobson`, `Lorem`, `hello@ora.com`, `Glossier`, `Hyundai`, `min read`, `Case Stud` and the rest — returns **clean on all 13 pages**. Link health likewise: every internal target **200**, `/404` correctly 404, **nothing anywhere points at the drafted `/careers` or projects pages**, both `mailto:` addresses `@alkimiworks.com`, one external PDF.
+
+**!!! 15 OF THE 16 SPEC SHEET BUTTONS HAVE NO FILE BEHIND THEM, AND FRAMER OMITS THE `href` ENTIRELY — so they render as ordinary buttons that do nothing. !!!**
+
+```
+/fixtures   >Spec Sheet< x11   target="_blank" x1   .pdf refs 2
+/elements   >Spec Sheet< x5    target="_blank" x0   .pdf refs 0
+```
+
+**The one that works serves the BLANK MASTER.** Pulled and parsed: `Insert Text` **x180**, `PRODUCT NAME` x2, `PRODUCT DESCRIPTOR`, `0.0 W`, `00 lm`, `0000k` x6, and the InDesign slug `Alkimi_SpecSheet_Master.indd` x20 printed on all five pages. Right branding, unfilled template, on Prisma Multiplier.
+
+**SHAK'S CALL: LEAVE THEM.** Offered hiding the 15 without files (one control write per product) and he declined. **It needs no engineering to close** — the `Link` binding to the `Spec Sheet` file field is already in place on all six Collection List templates, so **each button wires itself the moment a PDF lands in that item's CMS cell**. The only outstanding work is the PDFs themselves, which are Shak's.
+
+**Raised in the same sweep, none a defect, none acted on:** `/warranty` is live with its open legal items (knowingly accepted, and footer-linked on every page so outside readers will find it); `/news/kimi` has a video hero and **no body images** where the other two articles have photographs; **`Dimensions Metric` is empty on all 16 products** so only imperial renders; there are **no social links at all** (the Follow column is hidden for want of an Instagram); and shared **article** links show the generic site description, because `Preview Text - Featured` is empty on all three.
+
+**HOME'S 8 DIAGONAL PLACEHOLDER TILES ARE NORMAL STRUCTURE, NOT A DEFECT — and a scan for them will keep finding them.** The classless striped `<div>` sits at child index 0 of every `Image Wrapper` by design, with the `Image` above it at `z-index: 1`. **Its presence in the markup means nothing; only seeing it rendered means the image above went transparent.** Home is the only page with any, and its cards are verified rendering, so a future sweep that flags `background-size:64px` should check whether anything actually paints before reporting it.
+
+**Already settled and deliberately excluded from that report, so they do not return as findings:** the Home card text moving on hover, the Rima colour, the `/elements` bottom alignment, the desktop Read-more and Home newsroom meta boxes, the Framer projection retest, and the footer `Methodology` label.
