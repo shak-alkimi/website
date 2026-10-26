@@ -13571,3 +13571,65 @@ popover and they were all correct — the settings were never in doubt. What was
 would *do*. **For anything scroll-triggered, a field read-back is not a verification; only a fire-point
 measurement is**, and that needs a publish on this project, so it belongs in the post-publish sweep rather
 than being skipped.
+
+### The phone hero's inset margin is WHITE like desktop — put on the VARIANT, not on `Section Hero` (2026-10-26, `ab4d47206`)
+
+Shak asked for the phone margin to be white like desktop. **The obvious lever is the one the white-sliver
+work forbids**, so this was measured before anything was written.
+
+**Where the margin colour comes from, measured on the published page while scrolled:**
+
+```
+DESKTOP   margin paint stack:  Image Active (transparent) < Section Hero : linear-gradient(#545454 0%, #fff 5%)
+PHONE     Section Hero : rgb(8, 2, 0)     variant root : transparent
+```
+
+So desktop's white margin is `Section Hero`'s gradient showing through a transparent variant root. Copying
+that on phone means making `Section Hero` light — and this file records that phone's `#080200` there is
+*"load-bearing, not insurance… it paints that 50px padding band. Do not clear it."*
+
+**TWO CANDIDATES, SIMULATED ON THE LIVE PAGE BEFORE CHOOSING:**
+
+```
+                            scrolled, 15px left margin      at rest, centre column y 728..836
+now                         grey   4                        grey 4
+A  Section Hero -> white    grey 255                        grey 4
+B  variant root -> white    grey 255                        grey 4
+```
+
+**Both give the white margin, and NEITHER reintroduces the sliver** — because at rest the `Mobile` variant
+has zero padding, so the `Container` covers the hero's full height and `Section Hero`'s background never
+shows. That was verified the strong way: forcing `Section Hero` white still read grey 4 all the way down.
+
+**B WAS CHOSEN ANYWAY, because it is safe by CONSTRUCTION rather than by circumstance.** The white lives on
+`Mobile Active` (`eJkK_ItRM` -> `backgroundColor: rgb(255, 255, 255)`), a variant that only exists while
+scrolled; at rest the resting `Mobile` variant is transparent, so there is no light surface anywhere near the
+fold for any future change to expose. A depends on the Container continuing to cover the hero exactly — true
+today, and it would quietly stop being true if the hero height, the padding or the Container's sizing ever
+changed. **Prefer the arrangement whose safety is structural over the one that merely measures safe.**
+
+**Verified live** — and note the three-state read, which is what proves the revert:
+
+```
+PHONE     rest     framer-v-m1jx24   390@0    rootBg rgba(0, 0, 0, 0)
+          scrolled framer-v-cyg2i4   360@15   rootBg rgb(255, 255, 255)
+          back     framer-v-m1jx24   390@0    rootBg rgba(255, 255, 255, 0)
+TABLET / DESKTOP  unchanged, rootBg transparent throughout
+```
+
+Pixels: scrolled, `x 0..14` and `x 375..389` are grey **255** with video between — exactly 15px each side.
+At rest the hero bottom and everything below read grey **4**.
+
+**`rgba(255, 255, 255, 0)` on the revert is correct, not a leftover.** Motion animates the alpha to zero and
+keeps the channel, so the reverted value carries white at zero opacity — visually identical to the
+`rgba(0, 0, 0, 0)` it started from. Same family as the hamburger's `rgb(254, 254, 254)`; **do not "tidy" a
+reverted colour whose alpha is 0.**
+
+**A re-issued write reported `before: bg=null` and "set" a second time, on a separate `exec`.** Two
+independent fresh sessions then both read `rgb(255, 255, 255)`. This is the recorded trap that **a write's
+prior-value report can itself be stale** — so an idempotent re-run is good evidence when it says `ALREADY`
+and is *no* evidence when it does not. Fall back to two fresh sessions.
+
+**White rather than desktop's gradient, deliberately.** The gradient is `#545454 0% -> #fff 5%`, i.e. grey
+only in its top 5%; `Mobile Active` has `padding-top: 0`, so no top margin exists to show it. Flat white is
+identical everywhere the margin is actually visible, and avoids the gradient-donor dance entirely.
