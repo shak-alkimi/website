@@ -13398,3 +13398,46 @@ News / Next Articles  CCtEc5ZiT
 **The layer names lie here as usual:** the Read-more section is `Section News`, its heading is the text layer named `News`, and the cards are `Article Card` — while on `/news` the listing cards are `Article Card` and `Article Card Tablet / Mobile` inside `Article Row`. **Search by `data-framer-name` to find candidates, then confirm by the CSS the class actually carries.**
 
 **Verified across every surface the shared component touches**, counting rendered empty-meta divs: `/news` **0** (untouched), `/news/cauda` **2**, `/news/debut` **2**, `/news/kimi` **2** — the desktop pair on each — and Home **7** (untouched). `/news` came back byte-identical at `197,352` and Home at `257,596`, i.e. neither rebuilt, so the 24/24 Home sweep from the earlier publish still describes it.
+
+### The phone footer gap on the article pages — 50px to 90px, and `/news` already matched (2026-10-26, BOUND BUT NOT PUBLISHED)
+
+Shak: *"for phone - the padding below the last article between it and the footer for /news page should match the newsroom section of home page, and so should each of the three article pages."* Measured on the canvas per breakpoint, which is the authoritative source:
+
+| phone, below the last article | section | padding-bottom | trailing dead space | visible gap |
+|---|---|---|---|---|
+| **Home** `Section News` `W8eJA5eCmBQXWPPU3J` | `75px 15px 90px 15px` | **90px** | **+65px** — its card still has `Show Meta Row: true` | **155px** |
+| **`/news`** last `Article Row` `yqF4ZynNximcwrLyWh` | `45px 15px 90px 15px` | **90px** | none | **90px** |
+| **article pages** `Section News` `P7DaU3y8EAKATRCTxN` | `0px 15px 50px 15px` | **50px** | none | **50px** |
+
+**So only the article template was out, and the fix is one value: `0px 15px 50px 15px` -> `0px 15px 90px 15px` on the Phone breakpoint.** Desktop and Tablet were already `0px 15px 90px 15px` and were left alone — this was a phone-only divergence, exactly as Shak framed it. One node covers all three article pages, since they share the template.
+
+**!!! `/news` NEEDED NOTHING, AND MY FIRST READ SAID IT HAD **ZERO** BOTTOM PADDING. THE PAGE HAS **TWO** `Article Row`s AND I LOOKED UP THE WRONG ONE'S CLASS. !!!**
+
+```
+Article Row  yqF4ZynNxSgYDQUZso  .framer-1gh1bqk   pad 30px 15px 0px 15px   gap 40px   <- FIRST
+Article Row  yqF4ZynNximcwrLyWh  .framer-19c1r2n   pad 45px 15px 90px 15px  gap 45px   <- LAST
+```
+
+I found `.framer-1gh1bqk` with `padding:30px 15px 0`, concluded `/news` ran straight into the footer, and was about to add 90px to a page that already had it. **A `data-framer-name` is not unique — count the matches before reading one of them as "the" element.** The giveaway was available for free: the names census printed `Article Row 2`.
+
+**That also means the 2026-10-26 Read-more gap change matched the WRONG row.** It set the Read-more Mobile gap to 40px to match "`/news`", but 40px is the **first** row; the **last** row is 45px, and the two differ on `/news` itself. The Read-more row is now consistent with one of them and not the other. **Pre-existing inconsistency on `/news`, not introduced here** — recorded so a future "make them match" request knows there are two values to choose between.
+
+**READ PER-BREAKPOINT GEOMETRY FROM THE CANVAS, NOT FROM THE SSR MARKUP.** Three separate attempts to attribute elements to a breakpoint by their `ssr-variant hidden-*` wrappers gave three different wrong answers: the innermost wrapper alone reported Home's empty boxes as rendering on impossible breakpoint combinations, and unioning every wrapper up the ancestor chain reported *everything* as hidden on all three — because **nested components contribute their own wrappers, so the chain is not a single set of mutually exclusive breakpoint variants.** Walking the three breakpoint roots (`Desktop` / `Tablet` / `Phone`) and reading each node's own stored `padding` and `gap` is unambiguous and took one `exec`.
+
+**`node.padding` is a single shorthand string (`"0px 15px 50px 15px"`, t r b l); `paddingTop` and friends do not exist** and come back `undefined`, which prints as an empty column and looks like "no padding set".
+
+**`framer.getNode(id)` resolved one of three page-level section ids and returned `null` for the other two**, even ids read moments earlier in the same session — the documented flakiness, here on ordinary page layers rather than component internals. **Traverse from the `WebPageNode` and keep the live handle.**
+
+**STRUCTURE WORTH KNOWING, since the section is deeper than it looks.** Both newsroom-style sections are `Section News > Global / Line Animation Global + Container > [Heading, Collection Wrapper]`, with the heading row holding the `News` title **and** the `All Articles` link — so `Section Link` is at the **top** of the section, not after the cards, and the section's own `padding-bottom` really is the gap to the footer. `/news` is flatter: `Section Articles > Article Row x2 > News x3 > card`.
+
+**!!! NOT PUBLISHED — the preview's change set exceeds mine. !!!** Two agreeing fresh sessions report `changesCount: 3`:
+
+```
+WebPage       | /news/:slug      | updated     <- mine
+WebPage       | Home             | updated     <- NOT mine
+SmartComponent | Home / Hero Header | updated  <- NOT mine
+```
+
+I wrote one padding value on `/news/:slug` and touched neither Home nor the hero, so the other two belong to the other website session or to Framer's own agent (which this file records as having had an un-reverted `Home / Hero Header` change before). **The padding is bound and verified in the document and will ship with whatever publish comes next, by any session** — so whoever publishes should know they are carrying this plus that Home work.
+
+**STILL OUT OF LINE AFTER THIS, AND IT IS HOME ITSELF: its phone newsroom card keeps the 65px empty meta box**, so Home will still read ~65px looser than `/news` and the article pages even once all three sections sit at 90px. That is the same box removed from the Read-more phone cards earlier today, and closing it is the same one-control write (`tXuTupbrQ: false` on `W8eJA5eCmAdscNAWHz`). **Not done: Shak named Home as the reference, so changing it was not in the ask.** Raised rather than assumed.
