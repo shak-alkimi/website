@@ -13633,3 +13633,59 @@ and is *no* evidence when it does not. Fall back to two fresh sessions.
 **White rather than desktop's gradient, deliberately.** The gradient is `#545454 0% -> #fff 5%`, i.e. grey
 only in its top 5%; `Mobile Active` has `padding-top: 0`, so no top margin exists to show it. Flat white is
 identical everywhere the margin is actually visible, and avoids the gradient-donor dance entirely.
+
+### !!! THE PHONE DARK BUFFER IS GONE — `Section Projects` is WHITE with 60px top padding (2026-10-26, `bc693b901`). THIS REVERTS THE OCTOBER WHITE-SLIVER FIX. !!!
+
+Shak: *"remove the black band underneath the hero now."* The band was `Section Projects` — `#080200` with
+`150px` top padding — i.e. **the dark buffer**, which several earlier sections of this file describe as the
+settled solution to the white sliver and instruct not to clear. It was removed deliberately, with the
+trade measured and shown first.
+
+```
+Phone  W8eJA5eCmrSDIAOpVB   bg #080200 -> rgba(255,255,255,1)   padding 150px 0 0 0 -> 60px 0 0 0
+Desktop rSDIAOpVB  and  Tablet tkc_T8OwdrSDIAOpVB   UNCHANGED (white, 0px)
+```
+
+**Why it came up now: the hero inset changed what the band sits next to.** With the hero becoming a
+white-margined card on scroll, a full-bleed 180px black band between it and the first product card reads as
+a mistake. Measured gap from the video's bottom edge to the first card: **180px -> 90px**, and the colour
+goes dark -> white.
+
+**THE TRADE, SIMULATED ON THE LIVE PAGE BEFORE ANY WRITE:**
+
+```
+                 scrolled band          at rest, strip below the hero
+now              180px dark             grey   4
+white            180px white            grey 255   <- the sliver
+white + tighter   90px white            grey 255   <- the sliver   [CHOSEN]
+dark + tighter    90px dark             grey  88
+```
+
+**The rest state is the whole risk, and it is unchanged by the inset.** The inset only exists above 40px of
+scroll, so at rest the hero is still full bleed with no white margins to make a white strip read as
+"card on a page" — it reads exactly as the strip reported in October. Measured live after publishing:
+**grey 254 under the hero at rest.** That is the sliver, back by choice.
+
+**!!! IT WILL BE WORSE ON A REAL iPHONE THAN ANY EMULATOR SHOWS. !!!** The hero is `90vh`, and iOS resolves
+`vh` against the **large** viewport while the toolbar overlays the bottom — so the strip's height *changes as
+you scroll*, which is what made it read as broken rather than as a design choice. `100vh` and `101vh` were
+both tried in October and neither closed it. **Confirm on a handset, hard-refreshed; a stale build on the
+phone has produced a false verdict here before.**
+
+**Reverting is two attributes on one node** — `W8eJA5eCmrSDIAOpVB` back to `#080200` / `150px 0px 0px 0px`.
+`Section Hero`'s phone `#080200` was deliberately left alone, so the dark is still one write away.
+
+**`Section Hero`'s phone background is now INVISIBLE in both states, which is new.** At rest the `Container`
+covers the hero's full height; when scrolled the white `Mobile Active` root covers it. So the note calling it
+*"load-bearing, not insurance"* is no longer true as stated — it is now pure insurance. **Do not delete it on
+that basis**, because it is exactly what a revert would lean on.
+
+**Verified:** two fresh sessions agree on all three breakpoints; phone white `60px`, desktop and tablet
+white `0px` and untouched; live gaps phone 90px, tablet and desktop 15px; Home sweep 21/21; Home
+`258,393 -> 258,367` (`-26`, the shorter padding value and the dropped colour override).
+
+**THE DECISION RECORD MATTERS MORE THAN THE CHANGE.** The dark buffer took several passes and real-device
+calibration, and a future session reading those sections will find instructions not to do this. **It was
+Shak's explicit call, made after seeing both states side by side**, on the grounds that the band now looks
+wrong beside an inset hero. If the sliver proves unacceptable on the handset, revert and the earlier
+sections stand again as written.
