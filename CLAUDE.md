@@ -12725,3 +12725,90 @@ destroy that identity.
   card and placeholder hatch cleanly, and the hatch is unmistakable because it alternates.
 - The `_updated.mp4` filename carries a **zero-width space** between "Microsoft" and "Edge"; copy it
   with a glob rather than retyping it.
+
+### THE STRUCTURAL FIX IS IMPOSSIBLE, AND THE REAL FIX IS ONE PADDING VALUE — proven by A/B on the live site (2026-10-26)
+
+**!!! THE STRUCTURAL FIX CANNOT WORK, AND THE REASON IS A GENUINE CONTRADICTION — do not attempt it.
+!!!**
+
+The proposal was to stop the Image being an in-flow flex child and make it absolutely positioned like
+the Overlay, which is what immunised the Overlay against this class. Under the `scaleX` animation that
+is self-defeating:
+
+- **Anything that scales with the parent ZOOMS.** An absolutely positioned child of a scaled parent is
+  scaled along with it, so an `inset: 0` image would render `894.6 x scale` and visibly breathe
+  `1118 -> 894` through the transition.
+- **Anything that does not scale with the parent must be counter-scaled**, which is precisely the
+  Motion projection whose translate is the bug.
+- The Overlay works *because* it is supposed to scale: its job is to cover the card exactly, so
+  "scales with the parent" is the correct behaviour. The Image's job is the opposite — **the card is a
+  mask sliding over a stationary picture**, so it must NOT scale.
+
+**Covering a scaling parent and staying visually stationary are contradictory requirements**, and the
+only thing that reconciles them is a correct counter-scale. There is no layer arrangement reachable
+from the Framer canvas that achieves both.
+
+**Swapping the anchor does not help either.** The right card's image is `flex-end` because its card's
+*left* edge is the one that moves; `flex-start` would make it cover (its left edge pins to the
+parent's layout left edge and the 894.6 width then overruns the parent) **but it reintroduces the
+74.6 px image slide fixed on 2026-10-02.** Covering and stationarity trade off against each other on
+the anchor axis too.
+
+**!!! SO THE FIX IS TO REMOVE THE COLLIDING LAYOUT ANIMATION, AND IT IS ONE PROPERTY. !!!**
+
+Dumping every rule for the two scroll-state variants shows the whole of the scroll-in transition:
+
+```
+base      Home Projects - Initial State  (framer-v-1dlme80)  ZERO rules  -> padding: 0 15px 15px
+          Before Scroll State - Below Hero (framer-v-1juo821)  ONE rule  -> padding: 15px
+```
+
+**The two states differ by `padding-top`, 15px against 0, and by nothing else.** That 15px is the
+layout animation that fires as the row scrolls in, and it is what the hover's own layout animation
+collides with.
+
+**A/B ON THE LIVE SITE, interleaved, two trials each**, patching only that one declaration with an
+injected `.framer-0hUM4.framer-v-1juo821.framer-1dlme80{padding:0 15px 15px !important}`:
+
+| | frames | mid-flight | **frames with a gap** | worst gap |
+|---|---|---|---|---|
+| as-is | 154 | 16 | **26** | 143.7 px |
+| **patched** | 153 | 15 | **0** | **0** |
+| as-is | 152 | 15 | **25** | 142.8 px |
+| **patched** | 151 | 15 | **0** | **0** |
+
+Mid-flight counts are identical across all four, so the hover transition genuinely ran every time —
+**the defect is 100% reproducible as-is and 100% absent patched.** Interleaving the trials rather than
+running two of each in a block is what rules out drift between them.
+
+**The editor change: `Before Scroll State - Below Hero` padding `15px` -> `0 15px 15px`.** One value,
+one variant. **The visible cost is the whole of it:** the row no longer shifts up 15px as it scrolls
+into view. That settle is below the fold and subtle, but it is a designed motion, so it is Shak's
+call — and note the equalisation could go the other way (**both** at `15px`), which preserves the
+pre-scroll position and instead moves the settled row down 15px. **Equalising on 0 is the better
+direction**, because it changes only the transient state and leaves the resting layout exactly as it
+is today.
+
+**THE SAME PADDING SPLIT EXISTS ON TABLET AND PHONE and needs the same treatment if it is applied:**
+
+```
+tablet   13nkcd0 width:810px                      <- initial, base padding
+         mhevb7  width:810px; padding:15px        <- below hero
+phone    1x87j4  width:390px                      <- initial, base padding
+         1wk9ftb flex-direction:column; width:390px; padding:15px
+```
+
+**Phone does not matter** — `1wk9ftb` stacks the cards in a column and a phone has no hover, so there
+is no card resize to collide with. Tablet shares the desktop shape and should be changed with it.
+
+**This supersedes the `#f7f6f2` wrapper-background suggestion recorded above.** That would only have
+hidden the symptom by making the uncovered strip match the render's backdrop; this removes the
+uncovered strip. Keep the background idea only as a belt-and-braces option.
+
+**METHOD WORTH REUSING: patch the live CSS with an injected `!important` rule and A/B it before
+touching the editor.** `addInitScript` plus a `DOMContentLoaded` listener gets the rule in before
+Framer hydrates, and `!important` in a stylesheet beats the inline styles Motion writes during an
+animation — so a proposed one-property change can be *proven* on the real published build, with the
+real component and the real interaction, at zero risk and with no publish. **Interleave the trials
+and report the mid-flight count alongside the defect count**, so a run where the interaction simply
+did not fire cannot masquerade as a fix.
