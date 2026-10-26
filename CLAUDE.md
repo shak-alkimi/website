@@ -12335,3 +12335,34 @@ new geometry is coherent — not that the symptom stopped. The genuinely decisiv
 structural: **five CSS rules became one with zero variant overrides**, so there is no longer any
 transition for Motion to get wrong. **When a fix cannot be verified against the symptom, say so and
 lean on a structural proof — and get the user to confirm on the machine that shows it.**
+
+**WHERE IT CAME FROM: THE RIGHT CARD'S OVERLAY WAS INHERITED FROM STOCK ORA, UNMODIFIED.** Settled by
+diffing the served CSS of `energized-personalization-419445.framer.app` against ours. The overriding
+rule is **byte-identical** in both, down to the variant suffix:
+
+```
+stock  .framer-SsoeK.framer-v-1rizoid .framer-a89f6k{bottom:0;left:unset;right:0;top:unset;width:150%}
+ours   .framer-2C8jD.framer-v-1rizoid .framer-a89f6k{bottom:0;left:unset;right:0;top:unset;width:150%}
+```
+
+so is its base (`width:100%; top:0%; left:0%`). **The template authors gave the Overlay the same width
+overrides as the Image** — sensible for the Image, which is deliberately stationary and oversized so
+the card can slide over it as a mask, and wrong for the Overlay, which has to COVER a moving card
+rather than track a still picture. Doing it flipped the anchor between variants, and that cannot
+animate. **Stock Ora has this defect today.**
+
+**BUT THE LEFT OVERLAY'S MODE FLIP IS OURS.** Stock keeps `lykl7s` bottom-left anchored in base *and*
+hover and changes only its width — consistent, so no mode change. The 2026-10-01 pass that set "both
+sides must be `100% Rel`" moved our base to `top:0%; left:0%` while the hover override still says
+`bottom:0; left:0; top:unset`, which introduced the same flip on the left card. Only the right one was
+ever observed, but we had doubled the exposure. **A fix that makes two sides "consistent with each
+other" can quietly make one of them consistent with the broken one — compare against stock, not
+against the sibling.**
+
+**Why it surfaced only now is attention, not change.** Nothing in the hover path had been touched for
+weeks; both Home cards were rebuilt that day, so Shak was looking hard at exactly this row. The window
+is ~100ms, on the shrinking card only, and the recording put it in 13% of frames — it had almost
+certainly been there since launch.
+
+`Home - Projects Row` serves the `/projects/:slug` "Lighting options" rows too, so those carried the
+same latent defect and are fixed by the same change.
