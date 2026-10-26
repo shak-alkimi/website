@@ -12969,3 +12969,93 @@ without ever asking whether the set of candidates was closed. It was not: the ru
 diff. **A conclusion of the form "X is the only thing that changed, so X is the cause" is only as good
 as the boundary you drew around "everything", and that boundary should be stated and tested, not
 assumed.**
+
+### THE PADDING WORKAROUND IS APPLIED AND PUBLISHED — and a saved capture made the fix PROVABLE for the first time (2026-10-26, `fb45736db`)
+
+Shak: *"let's try the padding workaround and we will decide if we keep it."* Applied to `Home - Projects Row`
+(`z64WCa5DN`), equalising each below-hero variant onto its own base so **only the transient scroll-in state
+changes and the resting layout is untouched**.
+
+**IT IS TWO NODES, NOT THREE — and the third is a correction to the note above.**
+
+```
+e4pb_2_xk  Before Scroll State - Below Hero       15px x4 -> 0px 15px 15px 15px   <- desktop, the A/B'd one
+MF8bg8Wk5  Home Projects - Tablet Below Hero      15px x4 -> 0px 15px 15px 15px   <- tablet twin
+Uv47Ka9s5  Home Projects - Mobile                 15px x4 -> LEFT ALONE
+```
+
+The earlier note lists a phone class `1wk9ftb … padding:15px` beside the two below-hero ones and concludes
+"phone does not matter (no hover)". The conclusion is right and the reason given is incomplete: **Row 1 has
+only ONE mobile two-up variant, so that `15px` is its RESTING padding, not a transient state.** Changing it
+would move the phone layout permanently. The right test is not "does this breakpoint hover" but **"does this
+variant have a sibling base variant it is deviating from"** — the two below-hero ones do (every other Row 1
+variant is `0px 15px 15px 15px`), and the mobile one does not.
+
+**Row 2 (`QOhH3GYAD`) carries the identical split (`E_Njxmr9x`, `oUaZ5kXth` at 15px) and was left alone** —
+it renders only the wide card, which does not resize on hover, so there is no card-resize animation to
+collide with.
+
+**THE CSS CHANGE IS AN OVERRIDE ELIMINATION, AND IT SHOWS UP AS A RULE MERGE** — which is a nice
+confirmation that the equalisation is exactly what happened:
+
+```
+REMOVED  .framer-HASH.framer-v-1juo821.framer-1dlme80{padding:15px}            [58]
+         .framer-HASH.framer-v-13nkcd0.framer-1dlme80{width:810px}             [57]
+         .framer-HASH.framer-v-mhevb7.framer-1dlme80{width:810px;padding:15px} [69]
+ADDED    .framer-HASH.framer-v-13nkcd0…,.framer-HASH.framer-v-mhevb7…{width:810px}  [101]
+```
+
+The desktop override vanishes outright; the tablet one, having lost its padding, becomes **identical to the
+tablet base and the two merge into one selector list**. Rules `295 -> 293`, net `-83` chars, page `-130`
+bytes (the rest is the documented searchIndex / chunk-hash / optimizer churn). **A byte DROP after a padding
+change can mean an override was eliminated rather than content leaving the page** — third instance of that
+signature in this file.
+
+**!!! THE SAVED PRE-PUBLISH CAPTURE TURNS "I CANNOT VERIFY MY OWN FIX" INTO A CONTROLLED A/B. !!!**
+
+The overlay-fix entry closes with *"my own verification could not have distinguished a working fix from a
+broken one"*, because the defect never reproduced in headless and the fix had to rest on a structural proof
+plus Shak's eye. **That limitation is gone.** Serving the pre-publish and post-publish captures from two
+local ports and running one identical rig against both gives a validated instrument:
+
+| | frames | scale-animating | **GAPFRAMES** | worst |
+|---|---|---|---|---|
+| PRE t1 / t2 / t3 | 215 / 219 / 212 | 32 / 33 / 28 | **25 / 26 / 21** | **146.5 / 147.1 / 144.9** |
+| POST t1 / t2 / t3 | 218 / 217 / 208 | 32 / 32 / 28 | **0 / 0 / 0** | **0.0** |
+
+Interleaved, fresh context per trial. **The `scale-animating` counts MATCH pairwise**, so the hover
+transition ran equally in both and a "fix" cannot be a run where the interaction simply did not fire. The
+PRE figures also reproduce the recorded live A/B (26, 25) independently.
+
+**So the general rule is: ALWAYS `curl` the page before publishing.** This file already says a diff is only
+available if the baseline was kept — the stronger reason is that **the baseline is a runnable copy of the
+defect**, and therefore the only way to prove a fix rather than merely observe its absence. One `curl` buys
+a time machine.
+
+**The gap measure, for re-use:** at rest the right card's image is flush (`wrapper.right 1521 ==
+image.right 1521`) while the left card's overhangs by 149px and is clipped — so
+`gap = rightWrapper.right - rightImage.right` is zero when healthy and is the quantity to count. Row sits at
+docY `950`; repro is cursor parked at `(390, 300)` then ten `mouse.wheel(0,120)` steps with a 1px
+`mouse.move` after each, which is what makes Playwright re-evaluate hover.
+
+**THE COST, MEASURED RATHER THAN DESCRIBED.** Sampling the left card's top offset inside the row through a
+fresh scroll-in:
+
+| | card-top offset inside row | paddingTop |
+|---|---|---|
+| PRE | ramps `15 -> 0` through 28 distinct values | `15px -> 0px` |
+| POST | constant `0` | constant `0px` |
+
+**That settle is the whole of what is given up** — the row no longer shifts up 15px as it scrolls into view.
+Resting geometry is byte-identical between builds (`rowTopDoc 950`, `rowH 776.1`, cards `745 x 761.1`,
+padding `0px 15px 15px`), and text runs are `95/95` with zero added, removed or count-changed, assets `68/68`
+with only chunk-hash churn differing. Home sweep **21/21**.
+
+**The alternative direction, if the settle is wanted back:** equalise on `15px` instead (set the two base
+variants to `15px` rather than the two below-hero ones to `0`). That preserves the pre-scroll position and
+instead moves the **settled** row down 15px — a permanent change to the resting layout, which is why `0` was
+the better direction. Reverting entirely is one attribute on each of the two nodes.
+
+**DECISION PENDING — Shak is judging whether to keep it.** It is a workaround for the Framer runtime
+regression, not a fix for anything of ours; if Framer corrects the projection bug upstream, this can be
+reverted and the settle restored.
