@@ -14197,3 +14197,36 @@ Shak, before publishing the spacing change: *"lower the phone portrait measured 
 Verified by a separate-`exec` read-back on a fresh session and by an idempotent re-issue answering `ALREADY` on both, with `Image` / `Image Active` correctly reported as skipped. Publish preview reads **3** changes on a fresh session — `WebPage | Home`, `SmartComponent | Home / Hero Header`, `SmartComponent | Home / Home - Projects Row` — all three mine (the `Section Projects` padding, these two hero paddings, and the row variant padding), no errors, no collision.
 
 **After publishing, expect the phone portrait headline clearance at `170` (from 185) at both 390x844 and 393x852, identical ink-to-hero-bottom in the inset state, and desktop/tablet unchanged at 99 and 102.**
+
+**BOTH PUBLISHED AND VERIFIED LIVE 2026-10-26** (build `18:30:18 GMT`, `258,402 -> 258,210` = **-192**, byte-stable over three fetches). The gap is now uniform across every breakpoint for the first time, and the headline sits 15px lower on phone:
+
+```
+                     rest ink->hero   inset ink->hero   video bottom -> card top   card left
+portrait 390x844          170               170                   15                  15
+portrait 393x852          170               170                   15                  15
+landscape 844x390         102               102                   15                  15
+tablet    900x1000        102               102                   15                  15
+desktop  1536x950          99                99                   15                  15
+```
+
+**`rest == inset` on all five** confirms the static-across-inset property survived the change — the `-15` compensation carries, so lowering the headline needed one number and not two. One line everywhere, three cards, card left edge 15 throughout.
+
+**!!! THE OVERRIDE-ELIMINATION SIGNATURE HAS TWO FORMS, AND THIS PUBLISH SHOWS BOTH AT ONCE. !!!** This file has recorded it five times as *a whole rule disappearing*; the second form is a **single declaration dropping out of a rule that survives**:
+
+```
+ONLY IN PRE   @media (max-width:809.98px) .framer-4dlfzu { padding:60px 0 0 }     <- whole RULE gone (411 -> 410)
+ONLY IN PRE   .framer-v-1wk9ftb.framer-1dlme80 { flex-direction:column;width:390px;padding:15px }
+ONLY IN POST  .framer-v-1wk9ftb.framer-1dlme80 { flex-direction:column;width:390px }   <- DECLARATION gone, rule stays
+ONLY IN PRE   .framer-v-m1jx24 .framer-1lqh25u { padding:0 30px 129px }
+ONLY IN POST  .framer-v-m1jx24 .framer-1lqh25u { padding:0 30px 114px }
+ONLY IN PRE   .framer-v-cyg2i4 .framer-1lqh25u { padding:0 15px 114px }
+ONLY IN POST  .framer-v-cyg2i4 .framer-1lqh25u { padding:0 15px 99px }
+```
+
+`Section Projects` had nothing but padding on phone so its rule vanished; the row variant still carries `flex-direction` and `width`, so only the padding left. **The rule count only moves for the first kind** — a declaration-level elimination is invisible to a rule count and would read as "nothing changed" to anyone checking that number alone.
+
+**!!! A -192 THAT WILL NOT RECONCILE ARITHMETICALLY IS STILL FULLY ACCOUNTED FOR BY A RULE DIFF PLUS A CONTENT DIFF. !!!** The CSS changes sum to roughly 60 bytes (a ~46-char rule, a 13-char declaration, one digit), leaving ~130 of build churn — searchIndex rotation, chunk hashes, the optimizer stamp. Trying to make that balance is wasted effort. **The pair of diffs is decisive where the subtraction is not:** the rule diff (component hash normalised out) shows **exactly** the four entries above and nothing else, and the content diff shows **83/83 visible text runs, 28 distinct, 52 assets, zero added, removed or count-changed**. Together they say nothing but the three intended values moved, which is what the byte count was only ever a proxy for.
+
+**No regressions.** The `100vh` white-strip fix is intact — `gapBelowHero 0` at 390x844, 393x852, 430x932 and 360x800, with the bottom 40 device rows reading max grey `0` and the full-frame control spanning `0..111`, so the zeros are a measurement rather than a broken pipeline. Home sweep **22/22**. Pending `0` on two independent fresh sessions, same hash.
+
+**Three changes went out in one publish and the preview named all three** (`WebPage | Home`, `SmartComponent | Home / Hero Header`, `SmartComponent | Home / Home - Projects Row`) with no collision from the other session — the `Section Projects` phone padding, the two hero headline paddings, and the row variant padding.
