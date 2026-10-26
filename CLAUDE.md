@@ -13358,3 +13358,43 @@ failed to fire, and arm 3's `paddingTop` read back as `15px` so the injection de
 "IS IT FIXED UPSTREAM?" QUESTION WILL READ AS A FALSE YES.** Keep the trigger reproducible — here a saved
 pre-fix capture plus a one-line injection that restores the original geometry on any future build. Without
 both, "the live page looks fine" is the only available answer and it means nothing.
+
+### The phone Read-more row now spaces like `/news` — and the gap was only 5px of the problem (2026-10-26, PUBLISHED `42f149efb`)
+
+Shak: *"read more section on phone spacing between articles should match the news page."* Two causes, and **the obvious one was the smaller by an order of magnitude**:
+
+| phone, between two article cards | `/news` | Read more (before) |
+|---|---|---|
+| container gap | **40px** — `Article Row` `.framer-1gh1bqk` | **45px** — `News / Next Articles` Mobile variant |
+| empty 55px meta box under each title | **0** | **65px** (the box + its 10px internal gap) |
+| **visible gap** | **40px** | **~110px** |
+
+So closing the gap alone would have moved it 110 -> 105. **The dead box was 93% of the discrepancy.**
+
+**THE BOX IS THE 2026-10-25 `Show Meta Row` WORK SEEN FROM THE OTHER SIDE.** Hiding the read-time left its parent `Stack` rendering with a `min-height: 55px`; that was fixed by a `Show Meta Row` boolean whose **default is Yes**, set to `false` on `/news`'s 21 instances only — deliberately, so Home and the article pages were "restored by inheritance". The article pages inherited the empty box along with everything else, and this is the first time anyone has looked at them on a phone since. **A default chosen to protect the surfaces you did not think about also preserves the defect on them.**
+
+**Applied, scoped to the Mobile variant alone:**
+
+```
+News / Next Articles  CCtEc5ZiT
+  B9N_zuLqn  Desktop  horizontal  gap 10px   width 1170   3 cards  Show Meta Row = true   <- untouched
+  CuxE8wSqb  Mobile   vertical    gap 45->40 width  390   3 cards  Show Meta Row = false  <- changed
+```
+
+**COUNTING RENDERED DIVS IS WHAT MAKES THE SCOPE CHECKABLE, and it reconciles exactly.** The article page SSRs both breakpoints, so the empty box appears once per card per breakpoint — 2 live sibling articles x 2 breakpoints = **4 before, 2 after**, and the surviving pair sits in `ssr-variant hidden-ibxpk8`, which `@media (max-width: 809.98px)` hides. **That is the proof the change is phone-only**, and it is better than any viewport measurement: it names which breakpoint each surviving element belongs to.
+
+**The byte delta accounts for itself to the character.** Normalised for the rotating component hash, the publish comment, the optimizer stamp and the searchIndex rotation, `/news/kimi` is **-66** — and `<div class="framer-82dlx6"></div>` is **33 characters**, x 2 = 66. Nothing else moved; content is identical at **75/75 visible text runs, 34 distinct, zero added, removed or count-changed**.
+
+**!!! `setAttributes({ controls })` CREATED AN OVERRIDE ON A COMPONENT-INTERNAL INSTANCE AND IT WORKED — which narrows the recorded "can update, cannot create" rule again. !!!** All three Mobile cards reported `tXuTupbrQ: true` before the write, and per the 2026-10-25 note *"a resolved value is reported even where no override is stored"*, that was almost certainly the inherited default rather than a stored `true` — i.e. a create. It landed first time, verified in a separate `exec` and by a re-issue answering `ALREADY` on all four items. **It cannot be proven to have been a create** (nothing distinguishes a stored `true` from a resolved one through the API), so treat this as evidence rather than a repeal: the tooltip case that established the limitation remains the only confirmed failure.
+
+**WHY DESKTOP WAS LEFT ALONE, AND WHAT IT COSTS.** The ask was phone. Desktop lays the three cards out side by side, so the empty box adds 65px of height to each card rather than distance between them — it is dead space, but not *spacing between articles*. **Consequence worth knowing: `/news` desktop has no box and Read-more desktop still does**, so the two pages match on phone and not on desktop. One control write on the Desktop variant's three cards if that should follow.
+
+**Home is untouched and still shows the box** (7 rendered divs). Same latent issue, different surface, not asked about.
+
+**!!! `resize_window` IN CLAUDE IN CHROME STILL DOES NOT EMULATE A VIEWPORT — re-tested 2026-10-26 and the recorded verdict stands. !!!** It reports `Successfully resized window ... to 390x844` and the page continues to report `innerWidth: 1536`. With the Playwright profile held by a live Chrome for the whole session, **there was no phone measurement available at all** — so this change was verified entirely from the emitted CSS and rendered-div counts. That is sufficient *here* because the change is static layout with no animation, hover or runtime behaviour, and the media query fully determines it; **it would not be sufficient for anything that moves.** Say which basis a verification rests on.
+
+**Reading per-breakpoint CSS out of a Framer page — the parser worth keeping** (`scratchpad/cssdump.py`): extract every `<style>` body, then walk it recursively tracking `@media` / `@supports` nesting so each rule is yielded as `(media, selector, body)`. A flat regex over the stylesheet cannot tell a base rule from a phone override, which is the only thing that matters for a question like this. Pair it with a tag-stack walk that records each element's class and `data-framer-name`, so a card's ancestor chain — and therefore which stack owns the gap — is recoverable from the served page alone.
+
+**The layer names lie here as usual:** the Read-more section is `Section News`, its heading is the text layer named `News`, and the cards are `Article Card` — while on `/news` the listing cards are `Article Card` and `Article Card Tablet / Mobile` inside `Article Row`. **Search by `data-framer-name` to find candidates, then confirm by the CSS the class actually carries.**
+
+**Verified across every surface the shared component touches**, counting rendered empty-meta divs: `/news` **0** (untouched), `/news/cauda` **2**, `/news/debut` **2**, `/news/kimi` **2** — the desktop pair on each — and Home **7** (untouched). `/news` came back byte-identical at `197,352` and Home at `257,596`, i.e. neither rebuilt, so the 24/24 Home sweep from the earlier publish still describes it.
