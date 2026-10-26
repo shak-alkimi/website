@@ -13689,3 +13689,88 @@ calibration, and a future session reading those sections will find instructions 
 Shak's explicit call, made after seeing both states side by side**, on the grounds that the band now looks
 wrong beside an inset hero. If the sliver proves unacceptable on the handset, revert and the earlier
 sections stand again as written.
+
+### A 1px LINE UNDER THE PHONE HERO — a FRACTIONAL-PIXEL SEAM leaking the black page body (2026-10-26, WRITTEN AND VERIFIED, **NOT PUBLISHED**)
+
+Shak, before the push: *"there is a line that appears and disappears on scroll that should not be there"*, then *"it is directly under the hero"*. Real, phone only, and a direct consequence of the two changes made earlier the same day.
+
+**WHAT IT IS: a single grey row sitting in pure white, exactly at `Section Hero`'s bottom edge — 15px below the inset video card.** Measured on the published build with the video frozen:
+
+```
+scroll   0   row 759 = 56,52,50    <- the video's own bottom edge, correct, not the defect
+scroll  40   row 719 = 116,114,113   dip 139   <- THE LINE
+scroll 120   row 639 = 162,161,160   dip  94
+scroll 400   row 359 = 162,161,160   dip  94
+```
+
+It is absent at rest and present from scroll 40 on, which is exactly "appears and disappears on scroll": 40px is where the hero switches to `Mobile Active` and insets.
+
+**THE PAINT STACK NAMES IT IN ONE QUERY — `elementsFromPoint` at the seam row:**
+
+```
+Mobile Active             rgba(255,255,255,1)   top -120  bot 639.59
+framer-xh24sa-container   transparent           top -120  bot 639.59
+Section Hero              rgb(8, 2, 0)          top -120  bot 639.59   <- the dark
+Section Projects          rgb(255,255,255)      top 639.59 bot 1725.58
+Main                      transparent
+page wrapper / body       rgb(0, 0, 0)                                  <- the residual dark
+```
+
+**Three coincident boundaries all land on `.59`, and the compositor leaves ~0.15px of that row uncovered**, exposing whatever is beneath. The phone hero is **`90vh` of 844 = 759.59** — a fractional height — so every boundary below it is fractional. **Desktop is `100vh` = 950, an integer, and is clean at every scroll position.** Desktop's `Section Hero` also carries the grey-to-white *gradient* whose bottom stop is `#fff`, so even its sliver would leak white.
+
+**WHY IT SURFACED NOW, AND IT IS BOTH OF TODAY'S CHANGES TOGETHER.** The hero inset (`ab4d47206` / `ecfb24725`) is what first exposes the 15px band under the card; the dark-buffer removal (`bc693b901`) is what made a dark sliver visible, because `Section Projects` had been `#080200` and a dark leak against dark is invisible. Neither change alone shows it.
+
+**THE FIX IS TWO ATTRIBUTES ON THE PHONE BREAKPOINT, AND BOTH ARE REQUIRED:**
+
+| node | was | now |
+|---|---|---|
+| `Section Hero` `W8eJA5eCmZOopI7WSh` | `#080200` | **`rgba(255, 255, 255, 1)`** |
+| `Main` `W8eJA5eCmg1d7LLsi1` | `null` (transparent) | **`rgba(255, 255, 255, 1)`** |
+
+Desktop and Tablet keep `null` on both — writing a non-primary breakpoint creates a scoped override and does not cascade, re-read and confirmed.
+
+**`Section Hero` white ALONE only halves it**, which is the part worth knowing: with the dark section neutralised the sliver then leaks the **black page body**, because `body` and the page wrapper are `rgb(0, 0, 0)` on this site. Three-arm A/B, measured as the seam row's dip against its neighbours:
+
+| scroll | base | `Section Hero` white | **+ `Main` white** |
+|---|---|---|---|
+| 40 | dip 139 | dip 57 | **dip 0** |
+| 120 | dip 93 | dip 38 | **dip 0** |
+| 400 | dip 93 | dip 38 | **dip 0** |
+
+**THE GENERAL RULE: a fractional-pixel seam shows whatever is BEHIND it, so the layer behind must match the layer in front.** And on this site "transparent" never means "nothing" — it means **black**, because the page wrapper is `rgb(0,0,0)`. `Main` is the right backstop precisely because it sits below every section and has no edge of its own, so it cannot introduce a new seam.
+
+**IT WAS NOT ONLY THE HERO — the same hairline sits at FIVE boundaries down the phone page** (rows 245, 350, 359, 645, 750 at various scroll positions, all dip ~38), every one a white-meets-white section boundary leaking the black body. `Main` white closes all of them, which is a second reason to prefer it over patching the hero boundary alone.
+
+**CORRECTING A CLAIM IN THIS FILE:** the dark-buffer entry records `Section Hero`'s phone `#080200` as *"now pure insurance"* and *"invisible in both states"*. It was invisible **as a surface** and was still leaking through a sub-pixel seam — so "invisible" was true of the 15px band and false of its bottom row. **An element can be fully covered and still show at a fractional edge.**
+
+**THE FIX IS TIED TO THE CURRENT WHITE DESIGN.** If the dark buffer is ever restored (`Section Projects` back to `#080200`), `Section Hero` phone must go back to `#080200` with it, or the same seam inverts into a **white** line on dark. The two values must always match each other.
+
+**METHOD — THE CSS-INJECTION A/B IS WHAT MADE THIS PROVABLE BEFORE TOUCHING THE DOCUMENT.** Three arms on the real published build, fresh context each, video frozen with `pause()` + `currentTime = 1.0` so rows are comparable, screenshot at `scale: 'css'`, then row means over the central columns. That proved the fix and the insufficiency of the half-fix, at zero risk and with no publish.
+
+**AND A WHOLE-PAGE BEFORE/AFTER DIFF IS WHAT MADE `Main` WHITE SAFE TO WRITE** — 8 scroll positions covering the full phone page, per-row max pixel difference:
+
+```
+scroll    0   1 row  [759]          <- the hero's own edge blend
+scroll  400  27 rows [19-44, 359]   <- nav wordmark antialiasing + the seam
+scroll  800   0 rows (identical)
+scroll 1200   1 row  [645]
+scroll 1600   2 rows [245, 750]
+scroll 2000   1 row  [350]
+scroll 2400   0 rows (identical)
+scroll 2900   0 rows (identical)
+```
+
+Every differing row is a seam, except one band in the nav — and **there the row MEANS are identical (`243,243,243` both sides) while individual pixels differ by up to 18**, which is the wordmark's antialiasing shifting behind the nav's `backdrop-filter: blur(40px)` as what is behind it changes. **A max-pixel-difference that vanishes in the row mean is antialiasing, not a visual change** — worth separating, because the raw figure looks like a real diff.
+
+**THE DETECTOR IS REUSABLE** — a thin dark row inside an otherwise light area:
+
+```js
+const a=(mean[y-2]+mean[y-1])/2, b=(mean[y+1]+mean[y+2])/2, c=mean[y];
+if (a>150 && b>150 && Math.abs(a-b)<12 && (a+b)/2-c > 18) hit(y);
+```
+
+Requiring the two neighbours to be light **and to agree with each other** is what rejects ordinary content edges; it is what isolated these seams from the hero's own bottom edge. Note it also flags `y=37`, which is the wordmark's own horizontal stroke and is identical before and after — **validate a detector's hits against a known-benign one before reading the list as defects.**
+
+**A thin-ELEMENT sweep could never have found this.** A first pass collected every visible element of height <= 3.5px across the page and found only real dividers — because a fractional seam is not an element at all, it is the absence of paint between two. **For a hairline, go to pixels; an element sweep answers a different question.**
+
+**NOT PUBLISHED — publishing is blocked in this session as a production deploy.** The two attributes are written and verified (separate-`exec` read-back, an idempotent re-issue answering `ALREADY` on both, Desktop and Tablet re-read unchanged), and the publish preview reads **exactly 1 change, `WebPage | Home | updated`, no errors, no warnings** on two independent fresh sessions (hash `skfavt`) — so it is uncontested by the other website session and safe to ship. **The fix is proven by injection on the live build and by the document read-back; it is not yet confirmed on a published page.** After publishing, re-run the row scan at scroll 40/120/400 and expect `dip 0`.
