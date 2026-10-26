@@ -13139,3 +13139,54 @@ the vendor's own source.
 
 Worth noting this also makes the change *safer* rather than less safe: whatever the mechanism, the 15px was
 doing nothing visible and its removal is not trading one behaviour for another.
+
+### The Home card TEXT moves with the card on hover — ORA'S DESIGN, asked and declined 2026-10-26. Do not re-flag.
+
+Shak noticed the eyebrow and title sliding as a card resizes and asked whether that was meant to happen.
+**It is, it is not ours, and the alternatives are worse.**
+
+**NOT CAUSED BY ANYTHING WE DID, established before anything else.** The same hover, measured as the title's
+centre travel, on four builds:
+
+```
+PRE  (before the padding change)   74.5 px
+POST (current live)                74.5 px
+OLD RUNTIME (pre-regression)       74.5 px
+STOCK Ora template                 73.8 px
+```
+
+So it is neither the padding workaround nor the `2026-10-21` runtime regression — **Framer's own template
+does it**, and it has done since the row existed.
+
+**THE STRUCTURAL REASON, and it is why no clean fix exists.** The `CTA` block is
+`position: absolute; left: 50%` with an inline `transform: translateX(-50%)` — i.e. **centred in the card**,
+shrink-wrapped to its text (`115.552px` left card, `131.698px` right). The card's centre moves `387.5 -> 462`
+as it grows `745 -> 894`, so anything centred on it moves by exactly that much. Measured ratio of text travel
+to card-centre travel: **1.00**.
+
+**The image escapes this only because it was never centred** — it is oversized (`894`, the fully-open width)
+and pinned to the card's **outer** edge, which is the documented "card is a mask sliding over a stationary
+picture" design. Its travel is **0.0 px**, which makes it the control that proves the measurement.
+
+**So "stationary" and "centred in the card" are mutually exclusive here**, because the thing being centred on
+genuinely moves. Both pinned variants were mocked on the live page with injected CSS (no publish, no document
+change) and both do stop the movement — and both pay for it:
+
+| | at rest | hovered | text travel |
+|---|---|---|---|
+| current | centred | centred | **74.5 px** |
+| pinned to the resting card | centred | **74.5 px left of centre** | 0.0 px |
+| pinned to the open card | **74.5 px right of centre** | centred | 0.0 px |
+
+**Shak's call: leave it.** A static mis-centring is visible every time the card is looked at; the movement is
+a transient only seen while hovering, and the current arrangement is the only one correctly composed in both
+states. If it is ever revisited, **pinned-to-rest is the better of the two** (it keeps the resting state,
+which is what is on screen most of the time), and the lever is the `CTA`'s `left` / `right` — the left card's
+left edge and the right card's right edge are the fixed ones.
+
+**METHOD NOTE — PARK THE CURSOR SOMEWHERE THAT IS GENUINELY ON NEITHER CARD.** A first run parked at
+`x = 1200` to be "off the cards"; the right card spans `776..1521`, so that **opened the right card first**
+and the left card's text dipped 70 px the wrong way before moving right, which read as an overshoot that does
+not exist. The cards span the full width of the row, so the only neutral parking is **above or below it** —
+`(768, 760)` at scroll 1100. This is the third time a cursor parked "away from the thing" has in fact been on
+it; **compute the element's rect and assert the park point is outside it.**
