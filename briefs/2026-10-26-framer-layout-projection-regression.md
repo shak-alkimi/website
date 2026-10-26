@@ -2,7 +2,7 @@
 
 **Reported by:** Alkimi (shak@alkimiworks.com)
 **Date:** 26 October 2026
-**Affected runtime:** introduced between `2026-10-20T15:59:47Z` and `2026-10-21T22:10:37Z`
+**Affected runtime:** introduced between `2026-10-20T15:59:47Z` and `2026-10-21T22:10:37Z`; **still present in `2026-10-23T13:25:39Z`**
 **Severity:** visual defect on a published site, ~250 ms per occurrence, no error logged
 
 ---
@@ -33,9 +33,25 @@ ones:
 | `2026-10-19T21:45:06Z` | **clean** |
 | `2026-10-20T15:59:47Z` | **clean** |
 | `2026-10-21T22:10:37Z` | **defect** |
+| `2026-10-23T13:25:39Z` | **defect — still present** |
 
 Note the runtime is attached at build time, so a site republished today picks up the new runtime regardless
 of when its content last changed. Every page we have republished since 21 October carries the defect.
+
+**Testing the current runtime.** Our site has since shipped a workaround, so the live page no longer
+exhibits the defect — the two variants are now layout-identical and there is nothing for the projection to
+resolve. To confirm the runtime itself is still affected we restored the original layout difference on the
+live page with an injected stylesheet rule (`padding: 15px !important` on the pre-scroll variant) and re-ran
+the identical measurement. Three arms, matched for how long the parent was actually scale-animating:
+
+```
+old runtime 2026-10-21, original padding   scale-animating = 29   gap frames = 22   worst = 145.4 px
+new runtime 2026-10-23, workaround shipped scale-animating = 31   gap frames =  0   worst =   0.0 px
+new runtime 2026-10-23, padding restored   scale-animating = 33   gap frames = 26   worst = 146.3 px
+```
+
+The third arm is the relevant one: on the current runtime, with the layout difference present, the defect
+reproduces at the same magnitude as before.
 
 ## Reproduction
 

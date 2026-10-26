@@ -13318,3 +13318,43 @@ stylesheet set.
 for the one in force, so a tablet-only or phone-only instance is invisible at desktop width. Re-run at each
 width — the two extra widths here took one call and did change the answer (the left wrapper drops out below
 1200 px).
+
+### THE PROJECTION BUG IS **NOT** FIXED IN RUNTIME `2026-10-23` — retested 2026-10-26, and the workaround stays
+
+A publish earlier today (`e688eed15`) moved the site from runtime `2026-10-21T22:10:37Z` to
+**`2026-10-23T13:25:39Z`**, and that was recorded as *"may mean the layout-projection regression is fixed
+upstream"*. **It is not.**
+
+**THE LIVE PAGE CANNOT ANSWER THIS, which is the whole difficulty.** It now carries the new runtime *and*
+our padding workaround, so the two variants are layout-identical and there is nothing for the projection to
+resolve — it reads clean whether or not the runtime is fixed. **An absence of the defect on the shipped page
+is not evidence about the runtime.**
+
+**The method: restore the trigger on the live page with an injected rule.** `padding: 15px !important` on the
+pre-scroll variant recreates the original layout difference, so the new runtime is exercised with the old
+geometry. The selector is built at runtime from the row root's own classes
+(`.framer-v-1juo821.<elementClass>`), because the component hash rotates on every publish:
+
+```
+1  old runtime 2026-10-21, original padding      scale-animating 29   GAPFRAMES 22   worst 145.4
+2  new runtime 2026-10-23, workaround shipped    scale-animating 31   GAPFRAMES  0   worst   0.0
+3  new runtime 2026-10-23, padding re-injected   scale-animating 33   GAPFRAMES 26   worst 146.3
+```
+
+Arm 1 is the rig control and reproduces the defect; arm 3 is the question and reproduces it **at the same
+magnitude**. The `scale-animating` counts are matched across all three, so no arm is a run where the hover
+failed to fire, and arm 3's `paddingTop` read back as `15px` so the injection demonstrably took.
+
+**Consequences:**
+
+- **The bug report stands and is stronger**, not weaker — it now covers two consecutive runtimes rather than
+  one, which forecloses the "already fixed, please re-check" reply. Updated accordingly.
+- **The padding workaround stays.** It is still the only thing holding the defect off.
+- **This does not reopen the declined retest.** Shak declined re-running the A/B to decide whether to *remove*
+  the workaround; this answered a different question — whether a report about `2026-10-21` was about to be
+  sent describing something already fixed.
+
+**THE GENERAL LESSON: ONCE YOU SHIP A WORKAROUND, YOU LOSE THE ABILITY TO OBSERVE THE BUG, AND THE FIRST
+"IS IT FIXED UPSTREAM?" QUESTION WILL READ AS A FALSE YES.** Keep the trigger reproducible — here a saved
+pre-fix capture plus a one-line injection that restores the original geometry on any future build. Without
+both, "the live page looks fine" is the only available answer and it means nothing.
