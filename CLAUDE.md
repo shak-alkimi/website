@@ -12895,3 +12895,77 @@ before diffing** (it rotates whenever the component is edited) and the row's CSS
 **And the second habit: when a user says "it started when X changed", test X AND diff everything
 else.** X was wrong here — but the *timing* was exactly right, and following the timing rather than
 the attribution is what found it.
+
+### CORRECTION — IT IS A FRAMER RUNTIME REGRESSION. NOT THE IMAGES, AND NOT THE OVERLAY FIX EITHER (2026-10-26)
+
+**The section immediately above concludes "it is the Overlay fix". That is WRONG and is withdrawn.**
+It was reasoned by elimination from a CSS diff — the Overlay was the only thing that changed in the
+row — and elimination was the wrong tool, because the change was not in our project at all.
+
+**THE DISCRIMINATING EXPERIMENT.** The Oct 21 published page is a complete capture, so it can be
+served locally and driven. Patching **only** its five Overlay rules into today's single `inset: 0`
+rule — a real string replacement in the served file, verified `5/5 replaced`, not an `!important`
+overlay — isolates our change from the platform's:
+
+| served page | runtime | overlay CSS | **gap frames** |
+|---|---|---|---|
+| `127.0.0.1:8792` | **2026-10-20** | Oct 21's | **0, 0** |
+| `127.0.0.1:8793` | **2026-10-20** | **today's `inset:0`** | **0, 0** |
+| live | **2026-10-21** | today's `inset:0` | **20** (worst 109 px) |
+
+`scale-animating` was 13-15 in every row, so the transition genuinely ran each time. **Our overlay
+change on the old runtime is clean. The same CSS on the new runtime gaps.**
+
+**WHAT ACTUALLY CHANGED:**
+
+```
+                     data-framer-ssr-released-at     script_main
+Oct 21 build         2026-10-20T15:59:47Z            DS7qftb5
+today                2026-10-21T22:10:37Z            BRLdHraz
+stock Ora            2026-10-15T11:41:32Z            C_ChNAIb      <- also clean
+```
+
+**`data-framer-ssr-released-at` is the FRAMER RUNTIME version, not the page's publish date** — today's
+live build says `2026-10-21` though the page has been republished a dozen times since. **It is the
+single most useful attribute on the page for "did the platform change under us", and nothing else in
+the markup reveals it.** Stock Ora is clean on an even older runtime, which is the third data point.
+
+So Framer shipped a runtime between 2026-10-20 and 2026-10-21 that changed Motion's layout
+projection, and **every republish since has picked it up**. Our Oct 21 14:25 capture predates it;
+everything published afterwards carries it. **Shak's "it started yesterday" is right about the
+timing and the cause is upstream of anything we did.**
+
+**EVERYTHING WE CHANGED IS EXONERATED, each by experiment:** the two card images (byte-identical CSS,
+and the gap is div geometry no asset can move), the Overlay fix (table above), the eyebrow labels, the
+row `gap: 16px`, and the redundant per-variant `aspect-ratio`.
+
+**THE PADDING FIX IS NOW A WORKAROUND FOR A PLATFORM BUG, not a fix for ours.** That does not make it
+wrong — it is still proven at `0` gap frames over four interleaved trials, it is one value on one
+variant, and it closes the collision window the new runtime mishandles. But it should be recorded as
+what it is, and **this is worth reporting to Framer**: a child of a scale-animated parent now resolves
+its `justify-content` offset against the parent's final layout box instead of its animating visual
+box, so any child anchored to an edge and sized to overflow fails to cover for the length of the
+animation.
+
+**METHOD — THREE THINGS THIS COST, ALL REUSABLE:**
+
+1. **Serve an old published capture locally and drive it.** `python -m http.server` on a saved page
+   works: the chunk URLs are absolute and content-addressed, so Framer still serves them and the page
+   hydrates and animates normally. **This is a working time machine for any "when did it start"
+   question** — and the only reason it was available is that a four-day-old `pg_home.html` happened
+   to survive in another session's scratchpad. `npx http-server` silently failed to bind; python did
+   not, so reach for python first.
+2. **To separate our change from the platform's, patch the OLD capture forward**, never the live page
+   backward. A `!important` injection on the live page conflates "computed geometry" with "what the
+   runtime does with it", which is exactly why the earlier overlay-injection test was inconclusive in
+   both directions.
+3. **Check `data-framer-ssr-released-at` before blaming your own diff.** Two builds of the same site
+   can differ by a platform release with an identical content diff, and nothing in the CSS or DOM
+   says so.
+
+**AND THE REASONING LESSON, which is the expensive one: elimination over an incomplete candidate set
+produces a confident wrong answer.** I diffed the row, found one change, and named it the cause —
+without ever asking whether the set of candidates was closed. It was not: the runtime was outside the
+diff. **A conclusion of the form "X is the only thing that changed, so X is the cause" is only as good
+as the boundary you drew around "everything", and that boundary should be stated and tested, not
+assumed.**
