@@ -12617,3 +12617,111 @@ per-recording comparison), `sweep.js` (find a recording's card-bottom scanline).
 
 **So nothing is outstanding on this row.** The hatch and the sliding picture were one defect, it was
 the overlay, and it is fixed. `c529cfdb2` remains a harmless no-op.
+
+### A THIRD HOVER DEFECT: THE CARD IS ANIMATED BY A `scaleX` TRANSFORM, AND THE IMAGE'S PROJECTION CORRECTION MISSES WHEN THE ROW SCROLLS IN UNDER THE CURSOR (2026-10-25)
+
+Shak: *"it happens when scrolling from full bleed of hero image"* — and he is right. This is **not**
+the overlay (fixed) and **not** the width-identity theory (disproven). It is a third thing, with a
+different trigger, and it is reproducible on the live build.
+
+**THE SYMPTOM, MEASURED IN HIS CAPTURE** (`…Microsoft Edge 2026-10-25 22-11-18_updated.mp4`, 684
+frames). Frames 456-462: the **diagonal placeholder tile** — the classless `<div>` that sits *under*
+the Image inside `Image Wrapper` — is exposed as a vertical strip at the **right card's right edge**:
+
+```
+f455  clean          f458  strip from x=2101  -> 143 px
+f456  strip from x=2037  -> 206 px        f460  strip from x=2174  ->  70 px
+f457  strip from x=2070  -> 174 px        f462  strip from x=2210  ->  34 px   f465 clean
+```
+
+~245 ms, and it recurs. **The covered width is pinned at `877..889` rec px (≈600 CSS px) while the
+card shrinks `1092 -> 910`** — a layer sitting at its FINAL size while the card is still larger.
+
+**!!! THE CARD IS NOT ANIMATED BY `width`. FRAMER SNAPS THE LAYOUT WIDTH TO THE FINAL VALUE AND
+ANIMATES A `scaleX` TRANSFORM, THEN COUNTER-SCALES EVERY IN-FLOW CHILD. !!!**
+
+This is Motion's layout projection, and it is the fact that explains everything. Measured live during
+a hover:
+
+```
+t=541  wrapper getBoundingClientRect = 727.6   wrapper offsetWidth = 596   CSS width = 596px
+       image rect = 894   image offsetWidth = 894   image offsetLeft = -298
+       image transform = matrix(0.819155, 0, 0, 1, -25.7984, 0)      <- inverse scaleX
+```
+
+**`offsetWidth` is 596 — the final value — from the first frame.** The visible 727.6 is that 596
+scaled up by the parent's animating transform, and each child carries the inverse scale so it does
+not stretch. **So `offsetWidth` and `getBoundingClientRect()` disagree by the whole animation**, and
+any measurement that mixes them is meaningless. This retires a lot of guessing: it is why a stored
+`width` never matches what is on screen mid-flight, and why the published CSS shows only two
+endpoints for a transition that visibly sweeps.
+
+**THE BUG IS THE TRANSLATE, NOT THE SCALE — and the control proves it.** The right card's image is
+`justify-content: flex-end`, so its right edge should sit on the card's right edge at every instant:
+
+| | parent visual | parent layout | image visual | image left | **gap at the right** |
+|---|---|---|---|---|---|
+| **plain hover** (settled row) | `730.4` | 596 | 894 | `-163.6` | **`0`** |
+| **scroll-in + hover** | `727.6` | 596 | 894 | **`-296.6`** | **`130.2`** |
+
+Identical scales, identical image size — **only the position differs.** `-163.6 = 730.4 - 894`, i.e.
+flex-end against the parent's **current visual** box. `-296.6 = 596 - 894`, i.e. flex-end against the
+parent's **final layout** box. In the defect the image is placed where it will END UP and stays there
+while the card catches up.
+
+**The gap equals `parentVisualWidth - parentFinalLayoutWidth`, to a tenth of a pixel, at every
+sample:** `727.6-596 = 131.6` against a measured `130.2`; `623.3-596 = 27.3` against `27.0`;
+`598.3-596 = 2.3` against `2.3`. That is the law, and it is what makes this attribution certain
+rather than plausible.
+
+**WHY NO EARLIER RECORDING SHOWED IT.** The trigger is a hover firing *as the row arrives from the
+hero*, not a hover on a settled row. The four Chrome captures were hover-only on a settled row, and
+the 454 mid-flight frames measured there had the image stationary relative to the card — correctly,
+because on that path the projection translate tracks the visual box. **So the earlier "the image is
+constant across 1,100 frames" is true of hover alone and was stated too generally.**
+
+**There is a documented collision sitting exactly here:** in `Before Scroll State - Below Hero`
+(`framer-v-1juo821`) both cards' Mouse enter is **`Reset…`**, so a hover during scroll-in fires a
+reset while the scroll effect is switching the row to `framer-v-1dlme80`. **Why that makes projection
+resolve against the final box is NOT established** — only that it does, repeatably.
+
+**HOW TO REPRODUCE IT, since this took several attempts:**
+
+1. Fresh context, viewport `1536x950`, load and wait ~5 s.
+2. Scroll to the row once to learn where the left card lands, then scroll back to `0` and let it settle.
+3. **Park the cursor at that landing point**, then `mouse.wheel` down in ~10 steps of 120, with a
+   **1 px `mouse.move` after each step** — without the jiggle Playwright's wheel never re-evaluates
+   hover and the card does not open at all.
+4. Sample with an in-page `requestAnimationFrame` loop; round-trip `page.evaluate` calls are far too
+   coarse to catch a 245 ms event.
+
+**The control that makes it a finding rather than an anecdote: park the cursor ABOVE the row and move
+down into a settled card.** `gap > 2px` in **0 of 150** frames, with the same scale animation and the
+same counter-scale present. **Note x=60 is INSIDE the left card** (it spans `15..760`), so a cursor
+parked there starts the run already hovering and the card never transitions — that mistake cost a run
+and produced a confident empty result.
+
+**THE CHEAP FIX, AND IT IS ONE ATTRIBUTE: give `Image Wrapper` a `#f7f6f2` background.** The gap is
+only *visible* because what shows through is a diagonal hatch; both Home card renders are flat
+`#f7f6f2` at the edge in question (the strip measures `246` either side of it), so a wrapper fill
+makes the uncovered strip indistinguishable from the image's own backdrop. The gradient `Overlay` is
+`position: absolute; inset: 0` and therefore scales with the parent and keeps covering correctly —
+which is why the 2026-10-25 overlay fix also immunised that layer against this whole class.
+
+**The structural fix is to stop the Image being an in-flow flex child**, since an absolutely
+positioned child scales with the parent and gets no projection correction to get wrong. That is
+exactly what fixed the Overlay. It cannot be applied here unaltered: the image deliberately overflows
+at `120% / 150%` to hold the picture stationary while the card slides over it, and `inset: 0` would
+destroy that identity.
+
+**MEASUREMENT NOTES FROM THIS PASS:**
+
+- **Use `offsetWidth` for layout and `getBoundingClientRect()` for what is painted, and never mix
+  them.** On this row they differ by up to 134 px mid-animation.
+- A fixed-y scanline is useless on this capture — the page scrolls throughout. The row's vertical
+  position has to be found per frame; a **full-height column inside the left card** (`crop=2:1440:200:0`)
+  gives it in one cheap pass, and the card's own gradient is the landmark.
+- Classifying a scanline into `PAGE >= 250 / plain 244..249 / STRIPE 200..243` separates page, bare
+  card and placeholder hatch cleanly, and the hatch is unmistakable because it alternates.
+- The `_updated.mp4` filename carries a **zero-width space** between "Microsoft" and "Edge"; copy it
+  with a glob rather than retyping it.
