@@ -13190,3 +13190,71 @@ and the left card's text dipped 70 px the wrong way before moving right, which r
 not exist. The cards span the full width of the row, so the only neutral parking is **above or below it** —
 `(768, 760)` at scroll 1100. This is the third time a cursor parked "away from the thing" has in fact been on
 it; **compute the element's rect and assert the park point is outside it.**
+
+### The Methodology button is STATIC on desktop — it no longer fades or rises on card hover (2026-10-26, PUBLISHED `e688eed15`)
+
+Shak: *"for desktop do not have the methodology button disappear on home page - leave in static position - keep hover state."* One attribute pair on one variant:
+
+| node | variant | before | after |
+|---|---|---|---|
+| `Q__AVxo4PFjPY30uOD` | `Home Project Single - Wide` (desktop + tablet) | `opacity 0` · `bottom -60px` | **`opacity 1` · `bottom 0px`** |
+| `uR6T4xhGKFjPY30uOD` | the hover gesture state | `opacity 1` · `bottom 0px` | untouched |
+| `tDcw55E8QFjPY30uOD` | `… Wide - Mobile` | `opacity 1` · `bottom 0px` | untouched |
+
+`bottom: 0px` is not a guess at the resting position — it is the value the hover gesture already used, i.e. exactly where the button has always landed at the end of its rise. Setting the base to it removes the rise and leaves the button where the design put it.
+
+**BOTH HALVES WERE REQUIRED.** `opacity: 1` alone would have left the button visible but parked **60px below the card**, hanging outside it and still rising on hover — a worse defect than the one being fixed. The button is `position: absolute` in every state, so neither change touches the card's resting layout.
+
+**"KEEP HOVER STATE" IS A DIFFERENT MECHANISM FROM THE REVEAL, WHICH IS WHY BOTH CAN BE HAD.** Two things were conflated in the original design:
+
+- the **card**-hover reveal — `opacity 0 -> 1` plus a 60px rise, driven by the `uR6T4xhGK` gesture variant. **This is what was removed.**
+- the **button**-hover fill — `Button White to Black` -> `Button White to Black - Hover`, a variant interaction on `Utilities / Primary Button`. **Untouched, and unreachable from this change**, since it lives on a different component.
+
+**!!! THE NODE IDS IN THIS FILE WERE STALE — the base id is `FjPY30uOD`, not `beNpOjgIR`. !!!** Every earlier entry about this button names `Q__AVxo4PbeNpOjgIR` / `uR6T4xhGKbeNpOjgIR` / `tDcw55E8QbeNpOjgIR`. Those nodes no longer exist; the button has been replaced at some point since (a cut/paste or duplication assigns new ids). **Locate it by its `controls.XqpXZUGU6` label, never by a recorded id** — walking every variant of `QOhH3GYAD` and filtering on that control found all 20 buttons and confirmed the scope was exactly 3.
+
+**THE STRUCTURAL PROOF IS IN THE EMITTED CSS, AND IT IS BETTER THAN ANY MEASUREMENT.** The published container rules went 3 to 2:
+
+```
+PRE    .framer-v-r3zqm7 .framer-1u1a5p9-container{…position:absolute;bottom:-60px;left:50%}
+       .framer-v-fo45vv .framer-1u1a5p9-container{…position:absolute;bottom:0;left:50%}
+       .framer-v-r3zqm7.hover .framer-1u1a5p9-container{align-self:unset;bottom:0}
+
+POST   .framer-v-r3zqm7 …,.framer-v-fo45vv .framer-1u1a5p9-container{…position:absolute;bottom:0;left:50%}
+       .framer-v-r3zqm7.hover .framer-1u1a5p9-container{align-self:unset}
+```
+
+Desktop and phone now hold the identical value and **merged into one selector list**, and the hover rule **lost its `bottom` declaration entirely** — so there is no longer any position for the card hover to animate. `pointer-events: auto` survives on both, so the long-standing clickability fix is intact.
+
+**Opacity is NOT in the CSS at all** — Framer applies it inline via Motion because it is an animated variant property. So a CSS grep can confirm the position change and never the visibility one; that needs the rendered page.
+
+**Verified with a real pointer, which is the only way to see a variant interaction:**
+
+```
+rest, no hover   White to Black          white  opacity 1  bottom 0px  rect 706,410 124x36
+card hovered     White to Black          white  opacity 1  bottom 0px  rect 706,410  <- IDENTICAL
+button hovered   White to Black - Hover  BLACK  opacity 1  bottom 0px  rect 706,410  <- IDENTICAL
+pointer away     White to Black          white (caught at 248 mid-fade, then 255)
+```
+
+The rect is byte-identical in all four states, which is the whole of "static position"; and the fill still swaps and swaps back, which is the whole of "keep hover state".
+
+**!!! A SCREENSHOT SHOWED THE CURSOR SITTING ON THE BUTTON WHILE THE PAGE REPORTED NO HOVER — and that is correct, not a contradiction. !!!** The physical pointer had been parked over the button since page load, but no `mouseover` had fired because the mouse never *moved*. **Move the pointer somewhere neutral before measuring a rest state**, or the first hover reading is really the second.
+
+**TABLET COMES ALONG, UNAVOIDABLY.** `Home Project Single - Wide` serves Desktop **and** Tablet (one `framer-v-r3zqm7`), so the button is now static there too. There is no breakpoint-level override for a variant's geometry. Raised rather than hidden: a tablet is a touch device as often as not, so a permanently visible button is arguably the better behaviour there anyway. Phone was already static and is untouched.
+
+**!!! THE PAGE SHRANK 12,362 BYTES AND ONLY ~500 OF THAT IS MINE — FRAMER SHIPPED A NEW RUNTIME AND THIS PUBLISH PICKED IT UP. !!!**
+
+```
+data-framer-ssr-released-at   2026-10-21T22:10:37  ->  2026-10-23T13:25:39
+css rules                     716                  ->  693
+```
+
+27 rules left and 4 arrived. Three of the departures and two of the arrivals are the container merge above; **everything else is runtime boilerplate the newer build no longer emits** — `--framer-will-change-override`, a batch of `.framer-text` colour inheritance, the Safari-16 truncation shims, `--overflow-clip-fallback`, `--one-if-corner-shape-supported`. Content is provably unchanged: **83/83 visible text runs, 28 distinct, zero added, removed or count-changed**, identical asset set, and the Home sweep passes **24/24**.
+
+**Strip `<script>` and `<style>` bodies before extracting text runs.** A first diff treated the inline CSS blob as a single text run, so the rotating component hash made it read as one added and one removed run and buried the real comparison in 100KB of output.
+
+**THE RUNTIME MOVE IS THE ACTIONABLE PART, AND IT IS NOT ABOUT THIS BUTTON.** The last open item in this file is a **Framer runtime regression on the `2026-10-21` runtime** — a child of a scale-animated parent resolving its `justify-content` offset against the parent's final layout box instead of its animating visual box, which produced the Home card image gap and was worked around by equalising the `Before Scroll State` padding. **The site is now on the `2026-10-23` runtime, so that bug may be fixed upstream.** Note the departed `body{--framer-will-change-override:…}` declarations sit squarely in the compositor/projection area, which is suggestive and nothing more.
+
+**It cannot be concluded from this publish**, because the padding workaround is still in place and therefore the defect is absent either way. The non-destructive test is the recorded CSS-injection A/B: inject the old `.framer-v-1juo821.framer-1dlme80{padding:15px}` rule back with `!important` on the live page and count gap frames. If the gap stays at zero, the upstream bug is fixed and the workaround can be reverted to restore the (invisible) 15px settle. Not run — it is outside what was asked.
+
+**Method notes:** the Playwright profile was held by a live Chrome for the whole session (`Browser is already in use for …mcp-chrome-ba372c9`), so the measurement went through Claude in Chrome, where `javascript_tool` and real `computer hover` both worked — and stashing the probe as `window.__probe` once made every later reading a one-line call. The pre-publish page was saved before the write, which is what made the 12KB delta attributable at all. The publish preview was read on **two independent fresh sessions** (both `changesCount: 1`, `SmartComponent | Home / Home - Projects Row 2`, same hash) and the publish guarded to abort on any other change set — no collision with the other website session.
