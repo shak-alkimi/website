@@ -14021,3 +14021,28 @@ All four now sit within **2.7px**. **`Image Active` gets `91 = 106 - 15`**, pres
 **The Mobile pair was untouched and that was checked, not assumed.** `Image` is the PRIMARY variant, so a write to it cascades to anything that has not overridden — but `Mobile` and `Mobile Active` hold their own `140px` heights and their own paddings, which blocked it. Read back after the write: `140px` and `0px 30px 45px 30px` / `0px 15px 30px 15px`, unchanged.
 
 **NOT PUBLISHED — blocked in this session as a production deploy.** Four writes, all guarded on their prior value, verified by a separate-`exec` read-back and an idempotent re-issue answering `ALREADY` on all four. Preview reads exactly 1 change, `SmartComponent | Home / Hero Header`, on two independent fresh sessions. **After publishing, re-measure the ink-to-hero-bottom gap at 1536x950, 844x390, 900x1000 and 390x844 — expect `99.3 / 102 / 102 / 101.7`.**
+
+**PUBLISHED AND VERIFIED LIVE 2026-10-26** (build `17:39:29 GMT`, `258,435 -> 258,455`, byte-stable over three fetches). The four gaps land exactly on the predicted values, and the text is static across the inset on every breakpoint:
+
+```
+                   gap    predicted   inkBotDoc (scroll 0 / 200)   nodeH   lines
+desktop 1536x950    99.3     99.3        850.7 / 850.7              144     1,1
+landscape 844x390  102.0    102.0        288.0 / 288.0               88     1,1
+tabletTall         102.0    102.0        898.0 / 898.0               88     1,1
+portrait (control) 101.7    101.7        657.9 / 657.9              140     1,1
+```
+
+**Desktop's ink sits at `850.7`, identical to the pre-change build** — the "solve so the correct breakpoint does not move" constraint held to the decimal. All four within 2.7px, one line each, no wrapping. Home sweep passes 16/16.
+
+**A PRIMARY VARIANT'S VALUE SHIPS ON THE BASE RULE, NOT A VARIANT-SCOPED ONE — so grepping for it by variant class returns nothing and that is CORRECT.** The three non-primary variants emit as expected while `Image`, the primary, does not appear:
+
+```
+.framer-v-c58v7q .framer-1lqh25u{padding:35px 35px 91px}    <- Image Active
+.framer-v-m1jx24 .framer-1lqh25u{padding:0 30px 45px}       <- Mobile
+.framer-v-cyg2i4 .framer-1lqh25u{padding:0 15px 30px}       <- Mobile Active
+.framer-v-1p2k9g2 .framer-1lqh25u{...}                      <- ABSENT: Image is the base rule
+```
+
+This is the same fact as "the primary variant can never carry an override", seen from the published side. **Verify a primary variant's value from the RUNTIME computed style, never from a variant-scoped selector** — the runtime read `50px 50px 106px` on both desktop and landscape, which is what confirms it shipped.
+
+Note the byte delta is the two padding strings growing (`50px -> 50px 50px 106px` and `35px -> 35px 35px 91px`, +21) net of the dropped fixed `height`, which is the ordinary value-length accounting rather than the rule-count signature.
