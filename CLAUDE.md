@@ -13399,7 +13399,7 @@ News / Next Articles  CCtEc5ZiT
 
 **Verified across every surface the shared component touches**, counting rendered empty-meta divs: `/news` **0** (untouched), `/news/cauda` **2**, `/news/debut` **2**, `/news/kimi` **2** — the desktop pair on each — and Home **7** (untouched). `/news` came back byte-identical at `197,352` and Home at `257,596`, i.e. neither rebuilt, so the 24/24 Home sweep from the earlier publish still describes it.
 
-### The phone footer gap on the article pages — 50px to 90px, and `/news` already matched (2026-10-26, BOUND BUT NOT PUBLISHED)
+### The phone footer gap on the article pages — 50px to 90px, and `/news` already matched (2026-10-26, PUBLISHED)
 
 Shak: *"for phone - the padding below the last article between it and the footer for /news page should match the newsroom section of home page, and so should each of the three article pages."* Measured on the canvas per breakpoint, which is the authoritative source:
 
@@ -13439,6 +13439,12 @@ SmartComponent | Home / Hero Header | updated  <- NOT mine
 ```
 
 I wrote one padding value on `/news/:slug` and touched neither Home nor the hero, so the other two belong to the other website session or to Framer's own agent (which this file records as having had an un-reverted `Home / Hero Header` change before). **The padding is bound and verified in the document and will ship with whatever publish comes next, by any session** — so whoever publishes should know they are carrying this plus that Home work. **HELD ON SHAK'S INSTRUCTION 2026-10-26: do not publish this on your own initiative — wait until the other session's Home / Hero Header work is finished.** It is not abandoned and needs no re-doing; it is one padding value already stored on `P7DaU3y8EAKATRCTxN`, waiting for a publish it is safe to ride along on.
+
+**RESOLVED — Shak published later the same day and it shipped as expected.** The phone override is **eliminated**, which is the signature to expect: `padding:0 15px 50px` goes **1 -> 0** on all three article pages while the base `padding:0 15px 90px` stays, so phone now inherits it. A normalised rule diff on `/news/kimi` finds **exactly one** CSS change — that override leaving — with content byte-identical at **75/75 visible text runs**; `/news` came back at **delta 0**, untouched, confirming it needed nothing. Home's sweep passes **24/24** and pending is **0** on two fresh sessions.
+
+**The pages GREW by 11 bytes each despite losing a 48-character rule**, which is worth not chasing: the modulepreload chunk filenames rotate per build and differ in length, so a small positive delta can coexist with a real deletion. **The rule-level and content-level diffs are the evidence; the byte count alone is not, once build churn is in the same direction as your change.**
+
+**What rode along, for the record:** the same publish carried the other session's `Home / Hero Header` work — a **new phone hero variant** (`framer-v-cyg2i4`, `390x900`, `padding 0 15px 15px`) which shares the existing phone variant's headline rules (`framer-1lqh25u` padding, `framer-6hb5yw` height 140px, now emitted as selector lists covering both). Home's visible content is unchanged by it — 83/83 text runs and the same 52 distinct assets — so it is a layout variant, not a content change.
 
 **STILL OUT OF LINE AFTER THIS, AND IT IS HOME ITSELF: its phone newsroom card keeps the 65px empty meta box**, so Home will still read ~65px looser than `/news` and the article pages even once all three sections sit at 90px. That is the same box removed from the Read-more phone cards earlier today, and closing it is the same one-control write (`tXuTupbrQ: false` on `W8eJA5eCmAdscNAWHz`). **Not done: Shak named Home as the reference, so changing it was not in the ask.** Raised rather than assumed.
 
