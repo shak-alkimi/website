@@ -14165,3 +14165,35 @@ patched  ... gap 15 ...                                            (reproduced)
 Verified by a separate-`exec` read-back on a fresh session and by an idempotent re-issue answering `ALREADY` on both. Publish preview reads exactly **2** changes — `WebPage | Home` and `SmartComponent | Home / Home - Projects Row` — on two independent fresh sessions (hash `5ekep9`), no errors, no warnings, no collision with the other website session.
 
 **After publishing, expect `cardTop 919 -> 844` and `gap 90 -> 15` at 390x844 and 393x852, with landscape/tablet/desktop still 15, and a byte DROP** — both changes delete a rule rather than change a value, which is the override-elimination signature this file has now recorded five times.
+
+### The phone portrait headline lowered 15px — and the inset state needs no second decision (2026-10-26, WRITTEN AND VERIFIED, **NOT PUBLISHED**)
+
+Shak, before publishing the spacing change: *"lower the phone portrait measured lighting objects text slightly."*
+
+| variant | was | now |
+|---|---|---|
+| `Mobile` `Ga1eDgeVyaFsTkdLYT` | `0px 30px 129px 30px` | **`0px 30px 114px 30px`** |
+| `Mobile Active` `eJkK_ItRMaFsTkdLYT` | `0px 15px 114px 15px` | **`0px 15px 99px 15px`** |
+
+`Image` (`50px 50px 106px 50px`) and `Image Active` (`35px 35px 91px 35px`) re-read unchanged, so desktop and tablet are untouched.
+
+**THE COST OF "SLIGHTLY" IS THE iOS TOOLBAR MARGIN, so it was quantified before choosing rather than after.** The 129px exists to pay back the clearance the `100vh` change consumed; lowering the text spends it. Measured by injection on the live build:
+
+| drop | rest clearance | visible above a ~100px iOS toolbar |
+|---|---|---|
+| as-is `129/114` | 185 | ~85 |
+| **-15 `114/99`** | **170** | **~70** |
+| -30 `99/84` | 155 | ~55 |
+| -45 `84/69` | 140 | ~40 |
+
+`-15` is one step of the module this design uses everywhere and keeps a comfortable margin; `-45` would leave the headline 40px off the chrome, which is where it starts to look crowded on a handset. **Measuring the whole ladder costs one run and makes a second round one word** rather than another guess.
+
+**!!! THE INSET STATE NEEDS NO SEPARATE DECISION, BECAUSE THE -15 COMPENSATION CARRIES THROUGH EVERY CANDIDATE. !!!** `Mobile Active` is always `Mobile - 15`, and the hero insets by exactly 15 at the bottom, so the ink sits the same distance above the hero's bottom edge in both states — measured **185 at rest and 185 inset** before the change, and the same identity holds at `114/99`, `99/84` and `84/69`. **Choose one number; the other follows.** That is the "text is static across the inset" property doing its job, and it is worth re-checking at each candidate rather than assuming, which is what the ladder did.
+
+**!!! THE CLEARANCE METRIC IS ONLY VALID AT SCROLL 0, AND IT REPORTED 305 IN THE INSET STATE — which reads as the headline sitting far too high. !!!** `clearance = innerHeight - inkBot` measures distance to the **viewport** bottom, and that coincides with the hero's bottom edge only at rest. At scroll 120 the hero's bottom has moved to viewport `724`, so the honest figure is `724 - 539 = 185` while the naive one is `844 - 539 = 305`. **A metric whose reference point moves with scroll is not a property of the element** — same family as the peak-relative `body50` trap, and the giveaway is that the number changed when nothing about the element did. Recompute against the element the measurement is really about.
+
+**!!! A PRIMARY VARIANT'S CHILDREN CARRY UNPREFIXED IDS, so a prefix-based finder silently reports the primary as missing. !!!** Non-primary variants prefix their children with the variant id (`Ga1eDgeVy` + `aFsTkdLYT`), but the primary's stack is just **`aFsTkdLYT`**. A verifier looking for `v.id + "aFsTkdLYT"` returned `no stack node` for `Image` — which reads as a broken traversal and is simply the id convention. This is the same fact as "a primary variant's value ships on the base rule", seen from the node side. **Walk the variant and match on shape; do not construct a child id by prefixing.** Note `framer.getNode("aFsTkdLYT")` also returned `null` on that id, so traversal was the only route either way.
+
+Verified by a separate-`exec` read-back on a fresh session and by an idempotent re-issue answering `ALREADY` on both, with `Image` / `Image Active` correctly reported as skipped. Publish preview reads **3** changes on a fresh session — `WebPage | Home`, `SmartComponent | Home / Hero Header`, `SmartComponent | Home / Home - Projects Row` — all three mine (the `Section Projects` padding, these two hero paddings, and the row variant padding), no errors, no collision.
+
+**After publishing, expect the phone portrait headline clearance at `170` (from 185) at both 390x844 and 393x852, identical ink-to-hero-bottom in the inset state, and desktop/tablet unchanged at 99 and 102.**
