@@ -13804,3 +13804,54 @@ c3_120                 dip 0
 **Standing rule from it: any scroll- or hover-triggered verification must sample at least TWO cycles, with a return to the start between them.** One cycle cannot distinguish "fixed" from "fixed after the first time", and a fresh context per sample makes cycle 1 the only thing you ever measure.
 
 **`Mobile Active` appears 0 times in the served markup**, which is correct and not a regression — the variant is applied by JS on scroll, so the SSR carries the resting `Mobile` variant. The scrolled branch is observable only in a running page.
+
+### !!! THE VISIBLE DEFECT WAS A FULL-BAND **STEP** DURING A 2-SECOND FADE, NOT THE 1px SEAM — and my detector was structurally blind to it (2026-10-26) !!!
+
+Shak, after the fix published: *"still seeing a line on my phone"*, then *"it disappears after a few seconds, but reappears on scroll when the home image goes back to full bleed and you scroll again"*, with a screenshot.
+
+**The screenshot showed a grey band under the card ending in a hard full-width line — not a hairline.** Everything above about the 1px seam is real and was correctly fixed; it was simply the *less* visible of two manifestations of the same cause, and the one I had been measuring.
+
+**THE MECHANISM: the hero root's white background FADES IN OVER ~1.6-2 SECONDS after the inset fires.** Sampled at tight intervals from the moment of the scroll:
+
+```
+ 151ms  rgba(255,255,255,0.067)     863ms  rgba(255,255,255,0.930)
+ 219ms  rgba(255,255,255,0.294)    1272ms  rgba(255,255,255,0.984)
+ 365ms  rgba(255,255,255,0.608)    2043ms  rgba(255,255,255,1)
+ 557ms  rgba(255,255,255,0.796)
+```
+
+While that white is translucent it reveals whatever is behind it **across the entire 15px band**, and that band then meets the opaque white of `Section Projects` at a hard, full-width edge. On the pre-fix build, behind it was `Section Hero`'s `#080200`:
+
+```
+OLD build   600ms   step 28.7   (226 -> 255)   <- plainly visible
+            1000ms  step  7.0   (248 -> 255)
+            1600ms  gone
+NEW build   no step at any timing, 60ms through 6s
+```
+
+**That is exactly "appears and disappears after a few seconds", and exactly why it returns on every fresh inset** — the fade re-runs each time the hero goes full-bleed and insets again.
+
+**!!! MY DETECTOR COULD NOT SEE IT, AND REPORTED "clean" THROUGHOUT. !!!** It looked for a **dip** — a dark row between two light neighbours:
+
+```js
+if (a>150 && b>150 && Math.abs(a-b)<12 && (a+b)/2-c > 18) hit(y);   // DIP: blind to a step
+```
+
+A step edge is **two flat regions at different levels**, so there is no dark row between light neighbours and the test can never fire. It returned `clean` at every scroll position, every breakpoint and every device pixel ratio while a 28-level step sat in the frame. The step test is a different shape entirely — require both sides **flat** and compare their **levels**:
+
+```js
+const a=(m[y-5]+m[y-4]+m[y-3])/3, c=(m[y+2]+m[y+3]+m[y+4])/3;
+if (a<200||c<200) return;                       // both sides light
+if (spread(a_rows)>2 || spread(c_rows)>2) return; // both sides flat
+if (Math.abs(a-c) >= 3) hit(y);                 // STEP
+```
+
+**Run BOTH whenever a user reports "a line". A dip finds a hairline; a step finds a boundary between two tints. They have no overlap, and a user calls both of them a line.**
+
+**AND EVERY SAMPLE I TOOK WAITED >= 1.2s, by which point alpha was 0.98+.** So even with a step detector I would have missed it. **For anything that animates, sample THROUGH the transition window — tight intervals from 60ms — not after it.** This is the third time on this project that settling before measuring has hidden the thing being measured (after the card-gap frames and the hamburger's first cycle), and the first where the *wait itself* was the whole error.
+
+**THE DECISIVE INSTRUMENT WAS THE SAVED PRE-PUBLISH PAGE.** `home_1.html`, curled before the write, served from a local `python -m http.server` and driven at `390x844 @ dpr3`, reproduced his screenshot exactly — grey band, hard edge, gone by 1600ms — while the published build was clean through the same window. **That converts "I cannot reproduce it" into proof of which build the user is on**, which is otherwise unanswerable from this side. The standing habit of `curl`-ing a page before publishing earned itself completely here; without that file this was unresolvable.
+
+**So the published fix closes BOTH manifestations** — the static 1px seam and the fade-window step — because both are the same cause: something dark behind a white that does not fully cover, whether the shortfall is 0.15px of edge or two seconds of alpha. **The general rule stands and is now better evidenced: a partially-covering white shows whatever is behind it, so the layer behind must match the layer in front.**
+
+**The reported symptom was a CACHED PRE-FIX BUILD on the handset**, which this file already records as the standing hazard for this project (*"the entire feedback loop is publish, then look on a phone"*) — and which, this time, was proven by reproduction rather than assumed.
