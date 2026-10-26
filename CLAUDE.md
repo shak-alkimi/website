@@ -14080,3 +14080,47 @@ Mobile Active     padding 0px 15px  30px 15px -> 0px 15px 114px 15px
 **THE 10% PEEK IS GONE, AND THAT WAS A DELIBERATE DESIGN ELEMENT.** This file records `90vh` as *"the original, deliberate 10% peek that signals scrollability"*. Shak chose consistency with the other breakpoints over the peek, explicitly and with both screenshots in front of him. **Do not restore `90vh` as a "fix" — it is the thing that was removed.** If the peek is ever wanted back, it needs a mechanism that does not depend on the viewport unit, since the sliver returns with it.
 
 **NOT PUBLISHED — blocked in this session as a production deploy.** Three writes, each guarded on its prior value, verified by a separate-`exec` read-back and an idempotent re-issue answering `ALREADY` on all three. Preview reads exactly 2 changes — `WebPage | Home` (the breakpoint height) and `SmartComponent | Home / Hero Header` (the two paddings) — on two independent fresh sessions. **After publishing, re-measure at 390x844, 393x852, 430x932 and 360x800: expect `whiteAtRest 0` and `ink -> viewport bottom 185.7` on every one.**
+
+**PUBLISHED AND VERIFIED LIVE 2026-10-26** (build `17:55:52 GMT`, `258,455 -> 258,402` = **-53**, byte-stable over three fetches, no known-bad signature). The white strip is gone at every phone size tested, and the headline clearance is constant:
+
+```
+            gapBelowHero   inkToBottom   lines   bottom 40 device rows
+390x844          0            185          1     grey 0 x40
+393x852          0            185          1     grey 0 x40
+430x932          0            185          1     grey 0 x40
+360x800          0            185          1     grey 0 x40
+desktop 1536x950 0             99          1     (control, unchanged)
+tablet   900x1000 0           102          1     (control, unchanged)
+```
+
+**`gapBelowHero: 0` is the structural half of the proof** — the hero's bottom edge coincides with the viewport bottom, so nothing below it is reachable at rest and no strip can exist at any toolbar state. The pixel scan is the other half. Clearance measured **185.0**, against **185.7** predicted by the pre-publish injection; a 0.7px difference, so the prediction was right to within sub-pixel and the *constancy* — identical to the decimal across a 132px range of viewport heights — is the property that matters.
+
+**THE -53 BYTES ARE THE OVERRIDE-ELIMINATION SIGNATURE, for the fourth time in this file.** `90vh` now appears **0** times and `Section Hero` carries `height:100vh` on the **base** rule with no phone media query at all — the phone override was not changed, it was deleted, because all three breakpoints now agree. Both headline paddings shipped (`0 30px 129px` / `0 15px 114px`, difference exactly 15, so the inset compensation survives), and the seam fix is intact and still phone-scoped (`Section Hero` `#fff` and `Main` `#fff` only under `@media (max-width:809.98px)`; desktop keeps its grey-to-white gradient on the base).
+
+**THE SEAM DETECTORS WERE RE-RUN BECAUSE THE HERO HEIGHT CHANGE MOVED EVERY BOUNDARY BELOW IT** — a real regression risk, not a formality. Both detectors, two scroll cycles, scroll 40/120/400: **0 dips, 0 steps at any layout boundary.** Two cycles because one cannot distinguish "fixed" from "fixed after the first time".
+
+**The one step hit the detector did report was benign, and checking it is the point.** Twelve rows at y 692-699 on scroll 400, reproducible on both cycles, 9 grey levels — and `elementsFromPoint` puts it **inside a product-card image** (`IMG` spanning top 519 to bottom 1009), with the nearest element edges 170px away in either direction. Ordinary picture content. **A step detector flags image content as readily as a seam; resolve every hit to an element boundary before reading the list as defects.**
+
+**!!! A DETECTOR THAT RETURNS ALL ZEROS MUST BE VALIDATED AGAINST A KNOWN-LIGHT REGION BEFORE THE ZEROS ARE BELIEVED. !!!** The bottom 40 device rows read grey `0` on all four sizes — which is equally what a broken crop, a failed screenshot or an out-of-range offset produces. Validated with a full-height profile of the same image through the same pipeline: grey **0 to 117**, with the video content and the overlay vignette both visible. Only then is "the bottom is dark" a measurement.
+
+**!!! TWO OF MY OWN SWEEP FAILURES WERE PATTERN GUESSES, NOT THE SITE — the relative-href trap in a new costume. !!!**
+
+```
+searched "0.975765"  -> 0      actual emitted: ".975765"   (no leading zero)
+searched "0.925714"  -> 0      actual emitted: ".925714"
+expected 100vh x2 (CSS rules)  -> found 3: the third is an inline style="min-height:100vh"
+```
+
+Both Elements breakpoint ratios are present exactly once. **The fix is to census the property rather than grep a guessed literal** — `grep -o -E "aspect-ratio:[0-9.]+" | sort | uniq -c` printed every value on the page in one line and made the leading-zero convention obvious, where three more guesses would not have. Corrected, the sweep is **22/22**, with the orb at `4,280,052` and the hero video at `4,009,893`, both byte-exact. Pending `0` on two independent fresh sessions, same hash.
+
+**!!! A CSS FILTER BUILT ON `all()` OVER AN EMPTY LIST MATCHES EVERYTHING, AND READS AS WORKING. !!!** My media-query-aware dumper opened with `all(... for p in [])`, which is vacuously **True**, so every rule in the document printed and the first output was a wall of `@font-face`. It looks like a tool that ran; it is a filter that is not filtering. **A predicate that admits everything is a failing check, exactly like one that admits nothing** — and the second is much easier to notice. Assert a plausible match count (`total rules parsed: 460  matched: 2`) and the question answers itself.
+
+**!!! WHEN THE PLAYWRIGHT PROFILE IS HELD, LAUNCH YOUR OWN BROWSER FROM THE CACHED MODULE — measurement is not blocked. !!!** `browser_run_code_unsafe` failed with *"Browser is already in use for ...mcp-chrome-ba372c9"*, which has repeatedly ended measurement on this project. The route around it needs nothing installed:
+
+```js
+const { chromium } = require("C:/Users/shaki/AppData/Local/npm-cache/_npx/<hash>/node_modules/playwright-core");
+await chromium.launch({ executablePath:
+  "C:/Users/shaki/AppData/Local/ms-playwright/chromium_headless_shell-1223/chrome-headless-shell-win64/chrome-headless-shell.exe" });
+```
+
+`chromium.launch()` makes its own temp profile, so there is no conflict with the held one. Two details: the cached `playwright-core` wanted browser build **1247** while the machine has **1223**, so `executablePath` is required; and the **headed** `chrome.exe` dies with `spawn UNKNOWN` under the sandbox while the **headless shell** runs fine — test the binary with `--version` first, since that distinguishes a sandbox refusal from a missing download in one call. This gives real viewport emulation, `deviceScaleFactor`, screenshots to an absolute path and a fresh context per size, which neither Claude in Chrome (no viewport emulation) nor the held MCP profile can offer.
