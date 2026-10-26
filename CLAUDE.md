@@ -13774,3 +13774,33 @@ Requiring the two neighbours to be light **and to agree with each other** is wha
 **A thin-ELEMENT sweep could never have found this.** A first pass collected every visible element of height <= 3.5px across the page and found only real dividers — because a fractional seam is not an element at all, it is the absence of paint between two. **For a hairline, go to pixels; an element sweep answers a different question.**
 
 **NOT PUBLISHED — publishing is blocked in this session as a production deploy.** The two attributes are written and verified (separate-`exec` read-back, an idempotent re-issue answering `ALREADY` on both, Desktop and Tablet re-read unchanged), and the publish preview reads **exactly 1 change, `WebPage | Home | updated`, no errors, no warnings** on two independent fresh sessions (hash `skfavt`) — so it is uncontested by the other website session and safe to ship. **The fix is proven by injection on the live build and by the document read-back; it is not yet confirmed on a published page.** After publishing, re-run the row scan at scroll 40/120/400 and expect `dip 0`.
+
+**PUBLISHED AND VERIFIED LIVE 2026-10-26** (build `16:18:56 GMT`, `258,367 -> 258,415` = **+48 bytes**, byte-stable over three fetches). The seam is gone: **`dip 0` at scroll 40, 120 and 400, with pure `255,255,255` on the row and both its neighbours.**
+
+**Both rules are phone-scoped, confirmed by a MEDIA-QUERY-AWARE parse of the served CSS** rather than a flat grep — the recorded trap being that a flat regex cannot tell a base rule from a breakpoint override:
+
+```
+Section Hero      BASE                          background:linear-gradient(#545454 0%,#fff 5%)
+Section Hero      @media (max-width:809.98px)   background:#fff
+Main              @media (max-width:809.98px)   background-color:#fff
+```
+
+Desktop keeps its gradient on the base rule, and desktop/tablet re-read `Section Hero` transparent + `Main` transparent with **integer** hero bottoms (`830 / 550 / 880 / 600`) — no fractional boundary, hairline detector clean at both. Home sweep passes 16/16.
+
+**!!! SHAK ASKED "IS THERE ONLY ON FRESH LOAD INITIAL SCROLL" AND MY SAMPLING COULD NOT HAVE ANSWERED IT — EVERY MEASUREMENT I HAD TAKEN WAS A FRESH LOAD'S FIRST SCROLL, SO I HAD NO SECOND-CYCLE CONTROL. !!!**
+
+This is the first-cycle trap from the hamburger investigation, where a defect failed on cycle 1 and passed on cycles 2-6 because Motion has no previous value to fall back to before a property has been animated once — and where 3-of-3 cycle-1 failures read to a person as "sometimes". **A fresh context per sample is the right discipline for isolating state, and it silently guarantees you only ever see cycle 1.** The question was answerable in one run and I had not run it.
+
+Tested properly on the published build — one context, three scroll cycles returning to the top between each:
+
+```
+c1_040 c1_120 c1_400   dip 0 0 0      <- cycle 1, the first scroll after a fresh load
+c2_040 c2_120 c2_400   dip 0 0 0
+c3_120                 dip 0
+```
+
+**The fix happens to be cycle-independent, because it is a static background rather than an animated property** — there is no first-paint state for Motion to get wrong. So the answer to his question is that the *defect* was indeed visible on a fresh load's first scroll (and on every later one too, which neither of us could see at the time), and the fix holds in all of them.
+
+**Standing rule from it: any scroll- or hover-triggered verification must sample at least TWO cycles, with a return to the start between them.** One cycle cannot distinguish "fixed" from "fixed after the first time", and a fresh context per sample makes cycle 1 the only thing you ever measure.
+
+**`Mobile Active` appears 0 times in the served markup**, which is correct and not a regression — the variant is applied by JS on scroll, so the SSR carries the resting `Mobile` variant. The scrolled branch is observable only in a running page.
