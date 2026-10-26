@@ -12812,3 +12812,86 @@ animation — so a proposed one-property change can be *proven* on the real publ
 real component and the real interaction, at zero risk and with no publish. **Interleave the trials
 and report the mid-flight count alongside the defect count**, so a run where the interaction simply
 did not fire cannot masquerade as a fix.
+
+### SHAK WAS RIGHT THAT IT STARTED YESTERDAY — but it is the OVERLAY FIX, not the card images (2026-10-26)
+
+**!!! WE TRADED ONE DEFECT FOR ANOTHER. The 2026-10-25 Overlay fix removed the gradient collapse and
+introduced the image gap. !!!**
+
+**A PUBLISHED HOME PAGE FROM 2026-10-21 14:25 SURVIVES in another session's scratchpad**
+(`…spare-j5jwb2/e233ffda…/scratchpad/pg_home.html`) — four days before the change. Diffing the whole
+row component against today, with the rotating 5-character hash normalised out:
+
+```
+row rules   Oct 21 = 44      today = 40
+
+ONLY IN OCT 21   .framer-HASH .framer-a89f6k{…width:100%;height:100%;position:absolute;top:0%;left:0%…}
+                 .framer-HASH .framer-lykl7s{…width:100%;height:100%;position:absolute;top:0%;left:0%…}
+                 .framer-HASH.framer-v-13nkcd0 .framer-lykl7s,…v-1wk9ftb…{bottom:0;left:0;top:unset}
+                 .framer-HASH.framer-v-1rizoid .framer-a89f6k{bottom:0;left:unset;right:0;top:unset;width:150%}
+                 .framer-HASH.framer-v-3q8m7a  .framer-lykl7s{bottom:0;left:0;top:unset;width:150%}
+
+ONLY TODAY       .framer-HASH .framer-lykl7s,.framer-HASH .framer-a89f6k{…position:absolute;inset:0…}
+```
+
+**That is the entire content diff. Five Overlay rules replaced by one.** Everything else in the row is
+**byte-identical** — both Images (all 12 rules, widths, aspect ratios), the row's `gap:16px`, and the
+`Before Scroll` padding split. **So the card images cannot be the cause, and nor can the padding.**
+
+**THE CARD IMAGES WERE NEVER A CANDIDATE, for a reason worth stating once:** the gap is
+`wrapperVisualWidth − imageDivVisualRight`, measured on **div rects**. The div's width comes from
+`width:150%` in the stylesheet and its position from `justify-content:flex-end`. **Which PNG is bound
+to the CMS field cannot move a div.** The asset only decides what is painted inside it.
+
+**STOCK ORA IS THE CONTROL AND IT IS CLEAN** — it still has the old Overlay. Same component, same
+`Before Scroll` padding rule verbatim, and the identical variant path through the scroll-in:
+
+```
+STOCK   1juo821 pad15  ->  1dlme80 pad0 @89ms  ->  1rizoid @225ms    scale-animating=12,15   GAPFRAMES=0
+OURS    1juo821 pad15  ->  1dlme80 pad0 @66ms  ->  1rizoid @218ms    scale-animating=11..15  GAPFRAMES=18..26
+```
+
+**This corrects two things said earlier today.** The claim that the mechanism is *"template-inherited
+and predates everything"* is **wrong** — stock takes the identical path and does not gap. And framing
+the padding as the differentiator was **wrong**: stock has the same padding. **The padding is the
+WINDOW the collision happens in; the Overlay change is what makes the image fall through it.**
+
+**WHAT WAS RULED OUT, each by experiment rather than argument:**
+
+| candidate | test | result |
+|---|---|---|
+| the two card images | byte-identical CSS Oct 21 vs today; gap is div geometry | **not the cause** |
+| the `Lighting` / `Hardware` eyebrows | removed them live, A/B | 26,25 vs 22,25 — **no effect**; `cardH == imgH == 761`, so they never made the card taller |
+| row `gap:16px` (ours) vs `15px` (stock) | injected `gap:15px`, A/B | 19,20 vs 19,22 — **no effect** |
+| redundant per-variant `aspect-ratio` | absent from every JS chunk; computed value identical to the base | **computationally inert** |
+| the Overlay geometry | injected stock's rules, A/B | 22,19 vs 20,22 — **no effect, but see below** |
+
+**!!! THE OVERLAY INJECTION TEST CAME BACK NEGATIVE AND DOES NOT DISCONFIRM — understand why before
+trusting a CSS-injection result. !!!** Restoring the old geometry with `!important` changes the
+element's *computed box*; it cannot change **which elements Framer registers for Motion's layout
+projection**, which is decided by the compiled component, not the stylesheet. The old Overlay carried
+**per-variant width and position changes**, so it was a projected sibling; `inset:0` has none, so it
+drops out — and the parent's scale correction is then distributed differently among the remaining
+children. **That mechanism is a hypothesis; the elimination is not.** CSS injection can prove a fix
+(the padding one) and cannot disprove a cause that lives in the JS.
+
+**DO NOT REVERT THE OVERLAY — that trades back to the gradient collapse, which was worse** (24% of
+mid-flight frames, up to 274 CSS px of bare card, and visible as a hard vertical edge rather than a
+hairline strip). **The padding fix is the right resolution precisely because it is a different
+lever:** it closes the collision window without giving back the Overlay fix, and it is proven at
+`0 gap frames` across four interleaved trials.
+
+**A third option, untested:** give the Overlay back a per-variant `width` declaration while keeping it
+covering, so it rejoins the projection tree. If the mechanism above is right that would also fix it,
+and it is reachable from the editor — but it is speculation and the padding fix is measured.
+
+**METHOD — THE THING THAT CRACKED THIS, AND IT SHOULD BE A HABIT: KEEP A PUBLISHED COPY OF EVERY PAGE
+YOU TOUCH.** This file already says *"worth saving the served page before a publish; a diff is only
+available if the baseline was kept"*, and it was only an accident that a four-day-old `pg_home.html`
+survived in another session's scratchpad. One `curl` before each publish would have answered
+*"what changed"* in thirty seconds instead of a dozen experiments. **Normalise the component hash
+before diffing** (it rotates whenever the component is edited) and the row's CSS compares cleanly.
+
+**And the second habit: when a user says "it started when X changed", test X AND diff everything
+else.** X was wrong here — but the *timing* was exactly right, and following the timing rather than
+the attribution is what found it.
