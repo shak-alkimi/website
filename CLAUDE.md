@@ -13059,3 +13059,43 @@ the better direction. Reverting entirely is one attribute on each of the two nod
 **DECISION PENDING — Shak is judging whether to keep it.** It is a workaround for the Framer runtime
 regression, not a fix for anything of ours; if Framer corrects the projection bug upstream, this can be
 reverted and the settle restored.
+
+**CORRECTION — THE PADDING CHANGE COSTS NOTHING VISIBLE. The "cost, measured" table above is WRONG and is withdrawn (2026-10-26).**
+
+That table reports the card-top offset ramping `15 -> 0` and concludes *"that settle is the whole of what is
+given up — the row no longer shifts up 15px as it scrolls into view."* The measurement was real; the
+**inference that anyone could see it was not**. Shak kept it and reported that old and new *"still look the
+same… new does not present the issue"*, which is exactly right.
+
+**WHERE THE 15px ANIMATION ACTUALLY HAPPENS, with the sampler armed by `addInitScript` so it captures from
+the first frame:**
+
+```
+OLD   first frame ms=73   offset=15   variant=framer-v-1juo821   rowTopVP=787
+      held 29 frames, then releases at ms=609, scrollY=0, rowTopVP=787
+      all 16 mid-animation frames at rowTopVP 787..787   <- viewport is 787 tall
+NEW   first frame ms=63   offset=0    no animation at all
+```
+
+**It fires ~0.6 s after page load, at scroll 0, with the row's top exactly ON the fold — so the entire
+animation plays out below it.** And it does not come back: scrolling down past the row, back to the top,
+settling and scrolling in again gives **0 mid-animation frames on both builds**, so the state does not
+re-arm into a visible one. The `Before Scroll State - Below Hero` trigger is satisfied at load, not when the
+row scrolls into view, which is the whole reason it is invisible.
+
+**So the 15px was dead weight, and it is Ora's, not ours** — stock serves the byte-identical rule
+`.framer-SsoeK.framer-v-1juo821.framer-1dlme80{padding:15px}`. Nothing was designed here and nothing was
+lost. The recorded alternative "equalise on `15px` instead to preserve the settle" is therefore **pointless**
+— there is no settle to preserve, and that direction would have moved the resting layout for nothing.
+
+**THE REASONING ERROR IS WORTH MORE THAN THE FACT: I MEASURED A PROPERTY AND REPORTED IT AS AN EXPERIENCE.**
+`offset: 15 -> 0` is a true statement about the DOM and says nothing about whether a human sees it. The
+missing step was one more measurement — *where on screen, and when* — which took one run and reversed the
+conclusion. **Before calling a measured change a visible cost, locate it in the viewport and in time:**
+an animation below the fold, behind an overlay, during a page transition, or inside a `0.6 s` load window is
+a number, not a cost. This is the same family as the earlier `grad`/threshold artifacts — the instrument was
+right and the question it answered was not the one being asked.
+
+**Net: the workaround is strictly a win** — defect gone, nothing given up — and it is now KEPT. It remains a
+workaround for the Framer runtime regression, so if Framer fixes the projection bug upstream this can be
+reverted with no consequence either way.
