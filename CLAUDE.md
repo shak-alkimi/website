@@ -13968,3 +13968,56 @@ Phone     #home-nav-state / Top -> Mobile Active        unchanged
 - Verified by **closing the popover and reopening it** on each breakpoint, which is the reliable read for a select.
 
 **NOT PUBLISHED — publishing is blocked in this session as a production deploy.** Preview reads exactly 1 change, `WebPage | Home | updated`, no errors, on two independent fresh sessions. **After publishing, re-run the viewport-height sweep: every height from 390 to 1100 should report `fires at 40` and `Image`/`Mobile` at rest.**
+
+**THE HERO TRIGGER FIX IS PUBLISHED AND VERIFIED 2026-10-26 — 12 of 12 viewport heights.** Full bleed at rest, firing at exactly **40** and reverting, at every height from 390 to 1100 including every one that was broken:
+
+```
+1536x1100  1536x950  1536x850  1536x760  1536x600   Image   rest, fires 40, reverts
+1200x500   900x1000  900x600   1024x420  844x390    Image   rest, fires 40, reverts
+390x844    390x600                                  Mobile  rest, fires 40, reverts
+```
+
+Phone correctly still resolves `Mobile`/`Mobile Active`, so the `To` target survived the cascade as the editor read predicted.
+
+### The landscape headline sat 56px too high — a FIXED-HEIGHT text box makes a gap FONT-SIZE-DEPENDENT (2026-10-26, WRITTEN AND VERIFIED, **NOT PUBLISHED**)
+
+Shak: *"for phone the text in landscape of measured lighting objects should be lower and match distance to bottom like portrait."*
+
+**Measuring the gap from the bottom of the visible INK to the hero's bottom edge is what made the cause obvious** — the box positions were all "correct":
+
+```
+desktop    1536x950   Image   node 200px   ink 158 tall   dead  49   GAP  99.3
+tablet      900x1000  Image   node 200px   ink  97 tall   dead 108   GAP 158.0
+landscape   844x390   Image   node 200px   ink  97 tall   dead 108   GAP 158.0
+portrait    390x844   Mobile  node 140px   ink  87 tall   dead  57   GAP 101.7
+```
+
+**Desktop and portrait already matched at ~100; only the tablet breakpoint was out.** The headline text node is a **fixed 200px** with the text top-aligned inside it, while the font drops from 72px to 44px at the 1200px breakpoint — so the ink shrinks and the dead space below it grows from 49px to 108px. **The box never moved; the text inside it got smaller.**
+
+**THE CONSTRAINT THAT RULED OUT THE OBVIOUS FIX: desktop and tablet share the `Image` variant.** Component internals are per-variant, not per-breakpoint, so shrinking the node to lower tablet would have lowered desktop by the same 56px. The two breakpoints differ only in font size, which comes from the text style's own breakpoints — there is no per-breakpoint lever inside the component.
+
+**THE FIX MAKES THE GAP FONT-SIZE-INDEPENDENT INSTEAD OF CORRECTING IT:**
+
+```
+headline text node   height 200px -> fit-content      (Image and Image Active)
+stack padding        Image         50px -> 50px 50px 106px 50px
+                     Image Active  35px -> 35px 35px  91px 35px
+```
+
+With `fit-content` the box hugs the ink, so `gap = padding + line-box slack` — and the slack is tiny and nearly constant (`-6.7` desktop, `-4` tablet) rather than the 49/108 the fixed box produced. **Then solve the padding so the breakpoint that is ALREADY CORRECT does not move:** desktop needs `gap 99.3 = P - 6.7`, so `P = 106`, which lands tablet at `102`. Measured by injection before writing a thing:
+
+```
+                 gap BEFORE   gap AFTER
+desktop             99.3        99.3     <- inkBotDoc identical at 850.7, literally unmoved
+landscape          158.0       102.0     <- down 56
+tablet-tall        158.0       102.0
+portrait (control) 101.7       101.7     <- different variant, untouched
+```
+
+All four now sit within **2.7px**. **`Image Active` gets `91 = 106 - 15`**, preserving the +15 compensation that keeps the text static across the inset — verified, the ink's document position is identical at scroll 0 and 200 on every breakpoint.
+
+**SOLVING FOR "THE CORRECT ONE DOESN'T MOVE" IS THE RIGHT WAY TO PICK A SHARED CONSTANT.** The instinct is to solve for the broken breakpoint and accept whatever happens to the others; inverting it — pin the value that is already right and let the fix fall out — gave a change that is provably zero-impact on desktop, which is what made it safe to apply to a shared variant at all.
+
+**The Mobile pair was untouched and that was checked, not assumed.** `Image` is the PRIMARY variant, so a write to it cascades to anything that has not overridden — but `Mobile` and `Mobile Active` hold their own `140px` heights and their own paddings, which blocked it. Read back after the write: `140px` and `0px 30px 45px 30px` / `0px 15px 30px 15px`, unchanged.
+
+**NOT PUBLISHED — blocked in this session as a production deploy.** Four writes, all guarded on their prior value, verified by a separate-`exec` read-back and an idempotent re-issue answering `ALREADY` on all four. Preview reads exactly 1 change, `SmartComponent | Home / Hero Header`, on two independent fresh sessions. **After publishing, re-measure the ink-to-hero-bottom gap at 1536x950, 844x390, 900x1000 and 390x844 — expect `99.3 / 102 / 102 / 101.7`.**
