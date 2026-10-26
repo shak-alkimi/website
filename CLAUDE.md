@@ -13855,3 +13855,43 @@ if (Math.abs(a-c) >= 3) hit(y);                 // STEP
 **So the published fix closes BOTH manifestations** — the static 1px seam and the fade-window step — because both are the same cause: something dark behind a white that does not fully cover, whether the shortfall is 0.15px of edge or two seconds of alpha. **The general rule stands and is now better evidenced: a partially-covering white shows whatever is behind it, so the layer behind must match the layer in front.**
 
 **The reported symptom was a CACHED PRE-FIX BUILD on the handset**, which this file already records as the standing hazard for this project (*"the entire feedback loop is publish, then look on a phone"*) — and which, this time, was proven by reproduction rather than assumed.
+
+### The phone hero headline moved on inset — desktop already had the compensation, phone never got it (2026-10-26, WRITTEN AND VERIFIED, **NOT PUBLISHED**)
+
+Shak: *"the text should not change position in hero for phone like the desktop. move it to the inset position as static so when it goes from full bleed to inset the text does not move."*
+
+**The headline `stack` is a child of `Container`, so it insets with the card.** When the hero goes full-bleed -> inset the root gains `padding: 0 15px 15px`, which moves the Container and everything in it. Measured on the published build at `390x844`:
+
+```
+              full bleed            inset
+"Measured"    x=15, docY 589.6      x=30, docY 574.6     <- 15px right, 15px up
+```
+
+**DESKTOP DOES NOT MOVE, AND READING WHY GAVE THE FIX FOR FREE.** The same stack carries a *different* padding per variant there, and the difference is exactly the inset:
+
+```
+Image        50px                 ->  Image Active   35px                 delta 15   text UNCHANGED
+Mobile       0px 15px 30px 15px   ->  Mobile Active  0px 15px 30px 15px   delta  0   text MOVES
+```
+
+So the convention already existed and the phone pair was simply never compensated. **Fix: `Mobile` stack `Ga1eDgeVyaFsTkdLYT` -> `0px 30px 45px 30px`** (+15 on left, right and bottom), leaving `Mobile Active` at `0px 15px 30px 15px`. **Reading the breakpoint that already works is cheaper and safer than deriving a correction from scratch** — it also guarantees the two breakpoints stay idiomatic with each other.
+
+**Verified by injection on the live build before publishing**, which is the standing technique for proving a one-property change:
+
+```
+AFTER   full bleed  x=30, docY 574.6   |   inset  x=30, docY 574.6   -> identical
+ink 30 -> 304.5, one line, both states, 55px spare to the right margin
+```
+
+Note the text now rests at the **inset** position in both states, which is what was asked: in full bleed it sits 30px from the screen edge and 45px from the bottom, and in inset it sits 15px inside a card that is itself inset 15px — **the same distance from the screen edge either way**, which is why it reads correctly in both.
+
+**LANDSCAPE PHONE IS THE TABLET BREAKPOINT, AND IT IS ALREADY INSET AT REST.** Shak asked; measured at `844x390`:
+
+```
+844 wide > the 810px tablet threshold  ->  serves Image / Image Active, not Mobile
+at scroll 0:  variant = "Image Active", padding "0px 15px 15px", Container x 15..829
+```
+
+So a rotated phone gets the tablet hero, and because the viewport is only 390 tall the desktop/tablet inset trigger's condition is already satisfied before any scrolling — the hero never shows full-bleed in landscape. **This is the viewport-height-dependent trigger trap recorded for `/about`, reached from the other direction: there a short anchor offset went negative on a tall window, here a tall anchor is already in view on a short one.** It will affect a short desktop window as well as a landscape phone. Raised, not fixed — the phone fix above is scoped to the `Mobile` variant and does not touch it.
+
+**NOT PUBLISHED — publishing is blocked in this session as a production deploy.** Written and verified (separate-`exec` read-back, idempotent re-issue answering `ALREADY`, `Image`/`Image Active`/`Mobile Active` all re-read unchanged).
