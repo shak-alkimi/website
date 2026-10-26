@@ -13258,3 +13258,63 @@ css rules                     716                  ->  693
 **It cannot be concluded from this publish**, because the padding workaround is still in place and therefore the defect is absent either way. The non-destructive test is the recorded CSS-injection A/B: inject the old `.framer-v-1juo821.framer-1dlme80{padding:15px}` rule back with `!important` on the live page and count gap frames. If the gap stays at zero, the upstream bug is fixed and the workaround can be reverted to restore the (invisible) 15px settle. **Not run — raised with Shak on 2026-10-26 and DECLINED; the padding workaround stays in place. Do not re-raise it as a finding.** It is recorded here as the method, for whenever the question becomes worth asking on its own — another runtime move, or the card gap being reported again.
 
 **Method notes:** the Playwright profile was held by a live Chrome for the whole session (`Browser is already in use for …mcp-chrome-ba372c9`), so the measurement went through Claude in Chrome, where `javascript_tool` and real `computer hover` both worked — and stashing the probe as `window.__probe` once made every later reading a one-line call. The pre-publish page was saved before the write, which is what made the 12KB delta attributable at all. The publish preview was read on **two independent fresh sessions** (both `changesCount: 1`, `SmartComponent | Home / Home - Projects Row 2`, same hash) and the publish guarded to abort on any other change set — no collision with the other website session.
+
+### SITE-WIDE SWEEP for the Framer layout-projection pattern — the Home row is the ONLY instance (2026-10-26)
+
+The runtime regression attaches at build time, so every page republished from now on carries it wherever the
+vulnerable shape appears. Swept **13 live pages x 3 breakpoints = 39 surfaces** for that shape.
+
+**RESULT: the only instance anywhere on the site is the Home projects row, which is already covered.**
+
+```
+DESKTOP 1536   /  ->  Image Wrapper Left  (745) > Image (894)  flex-start   ** AT RISK
+                      Image Wrapper Right (745) > Image (894)  flex-end     ** AT RISK
+               the other 12 pages: 0
+TABLET  900    /  ->  Image Wrapper Right (427) > Image (534)               structure only, see below
+               the other 12 pages: 0
+PHONE   390    /  ->  Image Wrapper Right (360) > Image (454)               structure only, see below
+               the other 12 pages: 0
+```
+
+**Tablet and phone carry the structure but CANNOT trigger it**, which was checked rather than assumed:
+
+```
+DESKTOP 1536   rest L=745 R=745  ->  hovered L=894 R=596   cards RESIZE on hover
+TABLET   900   rest L=427 R=427  ->  hovered L=427 R=427   cards do NOT resize
+```
+
+There are no `Left Open` / `Right Open` variants below 1200 px, so there is no parent scale animation for the
+projection to get wrong. Phone additionally stacks the row in a column and has no hover at all. **Desktop is
+the whole exposure, and the padding fix covers it** (applied to the desktop *and* tablet below-hero variants).
+
+**THE DETECTOR, worth keeping.** The vulnerable shape is a **flow child, wider than its parent, inside an
+`overflow: hidden|clip` parent that anchors it with `justify-content: flex-start|flex-end`**, where some
+variant rule changes the width or flex of that element or its parent:
+
+```js
+if (cs.position === 'absolute' || cs.position === 'fixed') continue;   // absolute children scale with the parent
+if (!/hidden|clip/.test(ps.overflowX)) continue;                       // no clip, no visible failure
+if (!/flex-start|flex-end|^start$|^end$/.test(ps.justifyContent)) continue;   // centred children are a different case
+if (!(er.width > pr.width + 2)) continue;                              // must overflow to be a "mask"
+```
+
+**!!! MY FIRST DETECTOR FAILED ITS OWN CONTROL AND I ALMOST SHIPPED ITS ZEROS. !!!** The "does this width
+vary?" test was `el.matches(rule.selectorText)` over variant rules — which is **false at rest**, because a
+selector like `.framer-HASH.framer-v-1rizoid .framer-15m2r2a` requires an ancestor variant class that is only
+present *during* the hover. It therefore marked the Home image wrappers — the known positive — as `static`,
+and every page as clean.
+
+**The fix is to match on the SUBJECT of the selector, not the whole selector:** split on `,`, take the last
+whitespace-separated compound, and collect its classes. Those are the elements whose width varies in *some*
+state. With that, Home comes back `AT RISK` and the control passes.
+
+**This is the recorded rule, earned again: validate a scan against a known positive before trusting a zero.**
+A sweep that reports nothing is indistinguishable from a sweep that cannot see anything — and here the two
+differed by one line of selector handling. The secondary sanity figure is worth printing too: every page
+reported 9-15 variant width/flex rules, which proves the scan was reading real data rather than an empty
+stylesheet set.
+
+**A sweep sees only the ACTIVE breakpoint.** Framer SSRs all three, but computed styles and rects exist only
+for the one in force, so a tablet-only or phone-only instance is invisible at desktop width. Re-run at each
+width — the two extra widths here took one call and did change the answer (the left wrapper drops out below
+1200 px).
