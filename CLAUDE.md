@@ -13441,3 +13441,75 @@ SmartComponent | Home / Hero Header | updated  <- NOT mine
 I wrote one padding value on `/news/:slug` and touched neither Home nor the hero, so the other two belong to the other website session or to Framer's own agent (which this file records as having had an un-reverted `Home / Hero Header` change before). **The padding is bound and verified in the document and will ship with whatever publish comes next, by any session** — so whoever publishes should know they are carrying this plus that Home work. **HELD ON SHAK'S INSTRUCTION 2026-10-26: do not publish this on your own initiative — wait until the other session's Home / Hero Header work is finished.** It is not abandoned and needs no re-doing; it is one padding value already stored on `P7DaU3y8EAKATRCTxN`, waiting for a publish it is safe to ride along on.
 
 **STILL OUT OF LINE AFTER THIS, AND IT IS HOME ITSELF: its phone newsroom card keeps the 65px empty meta box**, so Home will still read ~65px looser than `/news` and the article pages even once all three sections sit at 90px. That is the same box removed from the Read-more phone cards earlier today, and closing it is the same one-control write (`tXuTupbrQ: false` on `W8eJA5eCmAdscNAWHz`). **Not done: Shak named Home as the reference, so changing it was not in the ask.** Raised rather than assumed.
+
+### The phone hero now insets on scroll like desktop and tablet — BUILT AND VERIFIED, NOT YET PUBLISHED (2026-10-26)
+
+Shak: *"it goes from full bleed and slowly shrinks in size to match the margin of all other cards."* Desktop
+and tablet do that; phone did not.
+
+**THE EFFECT IS A VARIANT SWITCH, AND THE INSET IS THE VARIANT ROOT'S PADDING — not anything on the
+Container.** Measured on the published page first:
+
+```
+DESKTOP   framer-v-1p2k9g2 -> framer-v-c58v7q    Container 1536@0 -> 1506@15
+TABLET    framer-v-1p2k9g2 -> framer-v-c58v7q    Container  900@0 ->  870@15
+PHONE     framer-v-m1jx24  (never switches)      Container  390@0, always
+```
+
+The Container is `position: absolute; top/right/left: 0` in **every** variant, so a canvas read of it shows
+nothing. The difference is one level up:
+
+```
+                Image      Image Active            Mobile
+padding         0px        0px 15px 15px 15px      0px 0px 0px 0px
+Container       -          radius 0 0 10px 10px    -
+```
+
+**WHAT WAS BUILT.** A fourth variant on `Home / Hero Header` (`LXjJUpECH`):
+
+```
+eJkK_ItRM   Mobile Active   padding 0px 15px 15px 15px   Container eJkK_ItRMGEv__urtw radius 0 0 10px 10px
+```
+
+built by `Ctrl+D` on `Mobile` (`Ga1eDgeVy`), then renamed, padded and radiused **through the API** — all
+three are plain attribute writes on a component-internal node, which mutation supports. Verified by a
+separate `exec` and an idempotent re-run reporting `ALREADY` on all three.
+
+**And a `Scroll -> Variant` effect on the PHONE instance**, matching desktop field for field:
+
+```
+Trigger Section in view   Viewport Center   Replay Yes   Section #projects   To Mobile Active
+```
+
+**THE PHONE INSTANCE HAD NO SCROLL EFFECT AT ALL — the desktop one is NOT inherited.** On Phone the panel
+went straight `Effects -> Overlays` with no `Scroll` row, where Desktop has `Scroll / Variant` between them.
+**That absence is the cleanest way to tell the two instances apart in the panel**, along with the Phone
+instance's `Variant` label rendering blue (`rgb(0, 153, 255)` = breakpoint override).
+
+**!!! CHANGING A SCROLL EFFECT'S TRIGGER RESETS `Viewport` AS WELL AS `To`. !!!** This file records the `To`
+reset; `Viewport` does it too and is easier to miss because it is a segmented control with no text. A new
+effect defaults to `Layer in view` + `Center`; switching to `Section in view` left it on **`Top`**, which
+would have fired at a different scroll position than desktop. **Set the trigger FIRST, then re-read every
+other field in the popover.**
+
+**READ A SEGMENTED CONTROL'S STATE FROM THE CLASS `s56pukx`, not from colour.** The selected button carries
+it; all three Viewport buttons render the identical background, so the recorded colour heuristic works for
+Yes/No and fails for Viewport. `aria-label` gives each button's identity (`Top` / `Center` / `Bottom`).
+
+**An editor-duplicated variant IS offered to instances.** `Mobile Active` appeared in the effect's `To`
+dropdown immediately — the contrast with `addVariant`, whose creations never appear, is the creation route
+and nothing else.
+
+**Finding the Effects `+`:** it is not a `button` and has no `aria-label`, so a button scan returns nothing.
+It is a 10x10 `svg` of two crossed paths inside a 15x30 div at the right end of the `Effects` header row.
+Scan the whole band by coordinates instead. The `Scroll` submenu then opens on **hover**, not click.
+
+**NOT PUBLISHED — the preview carries a third change that is not mine**: `WebPage | /news/:slug | updated`,
+alongside my `WebPage | Home` and `SmartComponent | Home / Hero Header`. Two agreeing fresh sessions, hash
+`4yiirn`. Per the standing rule a preview whose change set exceeds your own is a stop.
+
+**To verify once published:** phone at 390 wide should switch `framer-v-m1jx24` to the new variant's class on
+scroll, with the hero `Container` going `390@0 -> 360@15`. The revealed 15px margin is `Section Hero`'s own
+`#080200`, so it reads as a dark frame — unlike desktop, where the same inset reveals the grey-to-white
+gradient and reads light. That asymmetry is deliberate and correct: a light margin on phone would reintroduce
+the bright edge the dark-buffer work exists to prevent.
