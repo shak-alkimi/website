@@ -12237,3 +12237,86 @@ discharge it — then come back and close it, because nobody else will.
 subject-height match, the clipping check at every breakpoint, and the route-fulfil technique for
 previewing a candidate at true card size without a permanent upload. Only the publication status was
 wrong.
+
+### THE HOME CARD GRADIENT COLLAPSED ON HOVER — a POSITIONING-MODE change between variants cannot animate (2026-10-25, PUBLISHED `d801b7af3`)
+
+Shak: *"something happens to the right card on hover and off hover sometimes"*, then *"the right card
+collapses left on its right side"*. Real, and it took a screen recording to catch.
+
+**IT ONLY HAPPENS WHILE A CARD IS SHRINKING, WHICH IS WHY EVERY PROBE I WROTE CAME BACK CLEAN.** The
+Overlay reaches its target size early while the card is still animating, so a wedge of card is left
+ungraded for the length of the spring. On the **growing** card the identical fault is invisible,
+because an over-wide overlay is clipped by `overflow: hidden`. I sampled the growing case repeatedly
+and declared the row healthy. **When a defect is reported on a symmetric interaction, sample BOTH
+directions — one of them can be structurally incapable of showing it.**
+
+**The cause, read from the emitted CSS:**
+
+```
+base                     .framer-lykl7s{width:100%;height:100%;top:0%;left:0%}
+v-1rizoid (left open)    .framer-a89f6k{bottom:0;left:unset;right:0;top:unset;width:150%}
+v-3q8m7a  (right open)   .framer-lykl7s{bottom:0;left:0;top:unset;width:150%}
+```
+
+The overlay is **centred at `width:100%` at rest and edge-anchored at `width:150%` when open** — the
+positioning MODE changes, not just a value. `left:0% -> left:unset; right:0` is not an animatable
+pair, so the intermediate box is incoherent. This file already records that *"positioning attributes
+are a mode, and writing the new mode's fields without clearing the old mode's is a silent no-op"* —
+**the same truth applies to ANIMATION: a variant transition that changes the mode has no coherent
+intermediate.**
+
+**THE FIX: pin the Overlay on all four edges in every variant**, so its size is *derived* from the
+card and is identical everywhere — there is nothing left to animate.
+
+```js
+await n.setAttributes({ left:"0px", right:"0px", top:"0px", bottom:"0px",
+                        width:null, height:null, centerX:null, centerY:null })
+```
+
+The emitted CSS is the proof, and it is the check worth repeating: **5 rules (a base plus four
+per-variant overrides) became ONE rule, `inset:0`, shared by both overlays, with zero variant
+overrides.** Home `-427` bytes, which is those rules leaving. Measured after: overlay width `==` card
+width with `dL=0.0 dR=0.0` in every frame of both directions.
+
+**Safe because the gradient is `linear-gradient(180deg, …)` — purely vertical, so horizontal size has
+no visual effect provided it covers.** That was checked in the served CSS *before* writing; had the
+gradient had any horizontal component, going from `150%` to exact-cover would have changed its
+appearance. **Check a gradient's angle before changing the geometry of the element carrying it.**
+
+**Writing the PRIMARY variant cascaded and cleared the per-variant overrides** — 4 writes made all 18
+nodes uniform. Expected here, but it means a geometry write to a primary variant is not a scoped edit.
+
+**`Home - Projects Row 2` was deliberately NOT mirrored.** Its two-up variants render nowhere (it
+serves only the Home wide card, which does not resize on hover), so it cannot show this. Pre-state and
+the Row 2 caveat: [repair/overlay-prestate-2026-10-25.md](repair/overlay-prestate-2026-10-25.md).
+
+**METHOD — THREE DIAGNOSES, TWO OF THEM WRONG, AND MEASUREMENT KILLED BOTH:**
+
+- **Compositor promotion.** The CSS carries `will-change:var(--framer-will-change-filter-override,filter)`
+  on the Image layer, which looks like a promoted layer and a stale-raster story. **It resolves to
+  `auto`** — zero promoted elements on the page. Dead.
+- **The asset.** The card had been swapped hours earlier, so transparency was the obvious suspect.
+  **Both Home card PNGs measure `minAlpha 255`, 0 transparent pixels.** Dead.
+- **"The cards stop filling the row."** Measuring the *gradient* bands gave `22-992` and `1014-1898`
+  against a 1506 CSS row and I briefly concluded both cards were undersized. **That used the symptom
+  as the measurement proxy.** Measuring the card by its own tone against the section background put
+  the right card's edge at `2250` in *every* frame, artifact frames included — the card is full width
+  and only the gradient is short. **Never measure an element using the very property that is broken.**
+
+**A SCREEN RECORDING IS THE RIGHT INSTRUMENT FOR A SUB-200ms VISUAL ARTIFACT, and nothing else here
+is.** Single screenshots have 150-300 ms of latency and missed it eight times; the GIF tool captures
+per-action and has the same problem; `requestAnimationFrame` is frozen in an automated tab (3 samples
+in 2.2 s). Shak's 60 fps capture gave **16.7 ms resolution — finer than any live sampler** — and the
+workflow is cheap and repeatable:
+
+```bash
+ffmpeg -ss T -i rec.mp4 -frames:v 1 -vf "crop=W:H:X:Y" out.png     # inspect one moment
+ffmpeg -i rec.mp4 -vf "fps=12,crop=...,scale=170:-1,tile=10x5" sheet.png   # find the moment
+ffmpeg -i rec.mp4 -vf "crop=...,format=gray,scale=..." -f rawvideo -pix_fmt gray band.raw
+```
+
+**The contact sheet is what found it** — 50 tiles, the artifact obvious in two rows, after an
+edge-detector had returned nothing useful twice because it kept locking onto the card's own boundary
+and the `Elements` label. **Build the contact sheet first and look; write the detector afterwards, to
+measure what you have already seen.** Using `gray` raw output is safe here because this detects
+*discontinuities*, not absolute colour, so the recorded ffmpeg colour hazards do not apply.
