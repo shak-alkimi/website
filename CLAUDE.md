@@ -14253,3 +14253,103 @@ Shak, before passing the site to others for feedback: *"is there anything open i
 **HOME'S 8 DIAGONAL PLACEHOLDER TILES ARE NORMAL STRUCTURE, NOT A DEFECT — and a scan for them will keep finding them.** The classless striped `<div>` sits at child index 0 of every `Image Wrapper` by design, with the `Image` above it at `z-index: 1`. **Its presence in the markup means nothing; only seeing it rendered means the image above went transparent.** Home is the only page with any, and its cards are verified rendering, so a future sweep that flags `background-size:64px` should check whether anything actually paints before reporting it.
 
 **Already settled and deliberately excluded from that report, so they do not return as findings:** the Home card text moving on hover, the Rima colour, the `/elements` bottom alignment, the desktop Read-more and Home newsroom meta boxes, the Framer projection retest, and the footer `Methodology` label.
+
+### A sixth menu row, "Kimi" — and TWO RECORDED EXPLANATIONS OF THIS MENU ARE WRONG (2026-10-27, PUBLISHED `bf10b4b49`)
+
+Shak asked for a `Kimi` row after Contact, with no link yet. The menu now reads
+`Fixtures 01 / Elements 02 / Methodology 03 / News 04 / Contact 05 / Kimi 06` on both variants.
+
+| | |
+|---|---|
+| new row | `QuiArP7Bu` (+ `Ys3TDsYHm` copy) — label `Kimi`, number `06`, **`link: null`** |
+| new divider | `jKgdbVn_D` (+ copy), instance on `X14_IfIPo` |
+| divider variant | the parked spare renamed **`Line Mobile Menu 6`** / `6 Active`, Delay `0.5 -> 0.95` |
+
+**Framer emits NO `href` for an empty link**, so the row renders as plain text rather than a dead link —
+verified live, `href: null` on all three breakpoints while the other five keep theirs.
+
+**!!! CORRECTION 1 — THE DIVIDERS ARE NOT `position: absolute`. `Link Wrapper` IS A FLEX COLUMN AND FRAMER
+EMITS AN EXPLICIT CSS `order` ON EVERY CHILD. !!!**
+
+The 2026-10-05 entry "THE TRAP THAT PRODUCED A FALSE POSITIVE" explains the scrambled desktop ordering as
+*"these layers are `position: absolute`, so the canvas layer-tree order is NOT the visual row order"*. The
+observation was right and the mechanism is wrong. Measured on the published page:
+
+```
+DOM i  name   inner variant      CSS order   rendered top
+0      ...    Menu 1 Active          2          384.5
+4      Line   Menu 5 Active         12          624.5    <- DOM 2nd, renders LAST
+10     Line   Menu 2 Active          4          444.5    <- DOM last, renders 2nd
+```
+
+Every child is `position: relative` with `cssTop: 0px` inside a `display: flex; flex-direction: column`
+parent, and carries its own `order`. The hidden Projects pair holds orders 5 and 6, which are simply not
+emitted — so the sequence runs `0,1,2,3,4,(5),(6),7,8,9,10,11,12`. **The canvas `position: absolute` and
+`centerX/centerY` stored on these nodes are inert leftovers** — the documented "stored position is intent,
+not what ships" trap, and reading them sent me down a blind alley for three calls.
+
+**!!! CORRECTION 2 — `getChildren()` RETURNS EVERY VARIANT'S CHILDREN IN THE *PRIMARY* VARIANT'S ORDER. !!!**
+
+This is what makes the desktop menu *look* mis-wired through the API and is worth internalising, because it
+will mislead any future audit of a multi-variant component:
+
+```
+getChildren("Desktop Full Menu")  slot 4 = s49USuPQH (Menu 5)   slot 12 = cgSGNfVC9 (Menu 2)
+layer panel, Desktop              slot 4 = cgSGNfVC9 (Menu 2)   slot 12 = s49USuPQH (Menu 5)
+```
+
+Both readings are of the same document. `s49USuPQH` and `cgSGNfVC9` genuinely sit in **swapped slots between
+the two variants**, each carrying the variant correct for the slot it occupies, so both render `1..5`
+ascending. **The layer panel shows each variant's own order; `getChildren()` does not.** For anything
+order-dependent inside a component, read the layer panel (`data-testid` carries the node id) or the emitted
+CSS `order` — never `getChildren()` alone.
+
+**!!! EDITING CANVAS TEXT ON A NON-PRIMARY VARIANT CREATES A SCOPED OVERRIDE AND DOES NOT CASCADE TO THE
+PRIMARY. !!!** I set the label and number on `Desktop Full Menu`; the canvas then showed Desktop reading
+`Kimi 06` and `Variant 1 · Primary` still reading `Contact 05`. This file records text as *shared* across
+variants (one edit changed both menu variants in 2026-10-02) — that holds only until a variant overrides it,
+and editing a non-primary variant IS that override. **Edit the primary, or edit both and look at the canvas.**
+The canvas render is the only oracle here: `getText()` throws `Node is not a text node` and `setText` throws
+`Node not found` on these component-internal nodes, both re-probed and both still failing.
+
+**APPENDING A CHILD INSIDE A COMPONENT: duplicate, then cut and paste into the parent.** `Ctrl+D` lands the
+copy immediately after its source, which put the new row *between* the Contact row and its divider. The fix is
+the recorded paste-appends behaviour — `Ctrl+X`, select `Link Wrapper`, `Ctrl+V` lands it last, **in both
+variants**, which a `Ctrl+D` cannot do when the two variants order their children differently. Expect new ids
+each time (`J5LqGVsKE -> QuiArP7Bu`).
+
+**THE SPARE DIVIDER VARIANT IS CONSUMED.** Before repurposing it I swept every page and component for users of
+`X14_IfIPo` / `TvMopUKMz`: exactly **2**, both the instances inside the *hidden* Projects divider. Nothing live.
+**Consequence: the hidden Projects divider now points at `Line Mobile Menu 6` (delay 0.95)**, so a Projects
+restore needs a fresh variant pair as well as the renumbering already recorded. Its Appear interaction already
+targeted `Line Mobile Menu 6 Active` with Delay `0`, so the stagger keeps its single source of truth in the
+variant Transition — which is exactly why reusing an intact pair beat duplicating one.
+
+**VERIFIED BY THE COMPILED CHUNK, WHICH IS THE DECISIVE CHECK FOR TIMING** (and needs no animation frames):
+
+```
+                        chunk                 delays (duration 1.2)        Spare (was 3)   Menu 6 / 6 Active
+before   shared-lib.NAXtzPSt.mjs    .2 .35 .5 .65 .8                            6               0
+after    shared-lib.WW1r5aoz.mjs    .2 .35 .5 .65 .8 .95                        0             3 / 3
+```
+
+Uniform 150 ms across six rows. Rendered, on all three widths: 6 rows, 6 dividers in `1..6 Active` order, row
+and divider pitch **60**, every divider **51.5** below its row.
+
+**THE EVEN-PITCH PROPERTY IS "ONE SHARED SUB-PIXEL PHASE", NOT "WHOLE DEVICE PIXELS".** The 2026-10-15 entry
+records divider tops landing on whole device pixels; this build gives `531.75, 621.75, 711.75, 801.75, 891.75,
+981.75` at `dpr 1.5` — fractional, and perfectly fine. The absolute phase depends on where the menu starts
+(viewport height), while the *pitch* is `60 x 1.5 = 90`, a whole number, so all six share one phase and render
+identically. **Check that the phases MATCH, not that they are integers.**
+
+**Home is unchanged in substance** — 97 text runs before and after, zero added or removed, `-8` bytes of build
+churn. The menu is injected at runtime, so `Line Mobile Menu` is **0** in the served HTML and none of this is
+visible in the markup; the three `Kimi` hits on Home are the **news article** "Kimi is next gen optimization",
+present identically before and after. Regression sweep 15/15.
+
+**The editor fought back throughout and the recorded recoveries all worked**: the first tab froze
+`Page.captureScreenshot` with a detached JS context (`divs: 4`) and **a fresh tab fixed it where a reload would
+not**; screenshots froze again mid-edit and the DOM carried the verification; and selecting a container
+auto-expanded it, so a coordinate reused across one selection hit the wrong row. **`data-testid` carries the
+node id and the selected row carries the class `rl63xea` with white text** — between them, selection can be
+driven and verified without a screenshot at all.
