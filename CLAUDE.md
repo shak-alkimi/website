@@ -14353,3 +14353,56 @@ not**; screenshots froze again mid-edit and the DOM carried the verification; an
 auto-expanded it, so a coordinate reused across one selection hit the wrong row. **`data-testid` carries the
 node id and the selected row carries the class `rl63xea` with white text** — between them, selection can be
 driven and verified without a screenshot at all.
+
+### The Kimi row links to `kimi.alkimiworks.com` in a new tab — and the link node is one level deeper than recorded (2026-10-27, PUBLISHED `99be8a648`)
+
+| node | variant | value |
+|---|---|---|
+| `LvbDERJX8` | `Variant 1 · Primary` | `link: "https://kimi.alkimiworks.com"` · `linkOpenInNewTab: true` |
+| `Ys3TDsYHmLvbDERJX8` | `Desktop Full Menu` | same |
+
+**!!! CORRECTION — THE MENU LINK LIVES ON `Open Navigation Link`, NOT ON `Individual Link Wrapper`. The entry above records the new row as `QuiArP7Bu` with `link: null`, which is true and misleading. !!!** Every row's wrapper reads `link: null`; the href sits on its single child:
+
+```
+QuiArP7Bu   Individual Link Wrapper   link=null  newTab=null    <- the row
+  LvbDERJX8   Open Navigation Link    link=null  newTab=false   <- carries the href
+```
+
+So a recorded `link: null` on a wrapper carries no information at all. **Read the `Open Navigation Link` child.**
+
+**A `FrameNode` HAS FULL LINK CONTROL — `link`, `linkOpenInNewTab`, `linkRelValues`, `linkPreserveParams`, `linkSmoothScroll` and `linkClickTrackingId`, all API-writable.** That is the opposite of the recorded Spec Sheet finding, where a dump of a **`ComponentInstanceNode`** returned no `target` / `linkOpenInNewTab` and new-tab was judged unreachable. Both are true: **a plain frame owns its link; a component instance does not.** Check the node class before concluding new-tab cannot be controlled.
+
+**`linkOpenInNewTab` WAS SET EXPLICITLY EVEN THOUGH THE DOCS SAY IT DEFAULTS.** They read *"Default is automatically determined based on link type"*, so an external URL would probably have opened a new tab unaided. Relying on that is the exact shape of the nav-background bug, where a variant that merely *inherited* a value emitted no entry and left Motion nothing to animate to. The other six rows all carry `false` explicitly, so `true` matches house convention — and it shipped as a real `target="_blank"`.
+
+**IDENTIFY THE TARGET ROW BY RENDERED EVIDENCE, NOT BY A RECORDED ID.** Two independent checks agreed before the write, which is what made the recorded-id ambiguity harmless:
+
+- in the canvas, **exactly one** of the 14 `Open Navigation Link` nodes had `link: null`;
+- on the live site, **exactly one** of six rows rendered as a `DIV` rather than an `<a>`, and its text was `Kimi06`.
+
+**!!! A `target="_blank"` ATTRIBUTE IS NOT PROOF THAT A NEW TAB OPENS — WAIT FOR THE POPUP EVENT. !!!** The stronger check costs one Playwright call and tests the browser's actual behaviour rather than the markup:
+
+```js
+const popup = await Promise.all([
+  page.context().waitForEvent('page', { timeout: 9000 }).catch(() => null),
+  kimiRow.click()
+]).then(r => r[0])
+```
+
+Result: `popupUrl https://kimi.alkimiworks.com/`, `title "ALKIMI"` — and the half that matters, **`originalPageUrl` still the Framer site**, i.e. the menu page did not navigate.
+
+**Live state, all six rows:**
+
+```
+Fixtures01     A  ./fixtures      target=null      Contact05  A  ./contact                     target=null
+Elements02     A  ./elements      target=null      Kimi06     A  https://kimi.alkimiworks.com  target=_blank
+Methodology03  A  ./methodology   target=null
+News04         A  ./news          target=null
+```
+
+Pitch 60, the hidden Projects row correctly absent, `rel` null on all six — modern browsers imply `noopener` for `target="_blank"`, consistent with the Spec Sheet link.
+
+**HOME IS BYTE-IDENTICAL AT `258,202` WITH A FRESH `Last-Modified`, AND THAT IS THE CORRECT RESULT.** The menu is injected at runtime and never appears in the SSR markup, so a link change cannot move the page bytes — it lives in the JS chunk, and the rendered DOM carrying the new href *is* the artifact check. **Do not read a byte-identical page as a failed build without first asking which artifact the change belongs to.**
+
+**`kimi.alkimiworks.com` was confirmed live before the write** — `200` over https, with http `301`-ing to it.
+
+**Publishing was refused by the harness as a production deploy, then authorized by Shak.** The block is real in some sessions and not others, so expect either. The guarded publish script aborts unless the preview reports exactly `changesCount 1` on `uL6YOTdAZ`; the preview itself read clean and uncontested on two independent fresh sessions.
